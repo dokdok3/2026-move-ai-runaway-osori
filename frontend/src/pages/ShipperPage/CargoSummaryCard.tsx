@@ -141,7 +141,7 @@ export function CargoSummaryCard({
     <Card>
       <Head>
         <Title>화물 정보</Title>
-        <Status>AI 변환</Status>
+        {cargo.aiParsed === true && <Status>AI 변환</Status>}
       </Head>
 
       <Route>
