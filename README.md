@@ -102,6 +102,8 @@ pnpm build-storybook
 Playwright E2E 테스트는 `cd frontend && pnpm test:e2e`로 별도 실행합니다.
 
 DB 스키마 변경은 `backend/src/main/resources/db/migration`에 Flyway SQL 파일로 추가합니다.
+시도·시군구 목록의 기준일, 좌표 산출 방식과 운영 반영 절차는
+[`docs/region-data.md`](docs/region-data.md)를 참고합니다.
 
 ## 배포
 
