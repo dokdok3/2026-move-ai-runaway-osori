@@ -105,8 +105,12 @@ export function MatchedDriverCard({ driver, fareVerdict }: MatchedDriverCardProp
           <Avatar aria-hidden="true" />
           {driver.name} 기사 · {driver.bodyType} {driver.capacityTon}톤
         </DriverLeft>
-        <Badge tone={fareVerdict === 'LOW' ? 'warn' : 'ok'}>
-          {fareVerdict === 'LOW' ? '운임 낮음' : '적정 운임'}
+        <Badge tone={fareVerdict === 'LOW' ? 'warn' : fareVerdict === 'FAIR' ? 'ok' : 'neutral'}>
+          {fareVerdict === 'LOW'
+            ? '운임 낮음'
+            : fareVerdict === 'FAIR'
+              ? '적정 운임'
+              : '시세 정보 없음'}
         </Badge>
       </DriverRow>
 

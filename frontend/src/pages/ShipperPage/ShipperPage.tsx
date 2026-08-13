@@ -124,8 +124,8 @@ export function ShipperPage() {
           <CargoSummaryCard
             cargo={cargo}
             onEdit={() => setCargoId(undefined)}
-            onRematch={handleConvert}
-            rematchLoading={isSubmitting}
+            onRematch={() => cargoDetailQuery.refetch()}
+            rematchLoading={cargoDetailQuery.isFetching}
           />
 
           {cargo.fare?.verdict === 'LOW' && cargo.fare.message && (
