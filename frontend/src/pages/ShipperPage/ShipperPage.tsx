@@ -6,6 +6,7 @@ import { FareWarningBanner } from '@/components/FareWarningBanner'
 import {
   useCargoCreateMutation,
   useCargoDetailQuery,
+  useMyCargosQuery,
   useCargoParseMutation,
 } from '@/api/cargo/service'
 import type { CreateCargoResponse } from '@/api/cargo/model'
@@ -13,6 +14,7 @@ import { toCargoType } from '@/utils/cargoType'
 import { CargoRequestForm } from './CargoRequestForm'
 import { CargoSummaryCard } from './CargoSummaryCard'
 import { MatchedDriverCard } from './MatchedDriverCard'
+import { MyCargoList } from './MyCargoList'
 
 /** 이 화면은 화주 로그인이 없는 데모라 화주 id를 고정값으로 둔다. */
 const DEMO_SHIPPER_ID = 1
@@ -30,6 +32,7 @@ export function ShipperPage() {
   const parseMutation = useCargoParseMutation()
   const createMutation = useCargoCreateMutation()
   const cargoDetailQuery = useCargoDetailQuery(cargoId)
+  const myCargosQuery = useMyCargosQuery({ shipperId: DEMO_SHIPPER_ID })
 
   const isSubmitting = parseMutation.isPending || createMutation.isPending
 
@@ -68,8 +71,8 @@ export function ShipperPage() {
       const created = await createMutation.mutateAsync({
         params: { shipperId: DEMO_SHIPPER_ID },
         body: {
-          origin: { sido: originSido, sigungu: parsed.origin?.sigungu },
-          destination: { sido: destSido, sigungu: parsed.destination?.sigungu },
+          origin: { sido: originSido, sigungu: parsed.origin?.sigungu ?? '전체' },
+          destination: { sido: destSido, sigungu: parsed.destination?.sigungu ?? '전체' },
           cargoType,
           cargoDescription: parsed.cargoDescription ?? rawText,
           weightTon,
@@ -77,7 +80,9 @@ export function ShipperPage() {
           loadingAt: parsed.loadingDate
             ? `${parsed.loadingDate}T09:00:00`
             : new Date().toISOString(),
-          unloadingAt: parsed.unloadingDate ? `${parsed.unloadingDate}T18:00:00` : undefined,
+          unloadingAt: parsed.unloadingDate
+            ? `${parsed.unloadingDate}T18:00:00`
+            : new Date().toISOString(),
         },
       })
 
@@ -88,6 +93,7 @@ export function ShipperPage() {
       }
 
       setCargoId(newCargoId)
+      await myCargosQuery.refetch()
     } catch (error) {
       setFormError(error instanceof Error ? error.message : '요청을 처리하지 못했어요.')
     }
@@ -115,6 +121,12 @@ export function ShipperPage() {
         onSubmit={handleConvert}
         loading={isSubmitting}
         error={formError}
+      />
+
+      <MyCargoList
+        cargos={myCargosQuery.data ?? []}
+        loading={myCargosQuery.isLoading}
+        error={myCargosQuery.isError}
       />
 
       {cargo && (

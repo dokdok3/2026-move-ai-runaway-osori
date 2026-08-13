@@ -27,6 +27,8 @@ const getOrSeed = (cargoId: number): CargoDetailResponse | undefined => {
 export const getCargoDetail = (cargoId: number): CargoDetailResponse | undefined =>
   getOrSeed(cargoId)
 
+export const getCreatedCargoDetails = (): CargoDetailResponse[] => Array.from(cargoStore.values())
+
 export const updateCargoDetail = (
   cargoId: number,
   patch: Partial<CargoDetailResponse>,

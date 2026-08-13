@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { cargoMutations, cargoQueries } from './queries'
+import type { GetMyCargosParams } from './model'
+
+export const useMyCargosQuery = (params: GetMyCargosParams) =>
+  useQuery(cargoQueries.myCargos(params))
 
 /** cargoId가 아직 없을 때(예: 화물 생성 전)는 조회를 미루기 위해 undefined를 허용한다. */
 export const useCargoDetailQuery = (cargoId: number | undefined) =>

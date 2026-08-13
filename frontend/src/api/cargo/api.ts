@@ -5,11 +5,26 @@ import type {
   CreateCargoRequest,
   CreateCargoResponse,
   GetCargoDetailResponse,
+  GetMyCargosParams,
+  GetMyCargosResponse,
   ParseCargoRequest,
   ParseCargoResponse,
   UpdateCargoRequest,
+  UpdateCargoParams,
   UpdateCargoResponse,
 } from './model'
+
+export const getMyCargos = async (params: GetMyCargosParams): Promise<GetMyCargosResponse> => {
+  const result = await apiClient.GET('/api/v1/cargos/me', { params: { query: params } })
+  if (!result.data) {
+    throw new Error(
+      extractApiErrorMessage(result.error) ??
+        `내 화물 목록을 불러오지 못했습니다 (status: ${result.response.status})`,
+    )
+  }
+
+  return result.data.data ?? []
+}
 
 export const createCargo = async (
   params: CreateCargoParams,
@@ -44,11 +59,12 @@ export const getCargoDetail = async (cargoId: number): Promise<GetCargoDetailRes
 }
 
 export const updateCargo = async (
-  cargoId: number,
+  params: UpdateCargoParams,
   body: UpdateCargoRequest,
 ): Promise<UpdateCargoResponse> => {
+  const { cargoId, shipperId } = params
   const result = await apiClient.PATCH('/api/v1/cargos/{cargoId}', {
-    params: { path: { cargoId } },
+    params: { path: { cargoId }, query: { shipperId } },
     body,
   })
   if (!result.data) {

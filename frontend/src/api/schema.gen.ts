@@ -4,6 +4,24 @@
  */
 
 export interface paths {
+  '/api/v1/shippers/me': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** 내 화주 프로필 조회 */
+    get: operations['getMe']
+    /** 내 화주 프로필 수정 */
+    put: operations['updateMe']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/drivers/me/route-preferences': {
     parameters: {
       query?: never
@@ -83,7 +101,8 @@ export interface paths {
     get: operations['detail']
     put?: never
     post?: never
-    delete?: never
+    /** 내 화물 삭제 (배차 대기 상태만 가능) */
+    delete: operations['delete']
     options?: never
     head?: never
     /** 화물 부분 수정 (보낸 필드만 반영) */
@@ -149,7 +168,24 @@ export interface paths {
       cookie?: never
     }
     /** 내 기사 프로필 조회 */
-    get: operations['getMe']
+    get: operations['getMe_1']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/cargos/me': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** 내가 등록한 화물 목록 조회 */
+    get: operations['getMyCargos']
     put?: never
     post?: never
     delete?: never
@@ -179,6 +215,27 @@ export interface paths {
 export type webhooks = Record<string, never>
 export interface components {
   schemas: {
+    ShipperProfileRequest: {
+      companyName: string
+      contactName: string
+      phoneNumber: string
+      businessNumber?: string
+      address?: string
+    }
+    ApiResponseShipperProfileResponse: {
+      success?: boolean
+      data?: components['schemas']['ShipperProfileResponse']
+      message?: string
+    }
+    ShipperProfileResponse: {
+      /** Format: int64 */
+      shipperId?: number
+      companyName?: string
+      contactName?: string
+      phoneNumber?: string
+      businessNumber?: string
+      address?: string
+    }
     RegionPoint: {
       sido?: string
       sigungu?: string
@@ -226,8 +283,8 @@ export interface components {
       message?: string
     }
     CargoCreateRequest: {
-      origin: components['schemas']['RegionPoint']
-      destination: components['schemas']['RegionPoint']
+      origin: components['schemas']['CargoRegionPoint']
+      destination: components['schemas']['CargoRegionPoint']
       /** @enum {string} */
       cargoType: 'REFRIGERATED' | 'GENERAL' | 'FROZEN' | 'CONSTRUCTION' | 'HAZARDOUS'
       cargoDescription?: string
@@ -239,9 +296,13 @@ export interface components {
       /** Format: date-time */
       loadingAt: string
       /** Format: date-time */
-      unloadingAt?: string
+      unloadingAt: string
       /** Format: int32 */
       distanceKm?: number
+    }
+    CargoRegionPoint: {
+      sido: string
+      sigungu: string
     }
     ApiResponseMapStringObject: {
       success?: boolean
@@ -393,6 +454,29 @@ export interface components {
       data?: components['schemas']['FareQuoteResponse']
       message?: string
     }
+    ApiResponseListShipperCargoResponse: {
+      success?: boolean
+      data?: components['schemas']['ShipperCargoResponse'][]
+      message?: string
+    }
+    ShipperCargoResponse: {
+      /** Format: int64 */
+      cargoId?: number
+      status?: string
+      origin?: components['schemas']['RegionPoint']
+      destination?: components['schemas']['RegionPoint']
+      cargoType?: string
+      cargoDescription?: string
+      weightTon?: number
+      /** Format: int32 */
+      desiredFare?: number
+      /** Format: date-time */
+      loadingAt?: string
+      /** Format: date-time */
+      unloadingAt?: string
+      /** Format: date-time */
+      createdAt?: string
+    }
   }
   responses: never
   parameters: never
@@ -402,6 +486,54 @@ export interface components {
 }
 export type $defs = Record<string, never>
 export interface operations {
+  getMe: {
+    parameters: {
+      query: {
+        shipperId: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseShipperProfileResponse']
+        }
+      }
+    }
+  }
+  updateMe: {
+    parameters: {
+      query: {
+        shipperId: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ShipperProfileRequest']
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseShipperProfileResponse']
+        }
+      }
+    }
+  }
   updateRoutePreferences: {
     parameters: {
       query: {
@@ -524,9 +656,35 @@ export interface operations {
       }
     }
   }
+  delete: {
+    parameters: {
+      query: {
+        shipperId: number
+      }
+      header?: never
+      path: {
+        cargoId: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseMapStringObject']
+        }
+      }
+    }
+  }
   update: {
     parameters: {
-      query?: never
+      query: {
+        shipperId: number
+      }
       header?: never
       path: {
         cargoId: number
@@ -620,7 +778,7 @@ export interface operations {
       }
     }
   }
-  getMe: {
+  getMe_1: {
     parameters: {
       query: {
         driverId: number
@@ -638,6 +796,28 @@ export interface operations {
         }
         content: {
           '*/*': components['schemas']['ApiResponseDriverResponse']
+        }
+      }
+    }
+  }
+  getMyCargos: {
+    parameters: {
+      query: {
+        shipperId: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseListShipperCargoResponse']
         }
       }
     }

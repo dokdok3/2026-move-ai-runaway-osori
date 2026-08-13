@@ -20,6 +20,13 @@ describe('ShipperPage', () => {
     expect(within(summaryCard).getByText(/냉장 · 5톤/)).toBeInTheDocument()
     expect(within(summaryCard).getByText('500,000원')).toBeInTheDocument()
 
+    const myCargoHeading = screen.getByRole('heading', { name: '내 화물' })
+    const myCargoCard = myCargoHeading.parentElement?.parentElement as HTMLElement
+    await waitFor(() => {
+      expect(within(myCargoCard).getByText('총 1건')).toBeInTheDocument()
+      expect(within(myCargoCard).getByText('서울특별시 → 부산광역시')).toBeInTheDocument()
+    })
+
     await waitFor(() => {
       expect(
         screen.getByText('아직 매칭된 기사가 없어요. 잠시 후 다시 확인해 주세요.'),

@@ -1,9 +1,11 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query'
-import { createCargo, getCargoDetail, parseCargo, updateCargo } from './api'
+import { createCargo, getCargoDetail, getMyCargos, parseCargo, updateCargo } from './api'
 import type {
   CreateCargoParams,
   CreateCargoRequest,
+  GetMyCargosParams,
   ParseCargoRequest,
+  UpdateCargoParams,
   UpdateCargoRequest,
 } from './model'
 
@@ -11,6 +13,8 @@ export const cargoQueryKeys = {
   all: ['cargo'] as const,
   details: () => [...cargoQueryKeys.all, 'detail'] as const,
   detail: (cargoId: number) => [...cargoQueryKeys.details(), cargoId] as const,
+  myCargos: (params: GetMyCargosParams) =>
+    [...cargoQueryKeys.all, 'my-cargos', params.shipperId] as const,
 }
 
 export const cargoQueries = {
@@ -18,6 +22,11 @@ export const cargoQueries = {
     queryOptions({
       queryKey: cargoQueryKeys.detail(cargoId),
       queryFn: () => getCargoDetail(cargoId),
+    }),
+  myCargos: (params: GetMyCargosParams) =>
+    queryOptions({
+      queryKey: cargoQueryKeys.myCargos(params),
+      queryFn: () => getMyCargos(params),
     }),
 }
 
@@ -31,8 +40,8 @@ export const cargoMutations = {
   update: () =>
     mutationOptions({
       mutationKey: [...cargoQueryKeys.all, 'update'],
-      mutationFn: ({ cargoId, body }: { cargoId: number; body: UpdateCargoRequest }) =>
-        updateCargo(cargoId, body),
+      mutationFn: ({ params, body }: { params: UpdateCargoParams; body: UpdateCargoRequest }) =>
+        updateCargo(params, body),
     }),
   parse: () =>
     mutationOptions({

@@ -1,12 +1,29 @@
 import { HttpResponse } from 'msw'
 import { createOpenApiHttp } from 'openapi-msw'
 import type { paths } from '@/api/schema.gen'
-import { getCargoDetail, createCargoDetail, updateCargoDetail } from '../data/store'
+import {
+  getCargoDetail,
+  getCreatedCargoDetails,
+  createCargoDetail,
+  updateCargoDetail,
+} from '../data/store'
 import { parseFreeText, toFareQuoteResponse } from '../data/transform'
 
 const http = createOpenApiHttp<paths>()
 
 export const cargoHandlers = [
+  http.get('/api/v1/cargos/me', ({ query }) => {
+    const shipperId = Number(query.get('shipperId'))
+    if (!shipperId) {
+      return HttpResponse.json(
+        { success: false, message: '화주를 찾을 수 없습니다.' },
+        { status: 404 },
+      )
+    }
+
+    return HttpResponse.json({ success: true, data: getCreatedCargoDetails() })
+  }),
+
   http.get('/api/v1/cargos/{cargoId}', ({ params }) => {
     const cargoId = Number(params.cargoId)
     const cargo = getCargoDetail(cargoId)
