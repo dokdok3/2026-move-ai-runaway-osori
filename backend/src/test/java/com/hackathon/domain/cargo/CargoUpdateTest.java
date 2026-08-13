@@ -52,6 +52,47 @@ class CargoUpdateTest {
     }
 
     @Test
+    @DisplayName("주소를 수정할 때 시군구가 없으면 400")
+    void rejectsMissingSigunguOnRouteUpdate() throws Exception {
+        Long id = newCargo();
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/cargos/" + id)
+                        .header("X-User-Id", "200")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "origin": {"sido": "서울특별시", "sigungu": null},
+                                  "destination": {"sido": "부산광역시"}
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("시군구를 입력해주세요."));
+
+        Cargo cargo = cargoRepository.findById(id).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(cargo.getOriginSigungu()).isEqualTo("수원시");
+        org.assertj.core.api.Assertions.assertThat(cargo.getDestSigungu()).isEqualTo("강서구");
+    }
+
+    @Test
+    @DisplayName("주소를 수정할 때 시군구가 전체이면 400")
+    void rejectsWholeSigunguOnRouteUpdate() throws Exception {
+        Long id = newCargo();
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/cargos/" + id)
+                        .header("X-User-Id", "200")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"origin": {"sido": "서울특별시", "sigungu": "전체"}}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("화물 주소의 시군구는 전체를 선택할 수 없습니다."));
+
+        Cargo cargo = cargoRepository.findById(id).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(cargo.getOriginSigungu()).isEqualTo("수원시");
+    }
+
+    @Test
     @Transactional
     @DisplayName("배차 완료된 화물은 수정할 수 없다")
     void rejectsMatchedCargo() throws Exception {

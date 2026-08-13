@@ -70,7 +70,7 @@ public class CargoController {
     @Operation(summary = "화물 부분 수정 (보낸 필드만 반영)")
     public ApiResponse<CargoDetailResponse> update(@PathVariable Long cargoId,
                                                     @LoginUser Long shipperId,
-                                                    @RequestBody CargoUpdateRequest request) {
+                                                    @Valid @RequestBody CargoUpdateRequest request) {
         return ApiResponse.ok(cargoService.update(shipperId, cargoId, request));
     }
 

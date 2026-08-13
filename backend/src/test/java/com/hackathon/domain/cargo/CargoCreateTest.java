@@ -169,4 +169,20 @@ class CargoCreateTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("시군구를 입력해주세요."));
     }
+
+    @Test
+    @DisplayName("화물 주소의 시군구가 전체이면 400")
+    void rejectsWholeSigungu() throws Exception {
+        String invalid = BODY
+                .replace("\"sigungu\": \"강남구\"", "\"sigungu\": \"전체\"")
+                .replace("\"sigungu\": \"해운대구\"", "\"sigungu\": \"전체\"");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos")
+                        .header("X-User-Id", "100")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalid))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("화물 주소의 시군구는 전체를 선택할 수 없습니다."));
+    }
 }
