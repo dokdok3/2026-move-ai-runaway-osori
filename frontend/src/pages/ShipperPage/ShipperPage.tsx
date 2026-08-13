@@ -182,19 +182,33 @@ export function ShipperPage() {
   return (
     <PageLayout>
       {!showCreate && !cargo ? (
-        <MyCargoList
-          cargos={myCargosQuery.data?.content ?? []}
-          loading={myCargosQuery.isLoading}
-          error={myCargosQuery.isError}
-          onCreate={() => setShowCreate(true)}
-          page={myCargosQuery.data?.page ?? cargoPage}
-          totalPages={myCargosQuery.data?.totalPages ?? 0}
-          onPageChange={setCargoPage}
-          onSelect={(selectedCargoId) => {
-            setSelectedFromList(true)
-            setCargoId(selectedCargoId)
-          }}
-        />
+        <>
+          <Hero
+            eyebrow="✦ 내 화물 한눈에 보기"
+            title={
+              <>
+                등록한 화물,
+                <br />
+                진행 상황 확인하세요
+              </>
+            }
+            description="배차부터 운송 완료까지 상태별로 모아서 보여드려요."
+          />
+
+          <MyCargoList
+            cargos={myCargosQuery.data?.content ?? []}
+            loading={myCargosQuery.isLoading}
+            error={myCargosQuery.isError}
+            onCreate={() => setShowCreate(true)}
+            page={myCargosQuery.data?.page ?? cargoPage}
+            totalPages={myCargosQuery.data?.totalPages ?? 0}
+            onPageChange={setCargoPage}
+            onSelect={(selectedCargoId) => {
+              setSelectedFromList(true)
+              setCargoId(selectedCargoId)
+            }}
+          />
+        </>
       ) : showCreate && !cargo && !manualMode ? (
         <>
           <Hero
