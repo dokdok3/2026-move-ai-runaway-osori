@@ -24,13 +24,22 @@ jobs:
     runs-on: [self-hosted, Linux, X64, ec2, production]
     outputs:
       image-tag: ${{ steps.image.outputs.tag }}
+      started-at: ${{ steps.deployment.outputs.started-at }}
     steps:
       - uses: actions/checkout@v4
+      - id: deployment
+        name: Start deployment status
+        run: |
+          started_at="$(date +%s)"
+          echo "started-at=$started_at" >> "$GITHUB_OUTPUT"
+          sudo install -d -o "$USER" -g "$USER" -m 755 /var/www/hackathon-deploy
+          install -m 644 deploy/status/index.html /var/www/hackathon-deploy/index.html
+          DEPLOY_STATUS_DIR=/var/www/hackathon-deploy \
+            scripts/write-deploy-status.sh building test unknown none none "$started_at"
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "25"
-          cache: gradle
       - name: Test backend
         working-directory: backend
         run: ./gradlew test --no-daemon
@@ -40,11 +49,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
       - name: Test frontend
         working-directory: frontend
-        run: pnpm install --frozen-lockfile && pnpm lint && pnpm build
+        run: pnpm install --frozen-lockfile --prefer-offline && pnpm lint && pnpm build
+      - name: Mark image build status
+        run: |
+          DEPLOY_STATUS_DIR=/var/www/hackathon-deploy \
+            scripts/write-deploy-status.sh building image-build "${GITHUB_SHA}" none none '${{ steps.deployment.outputs.started-at }}'
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -75,6 +86,15 @@ jobs:
             ${{ env.FRONTEND_IMAGE }}:latest
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
+      - name: Mark images ready
+        run: |
+          DEPLOY_STATUS_DIR=/var/www/hackathon-deploy \
+            scripts/write-deploy-status.sh deploying image-ready "${GITHUB_SHA}" none none '${{ steps.deployment.outputs.started-at }}'
+      - name: Mark build failure
+        if: failure()
+        run: |
+          DEPLOY_STATUS_DIR=/var/www/hackathon-deploy \
+            scripts/write-deploy-status.sh failed failed "${GITHUB_SHA}" none none '${{ steps.deployment.outputs.started-at }}'
 
   deploy:
     name: Blue-green deploy
@@ -89,13 +109,17 @@ jobs:
           install -d "$HOME/hackathon-deploy/scripts" "$HOME/hackathon-deploy/deploy/nginx"
           install -m 644 compose.prod.yaml "$HOME/hackathon-deploy/compose.prod.yaml"
           install -m 755 scripts/deploy-blue-green.sh "$HOME/hackathon-deploy/scripts/deploy-blue-green.sh"
+          install -m 755 scripts/write-deploy-status.sh "$HOME/hackathon-deploy/scripts/write-deploy-status.sh"
           install -m 644 deploy/nginx/hackathon.conf.template "$HOME/hackathon-deploy/deploy/nginx/hackathon.conf.template"
+          sudo install -d -o "$USER" -g "$USER" -m 755 /var/www/hackathon-deploy
+          install -m 644 deploy/status/index.html /var/www/hackathon-deploy/index.html
       - name: Authenticate to GHCR
         run: printf '%s' '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io --username '${{ github.actor }}' --password-stdin
       - name: Switch blue-green deployment
         run: |
           cd "$HOME/hackathon-deploy"
           BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" \
+            DEPLOY_STARTED_AT='${{ needs.build-and-push.outputs.started-at }}' \
             scripts/deploy-blue-green.sh '${{ needs.build-and-push.outputs.image-tag }}'
       - name: Logout from GHCR
         if: always()
