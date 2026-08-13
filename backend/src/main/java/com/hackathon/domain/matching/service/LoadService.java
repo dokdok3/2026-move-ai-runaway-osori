@@ -55,11 +55,11 @@ public class LoadService {
     private final DriverHiddenCargoRepository driverHiddenCargoRepository;
 
     @Transactional(readOnly = true)
-    public List<LoadResponse> findLoads(Long driverId, LoadType type, String preferenceText, boolean refresh) {
-        return switch (type) {
+    public List<LoadResponse> findLoads(Long driverId, LoadType filter, String preferenceText, boolean refresh) {
+        return switch (filter) {
             case ACCEPTED -> findAcceptedLoads(driverId);
             case HIDDEN -> findHiddenLoads(driverId);
-            case AVAILABLE -> findAvailableLoads(driverId, preferenceText, refresh);
+            case ALL -> findAvailableLoads(driverId, preferenceText, refresh);
         };
     }
 

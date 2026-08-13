@@ -62,6 +62,37 @@ class LoadControllerTest {
     }
 
     @Test
+    @DisplayName("프론트 필터 ALL로 매칭 가능한 화물을 조회한다")
+    void returnsAvailableLoadsWithAllFilter() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
+                        .header("X-User-Id", "1")
+                        .param("filter", "ALL"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("프론트 필터 HIDDEN으로 숨긴 화물 목록을 조회한다")
+    void returnsHiddenLoadsWithHiddenFilter() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
+                        .header("X-User-Id", "1")
+                        .param("filter", "HIDDEN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray());
+    }
+
+    @Test
+    @DisplayName("프론트 필터 ACCEPTED로 수락한 화물 목록을 조회한다")
+    void returnsAcceptedLoadsWithAcceptedFilter() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
+                        .header("X-User-Id", "1")
+                        .param("filter", "ACCEPTED"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray());
+    }
+
+    @Test
     @DisplayName("시세 조회에 성공한 모든 화물에 평균 운임과 판정을 제공한다")
     void returnsFareInfoForEveryLoad() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
