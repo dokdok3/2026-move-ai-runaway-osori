@@ -15,6 +15,7 @@ export interface MyCargoListProps {
   page: number
   totalPages: number
   onPageChange: (page: number) => void
+  onSelect: (cargoId: number) => void
 }
 
 type CargoFilter = 'ALL' | 'ACTIVE' | 'DONE'
@@ -75,11 +76,28 @@ const List = styled.ul`
   list-style: none;
 `
 
-const Item = styled.li`
+const Item = styled.button`
+  width: 100%;
   padding: 16px;
   border: 1px solid ${(props) => props.theme.color.border};
   border-radius: ${(props) => props.theme.radius.md};
   background: ${(props) => props.theme.color.surface};
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:focus-visible {
+    outline: 3px solid ${(props) => props.theme.color.focus};
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      border-color: ${(props) => props.theme.color.mutedLight};
+    }
+  }
 `
 
 const ItemHead = styled.div`
@@ -203,6 +221,7 @@ export function MyCargoList({
   page,
   totalPages,
   onPageChange,
+  onSelect,
 }: MyCargoListProps) {
   const [filter, setFilter] = useState<CargoFilter>('ALL')
   const doneCount = cargos.filter((cargo) => isDone(cargo.status)).length
@@ -244,25 +263,31 @@ export function MyCargoList({
         <>
           <List>
             {visibleCargos.map((cargo) => (
-              <Item key={cargo.cargoId}>
-                <ItemHead>
-                  <Badge tone={cargo.status === 'MATCHED' ? 'ok' : 'neutral'}>
-                    {statusLabel(cargo.status)}
-                  </Badge>
-                  <DateText>{registeredDate(cargo.createdAt)}</DateText>
-                </ItemHead>
-                <Route>
-                  {placeName(cargo.origin)} <span aria-hidden="true">→</span>{' '}
-                  {placeName(cargo.destination)}
-                </Route>
-                <Bottom>
-                  <Meta>
-                    {formatShortDateTime(cargo.loadingAt)} 상차 ·{' '}
-                    {getCargoTypeLabel(cargo.cargoType)} {cargo.weightTon ?? '-'}톤
-                  </Meta>
-                  <Fare>{formatFare(cargo.desiredFare)}</Fare>
-                </Bottom>
-              </Item>
+              <li key={cargo.cargoId}>
+                <Item
+                  type="button"
+                  aria-label={`${placeName(cargo.origin)}에서 ${placeName(cargo.destination)} 화물 상세 보기`}
+                  onClick={() => cargo.cargoId !== undefined && onSelect(cargo.cargoId)}
+                >
+                  <ItemHead>
+                    <Badge tone={cargo.status === 'MATCHED' ? 'ok' : 'neutral'}>
+                      {statusLabel(cargo.status)}
+                    </Badge>
+                    <DateText>{registeredDate(cargo.createdAt)}</DateText>
+                  </ItemHead>
+                  <Route>
+                    {placeName(cargo.origin)} <span aria-hidden="true">→</span>{' '}
+                    {placeName(cargo.destination)}
+                  </Route>
+                  <Bottom>
+                    <Meta>
+                      {formatShortDateTime(cargo.loadingAt)} 상차 ·{' '}
+                      {getCargoTypeLabel(cargo.cargoType)} {cargo.weightTon ?? '-'}톤
+                    </Meta>
+                    <Fare>{formatFare(cargo.desiredFare)}</Fare>
+                  </Bottom>
+                </Item>
+              </li>
             ))}
           </List>
           {totalPages > 1 && (
