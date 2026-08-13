@@ -15,7 +15,7 @@
     "/api/v1/drivers/me/route-preferences": {
       "put": {
         "tags": ["Driver"],
-        "summary": "\ub2e4\ub2c8\ub294 \uad6c\uac04 \uc804\uccb4 \uad50\uccb4 \uc800\uc7a5",
+        "summary": "다니는 구간 전체 교체 저장",
         "operationId": "updateRoutePreferences",
         "parameters": [
           {
@@ -55,7 +55,7 @@
     "/api/v1/loads/{cargoId}/accept": {
       "post": {
         "tags": ["Load"],
-        "summary": "\ud654\ubb3c \uc218\ub77d",
+        "summary": "화물 수락",
         "operationId": "accept",
         "parameters": [
           {
@@ -94,7 +94,7 @@
     "/api/v1/cargos": {
       "post": {
         "tags": ["Cargo"],
-        "summary": "\ud654\ubb3c \ub4f1\ub85d",
+        "summary": "화물 등록",
         "operationId": "create",
         "parameters": [
           {
@@ -134,7 +134,7 @@
     "/api/v1/cargos/parse": {
       "post": {
         "tags": ["Cargo"],
-        "summary": "\uc790\uc5f0\uc5b4 \ubb38\uc7a5\uc744 \ud654\ubb3c \ud56d\ubaa9\uc73c\ub85c \ud30c\uc2f1 (\uc800\uc7a5\ud558\uc9c0 \uc54a\uc74c)",
+        "summary": "자연어 문장을 화물 항목으로 파싱 (저장하지 않음)",
         "operationId": "parse",
         "requestBody": {
           "content": {
@@ -163,7 +163,7 @@
     "/api/v1/cargos/{cargoId}": {
       "get": {
         "tags": ["Cargo"],
-        "summary": "\ud654\ubb3c \uc0c1\uc138 \uc870\ud68c",
+        "summary": "화물 상세 조회",
         "operationId": "detail",
         "parameters": [
           {
@@ -191,7 +191,7 @@
       },
       "patch": {
         "tags": ["Cargo"],
-        "summary": "\ud654\ubb3c \ubd80\ubd84 \uc218\uc815 (\ubcf4\ub0b8 \ud544\ub4dc\ub9cc \ubc18\uc601)",
+        "summary": "화물 부분 수정 (보낸 필드만 반영)",
         "operationId": "update",
         "parameters": [
           {
@@ -231,7 +231,7 @@
     "/api/v1/regions": {
       "get": {
         "tags": ["Region"],
-        "summary": "\uc2dc\ub3c4\u00b7\uc2dc\uad70\uad6c \uc9c0\uc5ed \ubaa9\ub85d \uc870\ud68c",
+        "summary": "시도·시군구 지역 목록 조회",
         "operationId": "getRegions",
         "responses": {
           "200": {
@@ -250,7 +250,7 @@
     "/api/v1/loads": {
       "get": {
         "tags": ["Load"],
-        "summary": "\uae30\uc0ac \uad6c\uac04 \uae30\uc900 \ub9e4\uce6d \uc810\uc218\uc21c \ud654\ubb3c \ubaa9\ub85d",
+        "summary": "기사 구간 기준 매칭 점수순 화물 목록",
         "operationId": "getLoads",
         "parameters": [
           {
@@ -280,7 +280,7 @@
     "/api/v1/fares/quote": {
       "get": {
         "tags": ["Fare"],
-        "summary": "\uad6c\uac04 \uc6b4\uc784 \uc2dc\uc138 \uc870\ud68c (DB \uce90\uc2dc \uc6b0\uc120, miss \uc2dc AI \ucd94\uc815)",
+        "summary": "구간 운임 시세 조회 (DB 캐시 우선, miss 시 AI 추정)",
         "operationId": "quote",
         "parameters": [
           {
@@ -343,7 +343,7 @@
     "/api/v1/drivers/me": {
       "get": {
         "tags": ["Driver"],
-        "summary": "\ub0b4 \uae30\uc0ac \ud504\ub85c\ud544 \uc870\ud68c",
+        "summary": "내 기사 프로필 조회",
         "operationId": "getMe",
         "parameters": [
           {
@@ -373,7 +373,7 @@
     "/api/health": {
       "get": {
         "tags": ["System"],
-        "summary": "API \uc0c1\ud0dc \ud655\uc778",
+        "summary": "API 상태 확인",
         "operationId": "health",
         "responses": {
           "200": {
