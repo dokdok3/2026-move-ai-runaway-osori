@@ -164,6 +164,10 @@ public class LoadService {
             throw new BusinessException(ErrorCode.CARGO_ALREADY_MATCHED);
         }
 
+        DriverHiddenCargoId hiddenId = new DriverHiddenCargoId(driverId, cargoId);
+        if (driverHiddenCargoRepository.existsById(hiddenId)) {
+            driverHiddenCargoRepository.deleteById(hiddenId);
+        }
         Assignment assignment = assignmentRepository.save(Assignment.of(cargoId, driverId));
         return new AcceptResponse(assignment.getId(), cargoId, CargoStatus.MATCHED.name());
     }
