@@ -8,8 +8,9 @@ import lombok.RequiredArgsConstructor;
 public enum ErrorCode implements ErrorCodeSpec {
     UNAUTHORIZED(401, "사용자 식별에 실패했습니다."),
     CARGO_NOT_FOUND(404, "화물을 찾을 수 없습니다."),
+    CARGO_ACCESS_DENIED(403, "본인이 등록한 화물만 관리할 수 있습니다."),
     CARGO_ALREADY_MATCHED(409, "이미 배차된 화물입니다."),
-    CARGO_NOT_MODIFIABLE(400, "배차 완료된 화물은 수정할 수 없습니다."),
+    CARGO_NOT_MODIFIABLE(400, "배차 완료된 화물은 수정하거나 삭제할 수 없습니다."),
     VEHICLE_NOT_SUITABLE(400, "차량 적재량이 부족합니다."),
     DRIVER_NOT_FOUND(404, "기사를 찾을 수 없습니다."),
     SHIPPER_NOT_FOUND(404, "화주를 찾을 수 없습니다."),

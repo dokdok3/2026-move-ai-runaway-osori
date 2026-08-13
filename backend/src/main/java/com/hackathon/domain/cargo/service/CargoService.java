@@ -3,6 +3,7 @@ package com.hackathon.domain.cargo.service;
 import com.hackathon.domain.cargo.dto.CargoCreateRequest;
 import com.hackathon.domain.cargo.dto.CargoDetailResponse;
 import com.hackathon.domain.cargo.dto.CargoUpdateRequest;
+import com.hackathon.domain.cargo.dto.ShipperCargoResponse;
 import com.hackathon.domain.cargo.entity.Cargo;
 import com.hackathon.domain.cargo.repository.CargoRepository;
 import com.hackathon.domain.driver.dto.DriverResponse;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -42,9 +44,17 @@ public class CargoService {
         return CargoDetailResponse.of(cargo, quoteOrNull(cargo), assignedDriverOrNull(cargoId));
     }
 
+    @Transactional(readOnly = true)
+    public List<ShipperCargoResponse> findMyCargos(Long shipperId) {
+        return cargoRepository.findByShipperIdOrderByCreatedAtDesc(shipperId).stream()
+                .map(ShipperCargoResponse::from)
+                .toList();
+    }
+
     @Transactional
-    public CargoDetailResponse update(Long cargoId, CargoUpdateRequest request) {
+    public CargoDetailResponse update(Long shipperId, Long cargoId, CargoUpdateRequest request) {
         Cargo cargo = getCargo(cargoId);
+        verifyOwner(shipperId, cargo);
         if (!cargo.isModifiable()) {
             throw new BusinessException(ErrorCode.CARGO_NOT_MODIFIABLE);
         }
@@ -72,10 +82,26 @@ public class CargoService {
         return CargoDetailResponse.of(cargo, quoteOrNull(cargo), assignedDriverOrNull(cargoId));
     }
 
+    @Transactional
+    public void delete(Long shipperId, Long cargoId) {
+        Cargo cargo = getCargo(cargoId);
+        verifyOwner(shipperId, cargo);
+        if (!cargo.isModifiable()) {
+            throw new BusinessException(ErrorCode.CARGO_NOT_MODIFIABLE);
+        }
+        cargoRepository.delete(cargo);
+    }
+
     @Transactional(readOnly = true)
     public Cargo getCargo(Long cargoId) {
         return cargoRepository.findById(cargoId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CARGO_NOT_FOUND));
+    }
+
+    private void verifyOwner(Long shipperId, Cargo cargo) {
+        if (!cargo.getShipperId().equals(shipperId)) {
+            throw new BusinessException(ErrorCode.CARGO_ACCESS_DENIED);
+        }
     }
 
     private DriverResponse assignedDriverOrNull(Long cargoId) {

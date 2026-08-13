@@ -64,4 +64,40 @@ class CargoUpdateTest {
                         .content("{\"desiredFare\": 620000}"))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("다른 화주의 화물은 수정할 수 없다")
+    void rejectsUpdateByOtherShipper() throws Exception {
+        Long id = newCargo();
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/cargos/" + id)
+                        .header("X-User-Id", "201")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"desiredFare\": 620000}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("배차 대기 중인 내 화물을 삭제한다")
+    void deletesMyRequestedCargo() throws Exception {
+        Long id = newCargo();
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/cargos/" + id)
+                        .header("X-User-Id", "200"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("DELETED"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/cargos/" + id))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("다른 화주의 화물은 삭제할 수 없다")
+    void rejectsDeleteByOtherShipper() throws Exception {
+        Long id = newCargo();
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/cargos/" + id)
+                        .header("X-User-Id", "201"))
+                .andExpect(status().isForbidden());
+    }
 }

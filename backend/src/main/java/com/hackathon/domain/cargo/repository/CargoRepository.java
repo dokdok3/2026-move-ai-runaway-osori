@@ -13,6 +13,8 @@ public interface CargoRepository extends JpaRepository<Cargo, Long> {
 
     List<Cargo> findByStatus(CargoStatus status);
 
+    List<Cargo> findByShipperIdOrderByCreatedAtDesc(Long shipperId);
+
     List<Cargo> findByOriginSidoAndDestSidoAndCargoType(String originSido, String destSido,
                                                          CargoType cargoType);
 

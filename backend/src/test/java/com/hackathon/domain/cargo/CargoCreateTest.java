@@ -63,6 +63,30 @@ class CargoCreateTest {
     }
 
     @Test
+    @DisplayName("화주는 본인이 등록한 화물만 최신순으로 조회한다")
+    void returnsOnlyMyCargos() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos")
+                        .header("X-User-Id", "200")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(BODY))
+                .andExpect(status().isOk());
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos")
+                        .header("X-User-Id", "201")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(BODY))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/cargos/me")
+                        .header("X-User-Id", "200"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].status").value("REQUESTED"))
+                .andExpect(jsonPath("$.data[0].origin.sido").value("서울특별시"))
+                .andExpect(jsonPath("$.data[0].unloadingAt").value("2026-08-12T18:00:00"));
+    }
+
+    @Test
     @DisplayName("없는 화물을 조회하면 404")
     void rejectsUnknownCargo() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/cargos/999999")
