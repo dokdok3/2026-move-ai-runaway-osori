@@ -1,0 +1,134 @@
+### 기사 페이지 API 수동 테스트
+### 사용법 (IntelliJ Ultimate/PyCharm 등 내장 HTTP Client 기준):
+###   1. 인프라 기동: 저장소 루트에서 `docker compose up -d postgres redis`
+###   2. 서버 기동: `cd backend && ./gradlew bootRun` — 부팅 시 DataInitializer가 기사 2명(driverId=1,2)과
+###      화물 4건을 자동으로 seed한다 (기사 가입 화면은 범위 밖이라 seed 데이터로 대체).
+###   3. 각 요청 위의 ▷ 버튼을 눌러 순서대로 실행 (04 → 05 → 06 순서 권장, cargoId를 이어받음)
+### VS Code REST Client 등 다른 클라이언트를 쓴다면 05/06의 {{cargoId}}를 04 응답의 실제 값으로 바꿔서 실행하면 된다.
+### seed 구성: driverId=1(카고 25t, 수원/용인/서울전체 → 부산전체/송파구), driverId=2(탑차 5t, 활동지역 미설정).
+
+@baseUrl = http://localhost:8080
+
+### 00. 헬스 체크
+GET {{baseUrl}}/api/health
+
+
+### ===================== 활동 지역 설정 (F-1) =====================
+
+### 01. 지역 드롭다운 목록 (인증 불필요)
+GET {{baseUrl}}/api/v1/regions
+
+
+### 02. 내 기사 프로필 + 현재 활동 지역 조회
+GET {{baseUrl}}/api/v1/drivers/me
+X-User-Id: 1
+
+
+### 03. 활동 지역 전체 교체 저장 — seed 값으로 되돌린다
+PUT {{baseUrl}}/api/v1/drivers/me/route-preferences
+Content-Type: application/json
+X-User-Id: 1
+
+{
+  "origins": [
+    {"sido": "경기도", "sigungu": "수원시"},
+    {"sido": "경기도", "sigungu": "용인시"},
+    {"sido": "서울특별시", "sigungu": null}
+  ],
+  "destinations": [
+    {"sido": "부산광역시", "sigungu": null},
+    {"sido": "서울특별시", "sigungu": "송파구"}
+  ]
+}
+
+
+### ===================== 추천 화물 목록 → 수락 (F-2, F-4) =====================
+### 04~07은 새로 부팅한 직후(=seed 화물이 아직 REQUESTED 상태일 때) 한 번만 의미 있게 통과한다.
+### 이미 한 번 실행해서 seed 화물을 다 수락해버렸다면 앱을 재기동해서 seed를 되돌린 뒤 다시 실행한다.
+
+### 04. 매칭 점수순 화물 목록 — data[0]이 BEST_MATCH(경기 수원시 → 부산 강서구, 100점)여야 한다
+GET {{baseUrl}}/api/v1/loads
+X-User-Id: 1
+
+> {%
+    client.global.set("cargoId", response.body.data[0].cargoId);
+%}
+
+
+### 05. 최상위 화물 수락
+POST {{baseUrl}}/api/v1/loads/{{cargoId}}/accept
+X-User-Id: 1
+
+
+### 06. 같은 화물을 다시 수락 시도 — 이미 배차됨 409 예상
+POST {{baseUrl}}/api/v1/loads/{{cargoId}}/accept
+X-User-Id: 1
+
+
+### 07. 목록에서 방금 수락한 화물이 빠졌는지 재확인
+GET {{baseUrl}}/api/v1/loads
+X-User-Id: 1
+
+
+### ===================== 에러 케이스 =====================
+
+### 08. X-User-Id 헤더 없이 조회 — 401 예상
+GET {{baseUrl}}/api/v1/drivers/me
+
+
+### 09. 없는 기사로 조회 — 404 예상
+GET {{baseUrl}}/api/v1/drivers/me
+X-User-Id: 9999
+
+
+### 10. 활동 지역 출발지를 비워서 저장 — 400 예상
+PUT {{baseUrl}}/api/v1/drivers/me/route-preferences
+Content-Type: application/json
+X-User-Id: 1
+
+{
+  "origins": [],
+  "destinations": [{"sido": "경기도", "sigungu": null}]
+}
+
+
+### 11a. (준비) 5t 초과 화물을 새로 등록 — VEHICLE_NOT_SUITABLE 데모용
+### driverId=2는 활동 지역이 없어 /loads에는 안 뜨지만, accept는 구간과 무관하게 적재량만 검사하므로
+### cargoId만 있으면 재현 가능하다. seed PK 번호에 의존하지 않도록 매번 새로 만든다.
+POST {{baseUrl}}/api/v1/cargos
+Content-Type: application/json
+X-User-Id: 999
+
+{
+  "origin": {"sido": "경기도", "sigungu": "용인시"},
+  "destination": {"sido": "부산광역시", "sigungu": "해운대구"},
+  "cargoType": "GENERAL",
+  "weightTon": 20.0,
+  "desiredFare": 900000,
+  "loadingAt": "2026-08-20T09:00:00"
+}
+
+> {%
+    client.global.set("overweightCargoId", response.body.data.cargoId);
+%}
+
+
+### 11b. 적재량 초과 화물을 5t 기사(driverId=2)가 수락 — 400 VEHICLE_NOT_SUITABLE 예상
+POST {{baseUrl}}/api/v1/loads/{{overweightCargoId}}/accept
+X-User-Id: 2
+
+
+### 12a. 활동 지역을 매칭 안 되는 곳으로 바꾼다
+PUT {{baseUrl}}/api/v1/drivers/me/route-preferences
+Content-Type: application/json
+X-User-Id: 1
+
+{
+  "origins": [{"sido": "제주특별자치도", "sigungu": null}],
+  "destinations": [{"sido": "제주특별자치도", "sigungu": null}]
+}
+
+
+### 12b. 목록이 비어 있는지 확인
+GET {{baseUrl}}/api/v1/loads
+X-User-Id: 1
