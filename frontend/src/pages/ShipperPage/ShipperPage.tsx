@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import styled from '@emotion/styled'
 import { Hero } from '@/components/Hero'
 import { Button } from '@/components/Button'
 import { PageLayout } from '@/components/PageLayout'
@@ -20,6 +21,20 @@ import type { ManualCargoDraft } from './ManualCargoForm'
 
 /** 이 화면은 화주 로그인이 없는 데모라 화주 id를 고정값으로 둔다. */
 const DEMO_SHIPPER_ID = 1
+const DetailHead = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 12px;
+`
+
+const DetailTitle = styled.h1`
+  margin: 0;
+  color: ${(props) => props.theme.color.text};
+  font-size: 19px;
+  font-weight: 800;
+`
 const EMPTY_MANUAL_CARGO: ManualCargoDraft = {
   origin: '',
   destination: '',
@@ -43,6 +58,7 @@ export function ShipperPage() {
   const [cargoPage, setCargoPage] = useState(0)
   const [manualMode, setManualMode] = useState(false)
   const [manualCargo, setManualCargo] = useState(EMPTY_MANUAL_CARGO)
+  const [selectedFromList, setSelectedFromList] = useState(false)
 
   const parseMutation = useCargoParseMutation()
   const createMutation = useCargoCreateMutation()
@@ -174,7 +190,10 @@ export function ShipperPage() {
           page={myCargosQuery.data?.page ?? cargoPage}
           totalPages={myCargosQuery.data?.totalPages ?? 0}
           onPageChange={setCargoPage}
-          onSelect={setCargoId}
+          onSelect={(selectedCargoId) => {
+            setSelectedFromList(true)
+            setCargoId(selectedCargoId)
+          }}
         />
       ) : showCreate && !cargo && !manualMode ? (
         <>
@@ -222,9 +241,27 @@ export function ShipperPage() {
 
       {cargo && (
         <>
-          <Button type="button" variant="ghost" onClick={() => setCargoId(undefined)}>
-            ← 목록
-          </Button>
+          {selectedFromList && (
+            <DetailHead>
+              <DetailTitle>
+                {cargo.status === 'COMPLETED'
+                  ? '운송 상세'
+                  : cargo.status === 'MATCHED'
+                    ? '배차 상세'
+                    : '화물 상세'}
+              </DetailTitle>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setCargoId(undefined)
+                  setSelectedFromList(false)
+                }}
+              >
+                ← 목록
+              </Button>
+            </DetailHead>
+          )}
           <CargoSummaryCard
             cargo={cargo}
             onEdit={() => {
@@ -233,13 +270,18 @@ export function ShipperPage() {
             }}
             onRematch={() => cargoDetailQuery.refetch()}
             rematchLoading={cargoDetailQuery.isFetching}
+            showActions={!selectedFromList}
           />
 
           {cargo.fare?.verdict === 'LOW' && cargo.fare.message && (
             <FareWarningBanner message={cargo.fare.message} />
           )}
 
-          <MatchedDriverCard driver={cargo.assignedDriver} fareVerdict={cargo.fare?.verdict} />
+          <MatchedDriverCard
+            driver={cargo.assignedDriver}
+            fareVerdict={cargo.fare?.verdict}
+            cargoStatus={cargo.status}
+          />
         </>
       )}
     </PageLayout>

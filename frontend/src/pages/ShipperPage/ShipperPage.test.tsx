@@ -23,9 +23,7 @@ describe('ShipperPage', () => {
     expect(within(summaryCard).getByText('500,000원')).toBeInTheDocument()
 
     await waitFor(() => {
-      expect(
-        screen.getByText('아직 매칭된 기사가 없어요. 잠시 후 다시 확인해 주세요.'),
-      ).toBeInTheDocument()
+      expect(screen.getByText('조건에 맞는 기사님을 찾고 있어요')).toBeInTheDocument()
     })
   })
 

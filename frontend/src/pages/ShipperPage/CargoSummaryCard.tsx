@@ -10,6 +10,7 @@ export interface CargoSummaryCardProps {
   onEdit: () => void
   onRematch: () => void
   rematchLoading: boolean
+  showActions?: boolean
 }
 
 const Head = styled.div`
@@ -134,6 +135,7 @@ export function CargoSummaryCard({
   onEdit,
   onRematch,
   rematchLoading,
+  showActions = true,
 }: CargoSummaryCardProps) {
   return (
     <Card>
@@ -166,14 +168,16 @@ export function CargoSummaryCard({
         </FareText>
       </Meta>
 
-      <Actions>
-        <Button type="button" variant="ghost" onClick={onRematch} disabled={rematchLoading}>
-          {rematchLoading ? '재매칭 중...' : '재매칭'}
-        </Button>
-        <Button type="button" onClick={onEdit}>
-          수정하기
-        </Button>
-      </Actions>
+      {showActions && (
+        <Actions>
+          <Button type="button" variant="ghost" onClick={onRematch} disabled={rematchLoading}>
+            {rematchLoading ? '재매칭 중...' : '재매칭'}
+          </Button>
+          <Button type="button" onClick={onEdit}>
+            수정하기
+          </Button>
+        </Actions>
+      )}
     </Card>
   )
 }

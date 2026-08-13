@@ -8,6 +8,7 @@ import type { DriverResponse } from '@/api/driver/model'
 export interface MatchedDriverCardProps {
   driver: DriverResponse | undefined
   fareVerdict: string | undefined
+  cargoStatus?: string
 }
 
 const Title = styled.div`
@@ -70,13 +71,37 @@ const CallButtonWrapper = styled.div`
   margin-top: 16px;
 `
 
-const EmptyState = styled.p`
-  margin: 0;
-  padding: 8px 0;
-  color: ${(props) => props.theme.color.muted};
-  font-size: 15px;
-  line-height: 1.6;
+const MatchingState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 12px 10px;
   text-align: center;
+
+  span {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    border-radius: 50%;
+    background: ${(props) => props.theme.color.blue100};
+    font-size: 32px;
+  }
+
+  strong {
+    color: ${(props) => props.theme.color.text};
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  p {
+    max-width: 300px;
+    margin: 7px 0 0;
+    color: ${(props) => props.theme.color.muted};
+    font-size: 14px;
+    line-height: 1.55;
+  }
 `
 
 function regionPointLabel(point: { sido?: string; sigungu?: string } | undefined): string {
@@ -84,12 +109,16 @@ function regionPointLabel(point: { sido?: string; sigungu?: string } | undefined
   return point.sigungu ? `${point.sido} ${point.sigungu}` : point.sido
 }
 
-export function MatchedDriverCard({ driver, fareVerdict }: MatchedDriverCardProps) {
+export function MatchedDriverCard({ driver, fareVerdict, cargoStatus }: MatchedDriverCardProps) {
   if (!driver) {
     return (
       <Card>
-        <Title>매칭 기사</Title>
-        <EmptyState>아직 매칭된 기사가 없어요. 잠시 후 다시 확인해 주세요.</EmptyState>
+        <Title>기사님 정보</Title>
+        <MatchingState role="status">
+          <span aria-hidden="true">🚚</span>
+          <strong>조건에 맞는 기사님을 찾고 있어요</strong>
+          <p>배차가 확정되면 기사님 정보가 여기에 표시됩니다.</p>
+        </MatchingState>
       </Card>
     )
   }
@@ -99,18 +128,20 @@ export function MatchedDriverCard({ driver, fareVerdict }: MatchedDriverCardProp
 
   return (
     <Card>
-      <Title>매칭 기사</Title>
+      <Title>{cargoStatus === 'COMPLETED' ? '운송 기사님 정보' : '확정된 기사님 정보'}</Title>
       <DriverRow>
         <DriverLeft>
           <Avatar aria-hidden="true" />
           {driver.name} 기사 · {driver.bodyType} {driver.capacityTon}톤
         </DriverLeft>
-        <Badge tone={fareVerdict === 'LOW' ? 'warn' : fareVerdict === 'FAIR' ? 'ok' : 'neutral'}>
-          {fareVerdict === 'LOW'
-            ? '운임 낮음'
-            : fareVerdict === 'FAIR'
-              ? '적정 운임'
-              : '시세 정보 없음'}
+        <Badge tone={cargoStatus === 'COMPLETED' ? 'neutral' : 'ok'}>
+          {cargoStatus === 'COMPLETED'
+            ? '운송 완료'
+            : fareVerdict === 'LOW'
+              ? '운임 낮음'
+              : fareVerdict === 'FAIR'
+                ? '적정 운임'
+                : '시세 정보 없음'}
         </Badge>
       </DriverRow>
 
