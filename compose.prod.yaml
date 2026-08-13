@@ -1,0 +1,73 @@
+x-backend-common: &backend-common
+  restart: unless-stopped
+  environment:
+    DATABASE_URL: jdbc:postgresql://postgres:5432/hackathon
+    DATABASE_USERNAME: hackathon
+    DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+    JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Xms128m -Xmx384m}
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+x-frontend-common: &frontend-common
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hackathon
+      POSTGRES_USER: hackathon
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hackathon -d hackathon"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend-blue:
+    <<: *backend-common
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE is required}:${IMAGE_TAG:?IMAGE_TAG is required}
+    ports:
+      - "127.0.0.1:8081:8080"
+
+  frontend-blue:
+    <<: *frontend-common
+    image: ${FRONTEND_IMAGE:?FRONTEND_IMAGE is required}:${IMAGE_TAG:?IMAGE_TAG is required}
+    ports:
+      - "127.0.0.1:3001:80"
+
+  backend-green:
+    <<: *backend-common
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE is required}:${IMAGE_TAG:?IMAGE_TAG is required}
+    ports:
+      - "127.0.0.1:8082:8080"
+
+  frontend-green:
+    <<: *frontend-common
+    image: ${FRONTEND_IMAGE:?FRONTEND_IMAGE is required}:${IMAGE_TAG:?IMAGE_TAG is required}
+    ports:
+      - "127.0.0.1:3002:80"
+
+volumes:
+  postgres-data:
+  redis-data:
