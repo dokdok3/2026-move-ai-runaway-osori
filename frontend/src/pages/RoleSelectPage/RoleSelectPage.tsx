@@ -1,6 +1,5 @@
 import styled from '@emotion/styled'
 import { Hero } from '@/components/Hero'
-import { HeaderPill } from '@/components/AppHeader'
 import { PageLayout } from '@/components/PageLayout'
 import { RolePickLink } from './RolePickLink'
 
@@ -33,7 +32,7 @@ const DriverIcon = (
 
 export function RoleSelectPage() {
   return (
-    <PageLayout headerRight={<HeaderPill>화물 매칭</HeaderPill>}>
+    <PageLayout>
       <Hero
         eyebrow="✦ 시작하기"
         title={
