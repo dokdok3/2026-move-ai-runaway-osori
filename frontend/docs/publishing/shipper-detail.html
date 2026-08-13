@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>배차 확정 상세 · 집나간 벌꿀오소리</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="brand">
+  <img src="logo.png" alt="집나간 벌꿀오소리 로고">
+  <div>
+    <div class="name">집나간 벌꿀오소리</div>
+    <div class="tag">카카오모빌리티 물류 해커톤</div>
+  </div>
+</header>
+
+<main>
+
+  <section class="screen active">
+    <div class="list-head">
+      <h1 class="list-title">배차 상세</h1>
+      <a class="btn subtle" href="shipper-list.html">← 목록</a>
+    </div>
+
+    <div class="card cargo-summary">
+      <div class="cargo-summary__head">
+        <h2 class="card-title">화물 정보</h2>
+        <span class="badge ok">배차 확정</span>
+      </div>
+      <div class="cargo-summary__route">
+        <div class="cargo-summary__place">
+          <span class="cargo-summary__label">출발지</span>
+          <strong class="cargo-summary__city">서울</strong>
+          <time class="cargo-summary__time" datetime="2026-08-11T14:00">08/11 14:00</time>
+        </div>
+        <div class="cargo-summary__arrow" aria-hidden="true">→</div>
+        <div class="cargo-summary__place">
+          <span class="cargo-summary__label">도착지</span>
+          <strong class="cargo-summary__city">부산</strong>
+          <time class="cargo-summary__time" datetime="2026-08-11T18:00">08/11 18:00</time>
+        </div>
+      </div>
+      <div class="cargo-summary__meta">
+        <span class="cargo-summary__type">냉장 · 5톤</span>
+        <span class="cargo-summary__sep" aria-hidden="true"></span>
+        <span class="cargo-summary__fare">운임 <strong>500,000원</strong></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <h2 class="card-title">확정된 기사님 정보</h2>
+      </div>
+      <div class="driver-card">
+        <div class="driver-left"><div class="avatar"></div>김OO 기사 · 냉장탑차 5톤</div>
+        <span class="badge ok">배차 확정</span>
+      </div>
+      <dl class="datagrid driver-details" style="margin-top:14px;">
+        <dt>차량번호</dt><dd>12가 3456</dd>
+        <dt>운행지역</dt><dd>수도권 · 영남권</dd>
+        <dt>평점</dt><dd>4.8점 (132건)</dd>
+        <dt>완료율</dt><dd>98%</dd>
+        <dt>최근 운행</dt><dd>서울→대구</dd>
+        <dt>연락 가능 시간</dt><dd>06:00~20:00</dd>
+        <dt>희망 최소 단가</dt><dd class="mono">1,150원/km</dd>
+        <dt>선호 지역(도착지)</dt><dd>부산 · 경남권</dd>
+      </dl>
+      <a class="btn primary" href="tel:010-1234-5678" style="width:100%;text-align:center;">전화하기</a>
+    </div>
+  </section>
+
+</main>
+
+</body>
+</html>

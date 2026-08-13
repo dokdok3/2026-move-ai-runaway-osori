@@ -28,12 +28,13 @@ public class LoadController {
     private final LoadService loadService;
 
     @GetMapping
-    @Operation(summary = "기사 화물 목록 조회 (type: AVAILABLE 매칭 가능 · ACCEPTED 수락함 · HIDDEN 숨김)")
+    @Operation(summary = "기사 화물 목록 조회 (filter: ALL 전체 · ACCEPTED 수락함 · HIDDEN 숨김)")
     public ApiResponse<List<LoadResponse>> getLoads(@LoginUser Long driverId,
-                                                     @RequestParam(defaultValue = "AVAILABLE") LoadType type,
+                                                     @RequestParam(name = "filter", defaultValue = "ALL")
+                                                     LoadType filter,
                                                      @RequestParam(required = false) String preferenceText,
                                                      @RequestParam(defaultValue = "false") boolean refresh) {
-        return ApiResponse.ok(loadService.findLoads(driverId, type, preferenceText, refresh));
+        return ApiResponse.ok(loadService.findLoads(driverId, filter, preferenceText, refresh));
     }
 
     @GetMapping("/completed")
