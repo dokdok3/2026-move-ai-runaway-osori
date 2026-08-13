@@ -1,0 +1,24 @@
+import { mutationOptions, queryOptions } from '@tanstack/react-query'
+import { acceptLoad, getLoadList } from './api'
+import type { AcceptLoadParams, GetLoadListParams } from './model'
+
+export const loadQueryKeys = {
+  all: ['load'] as const,
+  list: (params: GetLoadListParams) => [...loadQueryKeys.all, 'list', params] as const,
+}
+
+export const loadQueries = {
+  list: (params: GetLoadListParams) =>
+    queryOptions({
+      queryKey: loadQueryKeys.list(params),
+      queryFn: () => getLoadList(params),
+    }),
+}
+
+export const loadMutations = {
+  accept: () =>
+    mutationOptions({
+      mutationKey: [...loadQueryKeys.all, 'accept'],
+      mutationFn: (params: AcceptLoadParams) => acceptLoad(params),
+    }),
+}
