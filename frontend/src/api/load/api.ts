@@ -5,6 +5,7 @@ import type {
   AcceptLoadResponse,
   GetLoadListParams,
   GetLoadListResponse,
+  HideLoadParams,
 } from './model'
 
 export const getLoadList = async (params: GetLoadListParams): Promise<GetLoadListResponse> => {
@@ -17,6 +18,19 @@ export const getLoadList = async (params: GetLoadListParams): Promise<GetLoadLis
   }
 
   return result.data.data ?? []
+}
+
+export const hideLoad = async (params: HideLoadParams): Promise<void> => {
+  const { cargoId, driverId } = params
+  const result = await apiClient.POST('/api/v1/loads/{cargoId}/hide', {
+    params: { path: { cargoId }, query: { driverId } },
+  })
+  if (!result.data) {
+    throw new Error(
+      extractApiErrorMessage(result.error) ??
+        `화물을 숨기지 못했습니다 (status: ${result.response.status})`,
+    )
+  }
 }
 
 export const acceptLoad = async (params: AcceptLoadParams): Promise<AcceptLoadResponse> => {

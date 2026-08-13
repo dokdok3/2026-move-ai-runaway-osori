@@ -17,3 +17,8 @@ export type AcceptLoadParams = {
 }
 export type AcceptResponse = components['schemas']['AcceptResponse']
 export type AcceptLoadResponse = AcceptResponse
+
+export type HideLoadParams = {
+  cargoId: number
+  driverId: number
+}

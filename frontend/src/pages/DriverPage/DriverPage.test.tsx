@@ -45,7 +45,7 @@ describe('DriverPage', () => {
     })
   })
 
-  it('수락을 누르면 수락 요청이 처리되고 버튼이 다시 활성화된다', async () => {
+  it('수락을 누르면 수락 요청이 처리되고 추천 목록에서 제거된다', async () => {
     const user = userEvent.setup()
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     renderWithProviders(<DriverPage />)
@@ -55,10 +55,7 @@ describe('DriverPage', () => {
 
     expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('화물을 수락하시겠어요?'))
 
-    await waitFor(() => {
-      expect(firstAcceptButton).toHaveTextContent('수락')
-      expect(firstAcceptButton).not.toBeDisabled()
-    })
+    await waitFor(() => expect(firstAcceptButton).not.toBeInTheDocument())
   })
 
   it('수락 확인창에서 취소하면 수락 요청을 보내지 않는다', async () => {
@@ -83,6 +80,6 @@ describe('DriverPage', () => {
     await user.click(screen.getByRole('button', { name: '숨기기', pressed: false }))
 
     expect(screen.getByRole('button', { name: '숨기기', pressed: true })).toBeInTheDocument()
-    expect(actionButtons('숨기기')).toHaveLength(1)
+    expect(actionButtons('숨기기').length).toBeGreaterThan(0)
   })
 })

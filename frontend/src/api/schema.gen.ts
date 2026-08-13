@@ -57,6 +57,23 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/v1/loads/{cargoId}/hide': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** 화물 목록에서 숨기기 */
+    post: operations['hide']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/loads/{cargoId}/complete': {
     parameters: {
       query?: never
@@ -168,7 +185,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /** 기사 구간 기준 매칭 점수순 화물 목록 */
+    /** 기사 화물 목록 조회 (filter: ALL 전체 · ACCEPTED 수락함 · HIDDEN 숨김) */
     get: operations['getLoads']
     put?: never
     post?: never
@@ -322,6 +339,11 @@ export interface components {
     RoutePreferenceRequest: {
       origins: components['schemas']['RegionPoint'][]
       destinations: components['schemas']['RegionPoint'][]
+    }
+    ApiResponseVoid: {
+      success?: boolean
+      data?: unknown
+      message?: string
     }
     ApiResponseCompleteResponse: {
       success?: boolean
@@ -725,6 +747,30 @@ export interface operations {
       }
     }
   }
+  hide: {
+    parameters: {
+      query: {
+        driverId: number
+      }
+      header?: never
+      path: {
+        cargoId: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseVoid']
+        }
+      }
+    }
+  }
   complete: {
     parameters: {
       query: {
@@ -921,6 +967,7 @@ export interface operations {
     parameters: {
       query: {
         driverId: number
+        filter?: 'ALL' | 'ACCEPTED' | 'HIDDEN'
         preferenceText?: string
         refresh?: boolean
       }
