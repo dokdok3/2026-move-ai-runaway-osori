@@ -8,7 +8,6 @@ import {
   useCargoDetailQuery,
   useCargoParseMutation,
 } from '@/api/cargo/service'
-import { useFareQuoteFetcher } from '@/api/fare/service'
 import type { CreateCargoResponse } from '@/api/cargo/model'
 import { toCargoType } from '@/utils/cargoType'
 import { CargoRequestForm } from './CargoRequestForm'
@@ -30,7 +29,6 @@ export function ShipperPage() {
 
   const parseMutation = useCargoParseMutation()
   const createMutation = useCargoCreateMutation()
-  const fetchFareQuote = useFareQuoteFetcher()
   const cargoDetailQuery = useCargoDetailQuery(cargoId)
 
   const isSubmitting = parseMutation.isPending || createMutation.isPending
@@ -50,26 +48,22 @@ export function ShipperPage() {
       const weightTon = parsed.weightTon
       const cargoType = toCargoType(parsed.cargoType)
 
-      if (!originSido || !destSido || weightTon === undefined) {
+      if (
+        !originSido ||
+        !destSido ||
+        weightTon === undefined ||
+        parsed.offeredFareKrw === undefined
+      ) {
         const detail = parsed.missingFields?.length
           ? ` (누락: ${parsed.missingFields.join(', ')})`
           : ''
         setFormError(
-          `원문에서 출발지·도착지·톤수를 인식하지 못했어요. 조금 더 구체적으로 적어주세요.${detail}`,
+          `원문에서 출발지·도착지·톤수·운임을 인식하지 못했어요. 조금 더 구체적으로 적어주세요.${detail}`,
         )
         return
       }
 
-      let desiredFare = parsed.offeredFareKrw
-      if (desiredFare === undefined) {
-        const quote = await fetchFareQuote({ originSido, destSido, cargoType, weightTon })
-        desiredFare = quote.averageFare
-      }
-
-      if (desiredFare === undefined) {
-        setFormError('구간 시세를 찾지 못해 운임을 추정하지 못했어요. 예산을 함께 적어주세요.')
-        return
-      }
+      const desiredFare = parsed.offeredFareKrw
 
       const created = await createMutation.mutateAsync({
         params: { shipperId: DEMO_SHIPPER_ID },
