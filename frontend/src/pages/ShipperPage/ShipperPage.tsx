@@ -15,9 +15,20 @@ import { CargoRequestForm } from './CargoRequestForm'
 import { CargoSummaryCard } from './CargoSummaryCard'
 import { MatchedDriverCard } from './MatchedDriverCard'
 import { MyCargoList } from './MyCargoList'
+import { ManualCargoForm } from './ManualCargoForm'
+import type { ManualCargoDraft } from './ManualCargoForm'
 
 /** 이 화면은 화주 로그인이 없는 데모라 화주 id를 고정값으로 둔다. */
 const DEMO_SHIPPER_ID = 1
+const EMPTY_MANUAL_CARGO: ManualCargoDraft = {
+  origin: '',
+  destination: '',
+  loadingAt: '',
+  unloadingAt: '',
+  cargoType: 'GENERAL',
+  weightTon: '',
+  desiredFare: '',
+}
 
 function extractCargoId(response: CreateCargoResponse): number | undefined {
   const value = response['cargoId']
@@ -30,6 +41,8 @@ export function ShipperPage() {
   const [formError, setFormError] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [cargoPage, setCargoPage] = useState(0)
+  const [manualMode, setManualMode] = useState(false)
+  const [manualCargo, setManualCargo] = useState(EMPTY_MANUAL_CARGO)
 
   const parseMutation = useCargoParseMutation()
   const createMutation = useCargoCreateMutation()
@@ -105,6 +118,49 @@ export function ShipperPage() {
     }
   }
 
+  const handleManualSubmit = async () => {
+    setFormError(null)
+    if (
+      !manualCargo.origin.trim() ||
+      !manualCargo.destination.trim() ||
+      !manualCargo.loadingAt ||
+      !manualCargo.unloadingAt ||
+      !manualCargo.weightTon ||
+      !manualCargo.desiredFare
+    ) {
+      setFormError('필수 항목을 모두 입력해 주세요.')
+      return
+    }
+
+    const [originSido, ...originDetail] = manualCargo.origin.trim().split(/\s+/)
+    const [destinationSido, ...destinationDetail] = manualCargo.destination.trim().split(/\s+/)
+
+    try {
+      const created = await createMutation.mutateAsync({
+        params: { shipperId: DEMO_SHIPPER_ID },
+        body: {
+          origin: { sido: originSido, sigungu: originDetail.join(' ') || '전체' },
+          destination: {
+            sido: destinationSido,
+            sigungu: destinationDetail.join(' ') || '전체',
+          },
+          cargoType: manualCargo.cargoType,
+          weightTon: Number(manualCargo.weightTon),
+          desiredFare: Number(manualCargo.desiredFare),
+          loadingAt: manualCargo.loadingAt,
+          unloadingAt: manualCargo.unloadingAt,
+        },
+      })
+      const newCargoId = extractCargoId(created)
+      if (newCargoId === undefined) throw new Error('화물 등록에 실패했어요.')
+      setCargoId(newCargoId)
+      setManualMode(false)
+      await myCargosQuery.refetch()
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : '화물 등록에 실패했어요.')
+    }
+  }
+
   const cargo = cargoDetailQuery.data
 
   return (
@@ -120,7 +176,7 @@ export function ShipperPage() {
           onPageChange={setCargoPage}
           onSelect={setCargoId}
         />
-      ) : showCreate && !cargo ? (
+      ) : showCreate && !cargo && !manualMode ? (
         <>
           <Hero
             eyebrow="✦ AI로 빠른 매칭"
@@ -139,6 +195,26 @@ export function ShipperPage() {
             onChange={setRawText}
             onSubmit={handleConvert}
             loading={isSubmitting}
+            error={formError}
+            onManualEntry={() => {
+              setFormError(null)
+              setManualMode(true)
+            }}
+          />
+        </>
+      ) : manualMode && !cargo ? (
+        <>
+          <Hero
+            eyebrow="화물 직접 등록"
+            title="화물 정보 입력"
+            description="배차에 필요한 정보를 항목별로 입력해주세요."
+          />
+          <ManualCargoForm
+            value={manualCargo}
+            onChange={setManualCargo}
+            onSubmit={handleManualSubmit}
+            onCancel={() => setManualMode(false)}
+            loading={createMutation.isPending}
             error={formError}
           />
         </>

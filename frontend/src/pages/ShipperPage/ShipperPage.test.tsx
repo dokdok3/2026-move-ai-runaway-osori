@@ -29,6 +29,18 @@ describe('ShipperPage', () => {
     })
   })
 
+  it('직접 입력하기를 누르면 항목별 화물 등록 폼을 보여준다', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<ShipperPage />)
+
+    await user.click(screen.getByRole('button', { name: /새 화물/ }))
+    await user.click(screen.getByRole('button', { name: /직접 입력하기/ }))
+
+    expect(screen.getByRole('heading', { name: '화물 정보 입력' })).toBeInTheDocument()
+    expect(screen.getByLabelText('출발지')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '등록하기' })).toBeInTheDocument()
+  })
+
   it('빈 문장을 제출하면 API를 호출하지 않고 안내 문구를 보여준다', async () => {
     const user = userEvent.setup()
     renderWithProviders(<ShipperPage />)
