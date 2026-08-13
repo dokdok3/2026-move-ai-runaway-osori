@@ -4,8 +4,8 @@
 
 ```text
 main push
-  -> GitHub Actions 테스트
-  -> Backend/Frontend Docker 이미지 빌드
+  -> GitHub Actions 테스트 및 Backend bootJar 생성
+  -> Backend 실행 이미지 패키징 / Frontend 이미지 빌드
   -> GHCR에 Git SHA 태그로 발행
   -> EC2 self-hosted 배포 러너가 비활성 색상(blue 또는 green) 기동
   -> Backend/Frontend health check
@@ -16,6 +16,11 @@ main push
 DB와 Redis는 색상 전환 대상이 아니며 두 애플리케이션이 공용으로 사용한다. 배포 중에만 두
 버전이 동시에 실행되고, 전환이 끝나면 이전 버전을 중지한다. 현재 운영 인스턴스는
 `c7i.xlarge`(4 vCPU, 8 GiB)다.
+
+백엔드 JAR은 self-hosted runner의 Gradle 캐시를 사용하는 CI 단계에서 생성한다. 백엔드
+Dockerfile은 생성된 `backend/build/libs/*.jar`를 JRE 실행 이미지에 복사만 하므로, 소스가
+바뀔 때마다 Docker 원격 캐시에서 Gradle/JDK 중간 레이어를 내려받고 다시 올리지 않는다.
+BuildKit 상태도 `production-builder`에 유지하여 같은 EC2 러너의 로컬 레이어를 재사용한다.
 
 ## EC2 최초 설정
 
