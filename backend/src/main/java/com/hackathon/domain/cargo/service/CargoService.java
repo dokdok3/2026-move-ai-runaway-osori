@@ -31,16 +31,9 @@ public class CargoService {
 
     @Transactional
     public Long create(Long shipperId, CargoCreateRequest request) {
-        Cargo cargo = Cargo.create(
-                shipperId,
-                request.origin().sido(), request.origin().sigungu(),
-                request.destination().sido(), request.destination().sigungu(),
-                request.cargoType(), request.cargoDescription(), request.weightTon(),
-                request.vehicleType(), request.bodyType(),
-                request.desiredFare(),
-                request.loadingAt(), request.unloadingAt(),
-                request.distanceKm());
-        return cargoRepository.save(cargo).getId();
+        Cargo cargo = request.toEntity(shipperId);
+        Cargo saved = cargoRepository.save(cargo);
+        return saved.getId();
     }
 
     @Transactional(readOnly = true)
