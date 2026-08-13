@@ -12,20 +12,17 @@ it('페이지 인디케이터에서 다음 페이지를 요청한다', async () 
 
   renderWithProviders(
     <MyCargoList
-      cargos={[
-        {
-          cargoId: 1,
-          status: 'PENDING',
-          origin: { sido: '서울특별시' },
-          destination: { sido: '부산광역시' },
-          desiredFare: 500000,
-        },
-      ]}
+      cargos={Array.from({ length: 11 }, (_, index) => ({
+        cargoId: index + 1,
+        status: 'PENDING',
+        origin: { sido: '서울특별시' },
+        destination: { sido: '부산광역시' },
+        desiredFare: 500000,
+      }))}
       loading={false}
       error={false}
       onCreate={vi.fn()}
       page={0}
-      totalPages={3}
       onPageChange={onPageChange}
       onSelect={vi.fn()}
     />,

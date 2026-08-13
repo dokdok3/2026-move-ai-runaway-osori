@@ -13,12 +13,12 @@ export interface MyCargoListProps {
   error: boolean
   onCreate: () => void
   page: number
-  totalPages: number
   onPageChange: (page: number) => void
   onSelect: (cargoId: number) => void
 }
 
 type CargoFilter = 'ALL' | 'ACTIVE' | 'DONE'
+const PAGE_SIZE = 10
 
 const Tabs = styled.nav`
   display: flex;
@@ -219,29 +219,35 @@ export function MyCargoList({
   error,
   onCreate,
   page,
-  totalPages,
   onPageChange,
   onSelect,
 }: MyCargoListProps) {
   const [filter, setFilter] = useState<CargoFilter>('ALL')
   const doneCount = cargos.filter((cargo) => isDone(cargo.status)).length
   const activeCount = cargos.length - doneCount
-  const visibleCargos = cargos.filter((cargo) => {
+  const filteredCargos = cargos.filter((cargo) => {
     if (filter === 'ACTIVE') return !isDone(cargo.status)
     if (filter === 'DONE') return isDone(cargo.status)
     return true
   })
+  const totalPages = Math.ceil(filteredCargos.length / PAGE_SIZE)
+  const visibleCargos = filteredCargos.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+
+  const changeFilter = (nextFilter: CargoFilter) => {
+    setFilter(nextFilter)
+    onPageChange(0)
+  }
 
   return (
     <>
       <Tabs aria-label="내 화물 상태 필터">
-        <Tab type="button" active={filter === 'ALL'} onClick={() => setFilter('ALL')}>
+        <Tab type="button" active={filter === 'ALL'} onClick={() => changeFilter('ALL')}>
           전체 {cargos.length}
         </Tab>
-        <Tab type="button" active={filter === 'ACTIVE'} onClick={() => setFilter('ACTIVE')}>
+        <Tab type="button" active={filter === 'ACTIVE'} onClick={() => changeFilter('ACTIVE')}>
           진행 중 {activeCount}
         </Tab>
-        <Tab type="button" active={filter === 'DONE'} onClick={() => setFilter('DONE')}>
+        <Tab type="button" active={filter === 'DONE'} onClick={() => changeFilter('DONE')}>
           완료 {doneCount}
         </Tab>
       </Tabs>

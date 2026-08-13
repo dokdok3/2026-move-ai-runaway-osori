@@ -65,7 +65,7 @@ export function ShipperPage() {
   const cargoDetailQuery = useCargoDetailQuery(cargoId)
   const myCargosQuery = useMyCargosQuery({
     shipperId: DEMO_SHIPPER_ID,
-    pageable: { page: cargoPage, size: 10 },
+    pageable: { page: 0, size: 1000 },
   })
 
   const isSubmitting = parseMutation.isPending || createMutation.isPending
@@ -200,8 +200,7 @@ export function ShipperPage() {
             loading={myCargosQuery.isLoading}
             error={myCargosQuery.isError}
             onCreate={() => setShowCreate(true)}
-            page={myCargosQuery.data?.page ?? cargoPage}
-            totalPages={myCargosQuery.data?.totalPages ?? 0}
+            page={cargoPage}
             onPageChange={setCargoPage}
             onSelect={(selectedCargoId) => {
               setSelectedFromList(true)
