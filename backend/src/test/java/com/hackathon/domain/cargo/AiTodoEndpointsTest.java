@@ -1,16 +1,20 @@
 package com.hackathon.domain.cargo;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hackathon.global.client.OpenAiClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,6 +33,11 @@ class AiTodoEndpointsTest {
 
     @MockitoBean
     OpenAiClient openAiClient;
+
+    @BeforeEach
+    void resetOpenAiClient() {
+        reset(openAiClient);
+    }
 
     @Test
     @DisplayName("자연어 파싱 결과를 API 응답으로 반환한다")
@@ -68,12 +77,26 @@ class AiTodoEndpointsTest {
                 .andExpect(jsonPath("$.data.offeredFareKrw").value(500000))
                 .andExpect(jsonPath("$.data.loadingDate").value("2026-08-14"))
                 .andExpect(jsonPath("$.data.confidence").value("HIGH"));
+
+        ArgumentCaptor<String> inputCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<JsonNode> schemaCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        verify(openAiClient).generateStructured(any(), inputCaptor.capture(), schemaCaptor.capture());
+
+        assertThat(inputCaptor.getValue())
+                .contains("CargoType enum")
+                .contains("REFRIGERATED: 냉장 화물")
+                .contains("GENERAL: 일반 화물")
+                .contains("FROZEN: 냉동 화물")
+                .contains("CONSTRUCTION: 건설 화물")
+                .contains("HAZARDOUS: 위험물");
+        assertThat(schemaCaptor.getValue().at("/properties/cargoType/enum").toString())
+                .contains("REFRIGERATED", "GENERAL", "FROZEN", "CONSTRUCTION", "HAZARDOUS")
+                .doesNotContain("OTHER");
     }
 
     @Test
     @DisplayName("OpenAI 호출 실패는 원문을 노출하지 않고 502를 반환한다")
     void parseFailureReturnsBadGateway() throws Exception {
-        reset(openAiClient);
         when(openAiClient.generateStructured(any(), any(), any(JsonNode.class)))
                 .thenThrow(new IllegalStateException("upstream detail"));
 

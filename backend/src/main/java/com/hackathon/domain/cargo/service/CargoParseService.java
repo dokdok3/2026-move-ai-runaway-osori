@@ -5,13 +5,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hackathon.domain.cargo.dto.ParseRequest;
 import com.hackathon.domain.cargo.dto.ParsedCargoResponse;
+import com.hackathon.domain.cargo.entity.CargoType;
 import com.hackathon.global.client.OpenAiClient;
 import com.hackathon.global.exception.BusinessException;
 import com.hackathon.global.exception.ErrorCode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -30,11 +33,11 @@ public class CargoParseService {
             3. 금액은 원화 정수로 변환한다. 예: "50만원"은 500000, "1.2백만"은 1200000이다. 금액이 불명확하면 null이다.
             4. 중량은 톤 단위 숫자로 변환한다. 예: "500kg"은 0.5, "5톤"은 5다. 중량이 불명확하면 null이다.
             5. 시/도와 시/군/구를 구분할 수 있을 때만 origin/destination에 채운다. 주소를 보완하거나 존재하지 않는 세부 주소를 만들지 않는다.
-            6. cargoType은 정의된 enum 하나로 정규화하고, cargoDescription에는 원문 화물 표현을 짧게 보존한다.
+            6. cargoType은 입력의 referenceData에 제공된 CargoType enum 중 하나로만 정규화한다. 각 enum의 한글 의미와 대표 표현을 참고하되, 근거가 없으면 null을 넣는다. cargoDescription에는 원문 화물 표현을 짧게 보존한다.
             7. 누락 필드는 missingFields에 넣는다. confidence는 원본 정보가 충분하면 HIGH, 일부 핵심 필드가 빠졌거나 모호하면 MEDIUM 또는 LOW로 둔다. warnings에는 날짜·금액·중량 해석의 모호성만 짧게 적는다.
             """;
 
-    private static final String SCHEMA_JSON = """
+    private static final String SCHEMA_JSON_TEMPLATE = """
             {
               "type": "object",
               "additionalProperties": false,
@@ -42,7 +45,7 @@ public class CargoParseService {
               "properties": {
                 "origin": {"$ref": "#/$defs/address"},
                 "destination": {"$ref": "#/$defs/address"},
-                "cargoType": {"type": ["string", "null"], "enum": ["GENERAL", "REFRIGERATED", "FROZEN", "HAZARDOUS", "CONSTRUCTION", "OTHER", null]},
+                "cargoType": {"type": ["string", "null"], "enum": [%s, null]},
                 "cargoDescription": {"type": ["string", "null"]},
                 "weightTon": {"type": ["number", "null"]},
                 "offeredFareKrw": {"type": ["integer", "null"]},
@@ -79,7 +82,7 @@ public class CargoParseService {
         this.openAiClient = openAiClient;
         this.objectMapper = objectMapper;
         try {
-            this.schema = objectMapper.readTree(SCHEMA_JSON);
+            this.schema = objectMapper.readTree(SCHEMA_JSON_TEMPLATE.formatted(cargoTypeSchemaValues()));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("화물 파싱 JSON Schema가 올바르지 않습니다.", e);
         }
@@ -90,6 +93,9 @@ public class CargoParseService {
                 ? LocalDate.now(SEOUL)
                 : request.referenceDate();
         String input = "referenceDate: " + referenceDate
+                + "\nreferenceData:\n"
+                + "- CargoType enum (반환값은 enum 코드만 사용):\n"
+                + cargoTypeReference()
                 + "\nfreightRequest: " + request.requestText();
 
         ParsedCargoResponse parsed;
@@ -101,6 +107,20 @@ public class CargoParseService {
         }
 
         return parsed.withMissingFields(findValidationMessages(parsed));
+    }
+
+    private static String cargoTypeSchemaValues() {
+        return Arrays.stream(CargoType.values())
+                .map(cargoType -> "\"" + cargoType.name() + "\"")
+                .collect(Collectors.joining(", "));
+    }
+
+    private static String cargoTypeReference() {
+        return Arrays.stream(CargoType.values())
+                .map(cargoType -> "  - " + cargoType.name()
+                        + ": " + cargoType.koreanName()
+                        + " (대표 표현: " + String.join(", ", cargoType.examples()) + ")")
+                .collect(Collectors.joining("\n"));
     }
 
     private List<String> findValidationMessages(ParsedCargoResponse parsed) {
