@@ -5,12 +5,15 @@ import com.hackathon.domain.cargo.dto.CargoDetailResponse;
 import com.hackathon.domain.cargo.dto.CargoUpdateRequest;
 import com.hackathon.domain.cargo.dto.ParseRequest;
 import com.hackathon.domain.cargo.dto.ParsedCargoResponse;
+import com.hackathon.domain.cargo.service.CargoParseService;
+import com.hackathon.domain.cargo.service.CargoService;
 import com.hackathon.global.auth.LoginUser;
 import com.hackathon.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,32 +24,37 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/cargos")
+@RequiredArgsConstructor
 @Tag(name = "Cargo")
 public class CargoController {
+
+    private final CargoService cargoService;
+    private final CargoParseService cargoParseService;
 
     @PostMapping("/parse")
     @Operation(summary = "자연어 문장을 화물 항목으로 파싱 (저장하지 않음)")
     public ApiResponse<ParsedCargoResponse> parse(@Valid @RequestBody ParseRequest request) {
-        throw new UnsupportedOperationException("서비스 미구현");
+        return ApiResponse.ok(cargoParseService.parse(request));
     }
 
     @PostMapping
     @Operation(summary = "화물 등록")
     public ApiResponse<Map<String, Object>> create(@LoginUser Long shipperId,
                                                    @Valid @RequestBody CargoCreateRequest request) {
-        throw new UnsupportedOperationException("서비스 미구현");
+        Long cargoId = cargoService.create(shipperId, request);
+        return ApiResponse.ok(Map.of("cargoId", cargoId, "status", "REQUESTED"));
     }
 
     @GetMapping("/{cargoId}")
     @Operation(summary = "화물 상세 조회")
     public ApiResponse<CargoDetailResponse> detail(@PathVariable Long cargoId) {
-        throw new UnsupportedOperationException("서비스 미구현");
+        return ApiResponse.ok(cargoService.findDetail(cargoId));
     }
 
     @PatchMapping("/{cargoId}")
     @Operation(summary = "화물 부분 수정 (보낸 필드만 반영)")
     public ApiResponse<CargoDetailResponse> update(@PathVariable Long cargoId,
                                                     @RequestBody CargoUpdateRequest request) {
-        throw new UnsupportedOperationException("서비스 미구현");
+        return ApiResponse.ok(cargoService.update(cargoId, request));
     }
 }

@@ -2,6 +2,7 @@ package com.hackathon.global.exception;
 
 import com.hackathon.global.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +17,14 @@ public class GlobalExceptionHandler {
         log.warn("custom exception: type={}, errorCode={}",
                 e.getClass().getSimpleName(), e.getErrorCode());
         return ResponseEntity.status(e.getErrorCode().getStatus())
+                .body(ApiResponse.fail(e.getMessage()));
+    }
+
+    /** AI 연동 전까지 TODO로 남겨둔 기능이 호출됐을 때. 메시지에 어떤 부분이 미구현인지 그대로 담아 내려준다. */
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotImplemented(UnsupportedOperationException e) {
+        log.warn("not implemented: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
                 .body(ApiResponse.fail(e.getMessage()));
     }
 
