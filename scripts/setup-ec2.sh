@@ -3,8 +3,15 @@ set -Eeuo pipefail
 
 DEPLOY_DIR="${DEPLOY_DIR:-$HOME/hackathon-deploy}"
 
+packages=(nginx openssl curl)
+if ! command -v docker >/dev/null 2>&1; then
+  packages+=(docker.io docker-compose-v2)
+elif ! docker compose version >/dev/null 2>&1; then
+  packages+=(docker-compose-v2)
+fi
+
 sudo apt-get update
-sudo apt-get install -y docker.io docker-compose-v2 nginx openssl curl
+sudo apt-get install -y "${packages[@]}"
 sudo systemctl enable --now docker nginx
 sudo usermod -aG docker "$USER"
 
