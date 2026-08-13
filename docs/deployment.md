@@ -4,9 +4,9 @@
 
 ```text
 애플리케이션 또는 배포 파일이 포함된 main push
-  -> Backend 테스트 및 bootJar 생성
-  -> Frontend lint 및 dist 생성
-  -> Backend 계층형 실행 이미지 / Frontend Nginx 이미지 패키징
+  -> 직전 성공 배포 이후 Backend/Frontend 변경 범위 판별
+  -> 변경된 애플리케이션 테스트 및 패키징(둘 다 변경되면 병렬 실행)
+  -> 변경된 이미지 병렬 빌드 / 미변경 이미지는 직전 버전을 새 SHA로 재태깅
   -> GHCR에 Git SHA 태그로 발행
   -> EC2 self-hosted 배포 러너가 비활성 색상(blue 또는 green) 기동
   -> Backend/Frontend health check
@@ -23,6 +23,15 @@ DB와 Redis는 색상 전환 대상이 아니며 두 애플리케이션이 공�
 빌드를 반복하지 않는다. 백엔드는 Spring Boot JAR을 의존성, 부트 로더, 스냅샷 의존성,
 애플리케이션 레이어로 분리하여 코드 변경 시 애플리케이션 레이어만 갱신한다. BuildKit 상태도
 `production-builder`에 유지하여 같은 EC2 러너의 로컬 레이어를 재사용한다.
+별도 GitHub Actions 원격 캐시 업로드는 하지 않아 캐시 내보내기 시간을 없앴다. 이미지 빌드와
+배포는 같은 러너 작업 안에서 이어서 실행하므로 작업 사이의 대기, checkout, GHCR 로그인을
+반복하지 않는다. BuildKit 빌드 기록과 요약 아티팩트도 업로드하지 않는다.
+
+직전 성공 배포의 Git SHA와 현재 커밋 사이를 비교해 `backend/` 또는 `frontend/`가 바뀐 경우에만
+해당 테스트와 패키징을 실행한다. 둘 다 변경되면 검증과 이미지 빌드를 각각 병렬 실행한다.
+변경되지 않은 컴포넌트 이미지는 직전 운영 이미지를 현재 Git SHA 태그로 재발행하므로 Docker
+빌드 없이도 한 배포 버전에서 Backend/Frontend 태그가 일치한다. 최초 배포이거나 직전 커밋을
+확인할 수 없으면 안전하게 두 컴포넌트를 모두 검증하고 빌드한다.
 
 `AGENTS.md`, 일반 문서처럼 서비스와 배포 구성에 영향을 주지 않는 파일만 변경한 main push는
 배포 워크플로를 실행하지 않는다. PR과 develop에서는 별도 CI가 검증하며, main의 애플리케이션

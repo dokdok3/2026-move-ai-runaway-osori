@@ -25,15 +25,15 @@ env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/${{ github.repository }}-backend
   FRONTEND_IMAGE: ghcr.io/${{ github.repository }}-frontend
+  DOCKER_BUILD_RECORD_UPLOAD: "false"
+  DOCKER_BUILD_SUMMARY: "false"
 
 jobs:
-  build-and-push:
-    name: Build and push images on EC2
+  deploy-production:
+    name: Build and blue-green deploy
+    if: vars.EC2_READY == 'true'
     runs-on: [self-hosted, Linux, X64, ec2, production]
-    outputs:
-      image-tag: ${{ steps.image.outputs.tag }}
-      started-at: ${{ steps.deployment.outputs.started-at }}
-      changes-b64: ${{ steps.deployment.outputs.changes-b64 }}
+    environment: production
     steps:
       - uses: actions/checkout@v4
         with:
@@ -55,8 +55,20 @@ jobs:
           if [[ "$previous_image" =~ ^[0-9a-f]{40}$ ]] && git cat-file -e "$previous_image^{commit}" 2>/dev/null; then
             printf '%s\n' "$previous_image" > "$previous_image_file"
             changes="$(git log --reverse --format='%h %s' "$previous_image..$GITHUB_SHA")"
+            changed_paths="$(git diff --name-only "$previous_image..$GITHUB_SHA")"
+            backend_changed=false
+            frontend_changed=false
+            while IFS= read -r changed_path; do
+              case "$changed_path" in
+                backend/*) backend_changed=true ;;
+                frontend/*) frontend_changed=true ;;
+              esac
+            done <<< "$changed_paths"
           else
             changes="$(git log -1 --format='%h %s' "$GITHUB_SHA")"
+            previous_image=""
+            backend_changed=true
+            frontend_changed=true
           fi
           if [[ -z "$changes" ]]; then
             changes="$(git log -1 --format='%h %s' "$GITHUB_SHA")"
@@ -76,6 +88,9 @@ jobs:
               ;;
           esac
           echo "started-at=$started_at" >> "$GITHUB_OUTPUT"
+          echo "previous-image=$previous_image" >> "$GITHUB_OUTPUT"
+          echo "backend-changed=$backend_changed" >> "$GITHUB_OUTPUT"
+          echo "frontend-changed=$frontend_changed" >> "$GITHUB_OUTPUT"
           echo "active-color=$active_color" >> "$GITHUB_OUTPUT"
           echo "target-color=$target_color" >> "$GITHUB_OUTPUT"
           changes_b64="$(printf '%s' "$changes" | base64 | tr -d '\n')"
@@ -85,21 +100,47 @@ jobs:
           DEPLOY_STATUS_DIR=/var/www/hackathon-deploy DEPLOY_CHANGES="$changes" \
             scripts/write-deploy-status.sh building test unknown "$active_color" "$target_color" "$started_at"
       - uses: actions/setup-java@v5
+        if: steps.deployment.outputs.backend-changed == 'true'
         with:
           distribution: temurin
           java-version: "25"
-      - name: Test and package backend
-        working-directory: backend
-        run: ./gradlew test bootJar --no-daemon
       - uses: pnpm/action-setup@v4
+        if: steps.deployment.outputs.frontend-changed == 'true'
         with:
           version: 9.15.9
       - uses: actions/setup-node@v4
+        if: steps.deployment.outputs.frontend-changed == 'true'
         with:
           node-version: "22"
-      - name: Test frontend
-        working-directory: frontend
-        run: pnpm install --frozen-lockfile --prefer-offline && pnpm lint && pnpm build
+      - name: Verify and package changed applications
+        env:
+          BACKEND_CHANGED: ${{ steps.deployment.outputs.backend-changed }}
+          FRONTEND_CHANGED: ${{ steps.deployment.outputs.frontend-changed }}
+        run: |
+          backend_pid=""
+          frontend_pid=""
+          if [[ "$BACKEND_CHANGED" == true ]]; then
+            (cd backend && ./gradlew test bootJar --no-daemon) &
+            backend_pid=$!
+          fi
+          if [[ "$FRONTEND_CHANGED" == true ]]; then
+            (cd frontend && pnpm install --frozen-lockfile --prefer-offline && pnpm lint && pnpm build) &
+            frontend_pid=$!
+          fi
+
+          failed=0
+          if [[ -n "$backend_pid" ]] && ! wait "$backend_pid"; then
+            echo "Backend verification failed" >&2
+            failed=1
+          fi
+          if [[ -n "$frontend_pid" ]] && ! wait "$frontend_pid"; then
+            echo "Frontend verification failed" >&2
+            failed=1
+          fi
+          if [[ -z "$backend_pid" && -z "$frontend_pid" ]]; then
+            echo "No application source changed; reusing previously published images"
+          fi
+          exit "$failed"
       - name: Mark image build status
         env:
           DEPLOY_ACTOR: ${{ github.actor }}
@@ -118,28 +159,44 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - id: image
-        run: echo "tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-      - name: Build and push backend
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          push: true
-          platforms: linux/amd64
-          tags: |
-            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
-          cache-from: type=gha,scope=backend
-          cache-to: type=gha,mode=min,scope=backend
-      - name: Build and push frontend
-        uses: docker/build-push-action@v6
-        with:
-          context: ./frontend
-          push: true
-          platforms: linux/amd64
-          tags: |
-            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
-          cache-from: type=gha,scope=frontend
-          cache-to: type=gha,mode=min,scope=frontend
+      - name: Build or retag images in parallel
+        env:
+          PREVIOUS_IMAGE: ${{ steps.deployment.outputs.previous-image }}
+          BACKEND_CHANGED: ${{ steps.deployment.outputs.backend-changed }}
+          FRONTEND_CHANGED: ${{ steps.deployment.outputs.frontend-changed }}
+        run: |
+          build_or_retag_backend() {
+            if [[ "$BACKEND_CHANGED" == true ]]; then
+              docker buildx build --builder production-builder --platform linux/amd64 \
+                --provenance=mode=max --push --tag "$BACKEND_IMAGE:$GITHUB_SHA" ./backend
+            else
+              docker buildx imagetools create \
+                --tag "$BACKEND_IMAGE:$GITHUB_SHA" "$BACKEND_IMAGE:$PREVIOUS_IMAGE"
+            fi
+          }
+          build_or_retag_frontend() {
+            if [[ "$FRONTEND_CHANGED" == true ]]; then
+              docker buildx build --builder production-builder --platform linux/amd64 \
+                --provenance=mode=max --push --tag "$FRONTEND_IMAGE:$GITHUB_SHA" ./frontend
+            else
+              docker buildx imagetools create \
+                --tag "$FRONTEND_IMAGE:$GITHUB_SHA" "$FRONTEND_IMAGE:$PREVIOUS_IMAGE"
+            fi
+          }
+
+          build_or_retag_backend &
+          backend_pid=$!
+          build_or_retag_frontend &
+          frontend_pid=$!
+
+          backend_status=0
+          frontend_status=0
+          wait "$backend_pid" || backend_status=$?
+          wait "$frontend_pid" || frontend_status=$?
+          if (( backend_status != 0 || frontend_status != 0 )); then
+            echo "Image publication failed (backend=$backend_status, frontend=$frontend_status)" >&2
+            exit 1
+          fi
       - name: Mark images ready
         env:
           DEPLOY_ACTOR: ${{ github.actor }}
@@ -149,7 +206,26 @@ jobs:
             scripts/write-deploy-status.sh deploying image-ready "${GITHUB_SHA}" \
               '${{ steps.deployment.outputs.active-color }}' '${{ steps.deployment.outputs.target-color }}' \
               '${{ steps.deployment.outputs.started-at }}'
-      - name: Mark build failure
+      - name: Install deployment files
+        run: |
+          install -d "$HOME/hackathon-deploy/scripts" "$HOME/hackathon-deploy/deploy/nginx"
+          install -m 644 compose.prod.yaml "$HOME/hackathon-deploy/compose.prod.yaml"
+          install -m 755 scripts/deploy-blue-green.sh "$HOME/hackathon-deploy/scripts/deploy-blue-green.sh"
+          install -m 755 scripts/write-deploy-status.sh "$HOME/hackathon-deploy/scripts/write-deploy-status.sh"
+          install -m 644 deploy/nginx/hackathon.conf.template "$HOME/hackathon-deploy/deploy/nginx/hackathon.conf.template"
+          sudo install -d -o "$USER" -g "$USER" -m 755 /var/www/hackathon-deploy
+          install -m 644 deploy/status/index.html /var/www/hackathon-deploy/index.html
+      - name: Switch blue-green deployment
+        env:
+          DEPLOY_ACTOR: ${{ github.actor }}
+          DEPLOY_CHANGES_B64: ${{ steps.deployment.outputs.changes-b64 }}
+          DEPLOY_IMAGE_TAG: ${{ github.sha }}
+          DEPLOY_STARTED_AT: ${{ steps.deployment.outputs.started-at }}
+        run: |
+          cd "$HOME/hackathon-deploy"
+          BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" \
+            scripts/deploy-blue-green.sh "$DEPLOY_IMAGE_TAG"
+      - name: Mark deployment failure
         if: failure()
         env:
           DEPLOY_ACTOR: ${{ github.actor }}
@@ -161,36 +237,6 @@ jobs:
           DEPLOY_STATUS_DIR=/var/www/hackathon-deploy \
             scripts/write-deploy-status.sh failed failed "${GITHUB_SHA}" \
               "${active_color:-none}" "${target_color:-none}" "${started_at:-$(date +%s)}"
-
-  deploy:
-    name: Blue-green deploy
-    needs: build-and-push
-    if: vars.EC2_READY == 'true'
-    runs-on: [self-hosted, Linux, X64, ec2, production]
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install deployment files
-        run: |
-          install -d "$HOME/hackathon-deploy/scripts" "$HOME/hackathon-deploy/deploy/nginx"
-          install -m 644 compose.prod.yaml "$HOME/hackathon-deploy/compose.prod.yaml"
-          install -m 755 scripts/deploy-blue-green.sh "$HOME/hackathon-deploy/scripts/deploy-blue-green.sh"
-          install -m 755 scripts/write-deploy-status.sh "$HOME/hackathon-deploy/scripts/write-deploy-status.sh"
-          install -m 644 deploy/nginx/hackathon.conf.template "$HOME/hackathon-deploy/deploy/nginx/hackathon.conf.template"
-          sudo install -d -o "$USER" -g "$USER" -m 755 /var/www/hackathon-deploy
-          install -m 644 deploy/status/index.html /var/www/hackathon-deploy/index.html
-      - name: Authenticate to GHCR
-        run: printf '%s' '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io --username '${{ github.actor }}' --password-stdin
-      - name: Switch blue-green deployment
-        env:
-          DEPLOY_ACTOR: ${{ github.actor }}
-          DEPLOY_CHANGES_B64: ${{ needs.build-and-push.outputs.changes-b64 }}
-          DEPLOY_IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
-          DEPLOY_STARTED_AT: ${{ needs.build-and-push.outputs.started-at }}
-        run: |
-          cd "$HOME/hackathon-deploy"
-          BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" \
-            scripts/deploy-blue-green.sh "$DEPLOY_IMAGE_TAG"
       - name: Logout from GHCR
         if: always()
         run: docker logout ghcr.io || true
