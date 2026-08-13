@@ -15,7 +15,16 @@ import type {
 } from './model'
 
 export const getMyCargos = async (params: GetMyCargosParams): Promise<GetMyCargosResponse> => {
-  const result = await apiClient.GET('/api/v1/cargos/me', { params: { query: params } })
+  const result = await apiClient.GET('/api/v1/cargos/me', {
+    params: { query: params },
+    querySerializer: ({ shipperId, pageable }) => {
+      const query = new URLSearchParams({ shipperId: String(shipperId) })
+      if (pageable.page !== undefined) query.set('page', String(pageable.page))
+      if (pageable.size !== undefined) query.set('size', String(pageable.size))
+      pageable.sort?.forEach((sort) => query.append('sort', sort))
+      return query.toString()
+    },
+  })
   if (!result.data) {
     throw new Error(
       extractApiErrorMessage(result.error) ??
