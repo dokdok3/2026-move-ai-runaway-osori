@@ -1,20 +1,24 @@
 package com.hackathon.domain.cargo.dto;
 
-import com.hackathon.domain.driver.dto.RegionPoint;
+import java.time.LocalDate;
+import java.util.List;
 
-/**
- * 자연어 파싱 결과. 읽지 못한 항목은 null로 내려 프론트가 "고치기"로 채우게 한다.
- * loadingAt/unloadingAt은 ISO-8601 문자열("2026-08-12T14:00:00")로 내려준다.
- */
+/** 자연어 화물 요청의 구조화 결과. 원문에서 확인할 수 없는 값은 null이다. */
 public record ParsedCargoResponse(
-        RegionPoint origin,
-        RegionPoint destination,
+        ParsedAddress origin,
+        ParsedAddress destination,
         String cargoType,
         String cargoDescription,
         Double weightTon,
-        String vehicleType,
-        Integer desiredFare,
-        String loadingAt,
-        String unloadingAt
+        Integer offeredFareKrw,
+        LocalDate loadingDate,
+        String loadingTimeText,
+        LocalDate unloadingDate,
+        String unloadingTimeText,
+        List<String> missingFields,
+        String confidence,
+        List<String> warnings
 ) {
+    public record ParsedAddress(String sido, String sigungu, String detail) {
+    }
 }
