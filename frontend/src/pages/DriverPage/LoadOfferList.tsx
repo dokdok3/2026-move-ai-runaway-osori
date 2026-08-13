@@ -6,7 +6,7 @@ import { LoadOfferCard } from './LoadOfferCard'
 export interface LoadOfferListProps {
   loads: LoadResponse[]
   onRefresh: () => void
-  onAccept: (cargoId: number) => void
+  onAccept: (cargoId: number) => Promise<boolean>
   onHide: (cargoId: number) => void
   acceptingCargoId: number | undefined
   filter: LoadFilter
@@ -159,7 +159,9 @@ export function LoadOfferList({
             key={load.cargoId}
             load={load}
             isBest={index === 0}
-            onAccept={() => load.cargoId !== undefined && onAccept(load.cargoId)}
+            onAccept={() =>
+              load.cargoId !== undefined ? onAccept(load.cargoId) : Promise.resolve(false)
+            }
             onHide={() => load.cargoId !== undefined && onHide(load.cargoId)}
             accepting={acceptingCargoId === load.cargoId}
           />

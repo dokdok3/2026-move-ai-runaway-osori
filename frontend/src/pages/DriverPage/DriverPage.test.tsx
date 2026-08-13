@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/render'
@@ -16,10 +16,6 @@ async function waitForActionButtons(name: '수락' | '숨기기'): Promise<HTMLB
 }
 
 describe('DriverPage', () => {
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   it('내 기사 프로필로 활동 지역을 채우고 추천 화물 목록을 보여준다', async () => {
     renderWithProviders(<DriverPage />)
 
@@ -47,26 +43,29 @@ describe('DriverPage', () => {
 
   it('수락을 누르면 수락 요청이 처리되고 추천 목록에서 제거된다', async () => {
     const user = userEvent.setup()
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     renderWithProviders(<DriverPage />)
 
     const [firstAcceptButton] = await waitForActionButtons('수락')
     await user.click(firstAcceptButton)
+    expect(screen.getByRole('alertdialog', { name: '이 화물을 수락할까요?' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '수락하기' }))
 
-    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('화물을 수락하시겠어요?'))
-
+    expect(
+      await screen.findByRole('alertdialog', { name: '화물을 수락했어요' }),
+    ).toBeInTheDocument()
     await waitFor(() => expect(firstAcceptButton).not.toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: '확인' }))
   })
 
   it('수락 확인창에서 취소하면 수락 요청을 보내지 않는다', async () => {
     const user = userEvent.setup()
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
     renderWithProviders(<DriverPage />)
 
     const [firstAcceptButton] = await waitForActionButtons('수락')
     await user.click(firstAcceptButton)
+    await user.click(screen.getByRole('button', { name: '취소' }))
 
-    expect(confirmSpy).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     expect(firstAcceptButton).toHaveTextContent('수락')
     expect(firstAcceptButton).not.toBeDisabled()
   })

@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import styled from '@emotion/styled'
+import { AlertDialog } from '@/components/AlertDialog'
 import { Badge } from '@/components/Badge'
 import { Button } from '@/components/Button'
 import { FareWarningBanner } from '@/components/FareWarningBanner'
@@ -9,7 +11,7 @@ import type { LoadResponse } from '@/api/load/model'
 export interface LoadOfferCardProps {
   load: LoadResponse
   isBest: boolean
-  onAccept: () => void
+  onAccept: () => Promise<boolean>
   onHide: () => void
   accepting: boolean
 }
@@ -150,6 +152,7 @@ const Actions = styled.div`
 `
 
 export function LoadOfferCard({ load, isBest, onAccept, onHide, accepting }: LoadOfferCardProps) {
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const isLow = load.badge === 'LOW'
   const badgeLabel = isLow
     ? `운임 ${load.belowPercent ?? 0}% 낮음`
@@ -157,12 +160,9 @@ export function LoadOfferCard({ load, isBest, onAccept, onHide, accepting }: Loa
       ? '적정 운임'
       : '시세 정보 없음'
 
-  const handleAccept = () => {
-    const confirmed = window.confirm(
-      `${load.origin}에서 ${load.destination}까지 운행하는 화물을 수락하시겠어요?`,
-    )
-
-    if (confirmed) onAccept()
+  const handleAccept = async () => {
+    const accepted = await onAccept()
+    if (accepted) setConfirmOpen(false)
   }
 
   return (
@@ -203,10 +203,25 @@ export function LoadOfferCard({ load, isBest, onAccept, onHide, accepting }: Loa
         <Button type="button" variant="ghost" onClick={onHide} disabled={accepting}>
           숨기기
         </Button>
-        <Button type="button" onClick={handleAccept} disabled={accepting}>
+        <Button type="button" onClick={() => setConfirmOpen(true)} disabled={accepting}>
           {accepting ? '수락 중...' : '수락'}
         </Button>
       </Actions>
+
+      {confirmOpen && (
+        <AlertDialog
+          title="이 화물을 수락할까요?"
+          description={
+            <>
+              {load.origin}에서 {load.destination}까지 운행하는 화물이에요.
+            </>
+          }
+          confirmLabel="수락하기"
+          onConfirm={handleAccept}
+          onCancel={() => setConfirmOpen(false)}
+          busy={accepting}
+        />
+      )}
     </Wrapper>
   )
 }

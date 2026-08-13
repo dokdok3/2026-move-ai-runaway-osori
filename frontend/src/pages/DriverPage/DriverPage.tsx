@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import styled from '@emotion/styled'
+import { AlertDialog } from '@/components/AlertDialog'
 import { Hero } from '@/components/Hero'
 import { PageLayout } from '@/components/PageLayout'
 import { useDriverProfileQuery, useUpdateRoutePreferencesMutation } from '@/api/driver/service'
@@ -45,6 +46,7 @@ export function DriverPage() {
   const [route, setRoute] = useState<RouteDraft>(EMPTY_ROUTE)
   const [acceptingCargoId, setAcceptingCargoId] = useState<number | undefined>(undefined)
   const [acceptError, setAcceptError] = useState<string | null>(null)
+  const [acceptComplete, setAcceptComplete] = useState(false)
   const seededRef = useRef(false)
 
   const driverProfileQuery = useDriverProfileQuery({ driverId: DEMO_DRIVER_ID })
@@ -94,9 +96,12 @@ export function DriverPage() {
     setAcceptingCargoId(cargoId)
     try {
       await acceptLoadMutation.mutateAsync({ cargoId, driverId: DEMO_DRIVER_ID })
+      setAcceptComplete(true)
       await loadListQuery.refetch()
+      return true
     } catch (error) {
       setAcceptError(error instanceof Error ? error.message : '화물을 수락하지 못했어요.')
+      return false
     } finally {
       setAcceptingCargoId(undefined)
     }
@@ -157,6 +162,15 @@ export function DriverPage() {
         filter={filter}
         onFilterChange={handleFilterChange}
       />
+
+      {acceptComplete && (
+        <AlertDialog
+          title="화물을 수락했어요"
+          description="수락한 화물은 수락 필터에서 다시 확인할 수 있어요."
+          confirmLabel="확인"
+          onConfirm={() => setAcceptComplete(false)}
+        />
+      )}
     </PageLayout>
   )
 }
