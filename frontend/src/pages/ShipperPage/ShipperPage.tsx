@@ -44,20 +44,23 @@ export function ShipperPage() {
     }
 
     try {
-      const parsed = await parseMutation.mutateAsync({ rawText })
+      const parsed = await parseMutation.mutateAsync({ requestText: rawText })
       const originSido = parsed.origin?.sido
       const destSido = parsed.destination?.sido
       const weightTon = parsed.weightTon
       const cargoType = toCargoType(parsed.cargoType)
 
       if (!originSido || !destSido || weightTon === undefined) {
+        const detail = parsed.missingFields?.length
+          ? ` (누락: ${parsed.missingFields.join(', ')})`
+          : ''
         setFormError(
-          '원문에서 출발지·도착지·톤수를 인식하지 못했어요. 조금 더 구체적으로 적어주세요.',
+          `원문에서 출발지·도착지·톤수를 인식하지 못했어요. 조금 더 구체적으로 적어주세요.${detail}`,
         )
         return
       }
 
-      let desiredFare = parsed.desiredFare
+      let desiredFare = parsed.offeredFareKrw
       if (desiredFare === undefined) {
         const quote = await fetchFareQuote({ originSido, destSido, cargoType, weightTon })
         desiredFare = quote.averageFare
@@ -76,10 +79,11 @@ export function ShipperPage() {
           cargoType,
           cargoDescription: parsed.cargoDescription ?? rawText,
           weightTon,
-          vehicleType: parsed.vehicleType,
           desiredFare,
-          loadingAt: parsed.loadingAt ?? new Date().toISOString(),
-          unloadingAt: parsed.unloadingAt,
+          loadingAt: parsed.loadingDate
+            ? `${parsed.loadingDate}T09:00:00`
+            : new Date().toISOString(),
+          unloadingAt: parsed.unloadingDate ? `${parsed.unloadingDate}T18:00:00` : undefined,
         },
       })
 

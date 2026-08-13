@@ -1,4 +1,5 @@
 import { apiClient } from '@/api/client'
+import { extractApiErrorMessage } from '@/api/errorMessage'
 import type {
   AcceptLoadParams,
   AcceptLoadResponse,
@@ -9,7 +10,10 @@ import type {
 export const getLoadList = async (params: GetLoadListParams): Promise<GetLoadListResponse> => {
   const result = await apiClient.GET('/api/v1/loads', { params: { query: params } })
   if (!result.data) {
-    throw new Error(`추천 화물을 불러오지 못했습니다 (status: ${result.response.status})`)
+    throw new Error(
+      extractApiErrorMessage(result.error) ??
+        `추천 화물을 불러오지 못했습니다 (status: ${result.response.status})`,
+    )
   }
 
   return result.data.data ?? []
@@ -21,7 +25,10 @@ export const acceptLoad = async (params: AcceptLoadParams): Promise<AcceptLoadRe
     params: { path: { cargoId }, query: { driverId } },
   })
   if (!result.data) {
-    throw new Error(`화물을 수락하지 못했습니다 (status: ${result.response.status})`)
+    throw new Error(
+      extractApiErrorMessage(result.error) ??
+        `화물을 수락하지 못했습니다 (status: ${result.response.status})`,
+    )
   }
 
   return result.data.data ?? {}

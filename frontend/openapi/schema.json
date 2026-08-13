@@ -328,7 +328,7 @@
           {
             "name": "weightTon",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "number"
             }
@@ -608,12 +608,16 @@
       "ParseRequest": {
         "type": "object",
         "properties": {
-          "rawText": {
+          "requestText": {
             "type": "string",
             "minLength": 1
+          },
+          "referenceDate": {
+            "type": "string",
+            "format": "date"
           }
         },
-        "required": ["rawText"]
+        "required": ["requestText"]
       },
       "ApiResponseParsedCargoResponse": {
         "type": "object",
@@ -629,14 +633,28 @@
           }
         }
       },
+      "ParsedAddress": {
+        "type": "object",
+        "properties": {
+          "sido": {
+            "type": "string"
+          },
+          "sigungu": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
       "ParsedCargoResponse": {
         "type": "object",
         "properties": {
           "origin": {
-            "$ref": "#/components/schemas/RegionPoint"
+            "$ref": "#/components/schemas/ParsedAddress"
           },
           "destination": {
-            "$ref": "#/components/schemas/RegionPoint"
+            "$ref": "#/components/schemas/ParsedAddress"
           },
           "cargoType": {
             "type": "string"
@@ -648,18 +666,38 @@
             "type": "number",
             "format": "double"
           },
-          "vehicleType": {
-            "type": "string"
-          },
-          "desiredFare": {
+          "offeredFareKrw": {
             "type": "integer",
             "format": "int32"
           },
-          "loadingAt": {
+          "loadingDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "loadingTimeText": {
             "type": "string"
           },
-          "unloadingAt": {
+          "unloadingDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "unloadingTimeText": {
             "type": "string"
+          },
+          "missingFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confidence": {
+            "type": "string"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

@@ -251,25 +251,38 @@ export interface components {
       message?: string
     }
     ParseRequest: {
-      rawText: string
+      requestText: string
+      /** Format: date */
+      referenceDate?: string
     }
     ApiResponseParsedCargoResponse: {
       success?: boolean
       data?: components['schemas']['ParsedCargoResponse']
       message?: string
     }
+    ParsedAddress: {
+      sido?: string
+      sigungu?: string
+      detail?: string
+    }
     ParsedCargoResponse: {
-      origin?: components['schemas']['RegionPoint']
-      destination?: components['schemas']['RegionPoint']
+      origin?: components['schemas']['ParsedAddress']
+      destination?: components['schemas']['ParsedAddress']
       cargoType?: string
       cargoDescription?: string
       /** Format: double */
       weightTon?: number
-      vehicleType?: string
       /** Format: int32 */
-      desiredFare?: number
-      loadingAt?: string
-      unloadingAt?: string
+      offeredFareKrw?: number
+      /** Format: date */
+      loadingDate?: string
+      loadingTimeText?: string
+      /** Format: date */
+      unloadingDate?: string
+      unloadingTimeText?: string
+      missingFields?: string[]
+      confidence?: string
+      warnings?: string[]
     }
     CargoUpdateRequest: {
       origin?: components['schemas']['RegionPoint']
@@ -587,7 +600,7 @@ export interface operations {
         originSido: string
         destSido: string
         cargoType: 'REFRIGERATED' | 'GENERAL' | 'FROZEN' | 'CONSTRUCTION' | 'HAZARDOUS'
-        weightTon: number
+        weightTon?: number
         desiredFare?: number
       }
       header?: never
