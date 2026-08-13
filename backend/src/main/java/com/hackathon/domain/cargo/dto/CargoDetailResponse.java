@@ -21,6 +21,7 @@ public record CargoDetailResponse(
         LocalDateTime loadingAt,
         LocalDateTime unloadingAt,
         Integer distanceKm,
+        Boolean aiParsed,
         FareQuoteResponse fare,
         DriverResponse assignedDriver
 ) {
@@ -39,6 +40,7 @@ public record CargoDetailResponse(
                 cargo.getLoadingAt(),
                 cargo.getUnloadingAt(),
                 cargo.getDistanceKm(),
+                cargo.getAiParsed(),
                 fare,
                 driver
         );

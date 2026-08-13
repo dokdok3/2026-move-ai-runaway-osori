@@ -18,10 +18,11 @@ public record CargoCreateRequest(
         @NotNull(message = "희망 운임은 필수입니다.") Integer desiredFare,
         @NotNull(message = "상차 일시는 필수입니다.") LocalDateTime loadingAt,
         @NotNull(message = "하차 일시는 필수입니다.") LocalDateTime unloadingAt,
-        Integer distanceKm
+        Integer distanceKm,
+        Boolean aiParsed
 ) {
     public Cargo toEntity(Long shipperId) {
-        return Cargo.create(
+        Cargo cargo = Cargo.create(
                 shipperId,
                 origin.sido(), origin.sigungu(),
                 destination.sido(), destination.sigungu(),
@@ -30,5 +31,7 @@ public record CargoCreateRequest(
                 desiredFare,
                 loadingAt, unloadingAt,
                 distanceKm);
+        cargo.markAiParsed(aiParsed != null && aiParsed);
+        return cargo;
     }
 }

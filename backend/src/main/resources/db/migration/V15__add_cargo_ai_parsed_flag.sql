@@ -1,0 +1,2 @@
+ALTER TABLE cargo
+    ADD COLUMN ai_parsed BOOLEAN NOT NULL DEFAULT false;
