@@ -13,10 +13,10 @@ export const cargoQueryKeys = {
   all: ['cargo'] as const,
   details: () => [...cargoQueryKeys.all, 'detail'] as const,
   detail: (cargoId: number) => [...cargoQueryKeys.details(), cargoId] as const,
+  myCargosAll: () => [...cargoQueryKeys.all, 'my-cargos'] as const,
   myCargos: (params: GetMyCargosParams) =>
     [
-      ...cargoQueryKeys.all,
-      'my-cargos',
+      ...cargoQueryKeys.myCargosAll(),
       params.shipperId,
       params.pageable.page ?? 0,
       params.pageable.size ?? 10,

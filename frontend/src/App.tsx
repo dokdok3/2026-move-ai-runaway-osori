@@ -9,6 +9,7 @@ export function App() {
     <Routes>
       <Route path="/" element={<RoleSelectPage />} />
       <Route path="/shipper" element={<ShipperPage />} />
+      <Route path="/shipper/cargos/:cargoId" element={<ShipperPage />} />
       <Route path="/driver" element={<DriverPage />} />
       <Route path="/driver/profile" element={<DriverProfilePage />} />
     </Routes>
