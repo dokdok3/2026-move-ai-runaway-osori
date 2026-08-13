@@ -1,0 +1,20 @@
+CREATE TABLE cargo (
+    id                  BIGSERIAL PRIMARY KEY,
+    shipper_id          BIGINT NOT NULL,
+    origin_sido         VARCHAR(20) NOT NULL,
+    origin_sigungu      VARCHAR(20),
+    dest_sido           VARCHAR(20) NOT NULL,
+    dest_sigungu        VARCHAR(20),
+    cargo_type          VARCHAR(20),
+    cargo_description   VARCHAR(50),
+    weight_ton          NUMERIC(6,1) NOT NULL,
+    vehicle_type        VARCHAR(20),
+    body_type           VARCHAR(20),
+    desired_fare        INTEGER NOT NULL,
+    loading_at          TIMESTAMP NOT NULL,
+    unloading_at        TIMESTAMP,
+    distance_km         INTEGER,
+    status              VARCHAR(20) NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at          TIMESTAMP NOT NULL DEFAULT now()
+);
