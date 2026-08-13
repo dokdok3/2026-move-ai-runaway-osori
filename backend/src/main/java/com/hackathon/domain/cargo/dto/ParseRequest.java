@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 public record ParseRequest(
         @JsonAlias("rawText")
-        @NotBlank(message = "파싱할 문장을 입력해주세요.") String requestText,
+        @NotBlank(message = "화물 요청 내용은 필수입니다.") String requestText,
         LocalDate referenceDate
 ) {
 }

@@ -141,7 +141,7 @@ class CargoCreateTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalid))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("희망 운임을 입력해주세요."));
+                .andExpect(jsonPath("$.message").value("희망 운임은 필수입니다."));
     }
 
     @Test
@@ -154,7 +154,7 @@ class CargoCreateTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalid))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("하차 일시를 입력해주세요."));
+                .andExpect(jsonPath("$.message").value("하차 일시는 필수입니다."));
     }
 
     @Test
@@ -167,7 +167,7 @@ class CargoCreateTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalid))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("시군구를 입력해주세요."));
+                .andExpect(jsonPath("$.message").value("시군구는 필수입니다."));
     }
 
     @Test
@@ -182,7 +182,6 @@ class CargoCreateTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalid))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message")
-                        .value("화물 주소의 시군구는 전체를 선택할 수 없습니다."));
+                .andExpect(jsonPath("$.message").value("시군구는 필수입니다."));
     }
 }

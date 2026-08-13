@@ -86,6 +86,45 @@ class AiTodoEndpointsTest {
     }
 
     @Test
+    @DisplayName("AI 누락 목록 대신 실제 빈 값을 검사해 한글 항목명으로 안내한다")
+    void reportsActualMissingFieldsInKorean() throws Exception {
+        when(openAiClient.generateStructured(any(), any(), any(JsonNode.class)))
+                .thenReturn("""
+                        {
+                          "origin":{"sido":"서울특별시","sigungu":"전체","detail":null},
+                          "destination":{"sido":null,"sigungu":"화순군","detail":null},
+                          "cargoType":null,
+                          "cargoDescription":"박스 1개",
+                          "weightTon":1,
+                          "offeredFareKrw":50000000,
+                          "loadingDate":"2026-08-14",
+                          "loadingTimeText":null,
+                          "unloadingDate":null,
+                          "unloadingTimeText":null,
+                          "missingFields":[],
+                          "confidence":"LOW",
+                          "warnings":[]
+                        }
+                        """);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos/parse")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "requestText":"내일 서울에서 화순으로 박스 1개 1톤 50000000원",
+                                  "referenceDate":"2026-08-13"
+                                }
+                                """))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value(
+                        "출발지 시군구는 필수입니다. "
+                                + "도착지 시도는 필수입니다. "
+                                + "화물 종류는 필수입니다. "
+                                + "하차일은 필수입니다."));
+    }
+
+    @Test
     @DisplayName("시세 조회는 캐시 미스여도 기본 시세를 생성해 반환한다")
     void quoteReturnsFallbackOnCacheMiss() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/fares/quote")

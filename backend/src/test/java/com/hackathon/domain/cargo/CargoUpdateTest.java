@@ -66,7 +66,7 @@ class CargoUpdateTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("시군구를 입력해주세요."));
+                .andExpect(jsonPath("$.message").value("시군구는 필수입니다."));
 
         Cargo cargo = cargoRepository.findById(id).orElseThrow();
         org.assertj.core.api.Assertions.assertThat(cargo.getOriginSigungu()).isEqualTo("수원시");
@@ -85,8 +85,7 @@ class CargoUpdateTest {
                                 {"origin": {"sido": "서울특별시", "sigungu": "전체"}}
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message")
-                        .value("화물 주소의 시군구는 전체를 선택할 수 없습니다."));
+                .andExpect(jsonPath("$.message").value("시군구는 필수입니다."));
 
         Cargo cargo = cargoRepository.findById(id).orElseThrow();
         org.assertj.core.api.Assertions.assertThat(cargo.getOriginSigungu()).isEqualTo("수원시");

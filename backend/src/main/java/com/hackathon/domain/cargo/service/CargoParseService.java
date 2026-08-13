@@ -10,7 +10,10 @@ import com.hackathon.global.exception.BusinessException;
 import com.hackathon.global.exception.ErrorCode;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 public class CargoParseService {
@@ -89,11 +92,61 @@ public class CargoParseService {
         String input = "referenceDate: " + referenceDate
                 + "\nfreightRequest: " + request.requestText();
 
+        ParsedCargoResponse parsed;
         try {
             String output = openAiClient.generateStructured(PARSING_INSTRUCTIONS, input, schema);
-            return objectMapper.readValue(output, ParsedCargoResponse.class);
+            parsed = objectMapper.readValue(output, ParsedCargoResponse.class);
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.AI_CALL_FAILED);
+        }
+
+        List<String> validationMessages = findValidationMessages(parsed);
+        if (!validationMessages.isEmpty()) {
+            throw new BusinessException(
+                    ErrorCode.AI_PARSING_FAILED,
+                    String.join(" ", validationMessages)
+            );
+        }
+        return parsed;
+    }
+
+    private List<String> findValidationMessages(ParsedCargoResponse parsed) {
+        List<String> validationMessages = new ArrayList<>();
+        addAddressValidationMessages(validationMessages, "출발지", parsed.origin());
+        addAddressValidationMessages(validationMessages, "도착지", parsed.destination());
+        if (!StringUtils.hasText(parsed.cargoType())) {
+            validationMessages.add("화물 종류는 필수입니다.");
+        }
+        if (parsed.weightTon() == null) {
+            validationMessages.add("화물 중량은 필수입니다.");
+        }
+        if (parsed.offeredFareKrw() == null) {
+            validationMessages.add("희망 운임은 필수입니다.");
+        }
+        if (parsed.loadingDate() == null) {
+            validationMessages.add("상차일은 필수입니다.");
+        }
+        if (parsed.unloadingDate() == null) {
+            validationMessages.add("하차일은 필수입니다.");
+        }
+        return validationMessages;
+    }
+
+    private void addAddressValidationMessages(
+            List<String> validationMessages,
+            String addressLabel,
+            ParsedCargoResponse.ParsedAddress address
+    ) {
+        if (address == null) {
+            validationMessages.add(addressLabel + " 시도는 필수입니다.");
+            validationMessages.add(addressLabel + " 시군구는 필수입니다.");
+            return;
+        }
+        if (!StringUtils.hasText(address.sido())) {
+            validationMessages.add(addressLabel + " 시도는 필수입니다.");
+        }
+        if (!StringUtils.hasText(address.sigungu()) || "전체".equals(address.sigungu().trim())) {
+            validationMessages.add(addressLabel + " 시군구는 필수입니다.");
         }
     }
 }
