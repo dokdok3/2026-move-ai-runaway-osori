@@ -19,6 +19,24 @@ public record ParsedCargoResponse(
         String confidence,
         List<String> warnings
 ) {
+    public ParsedCargoResponse withAddresses(ParsedAddress origin, ParsedAddress destination) {
+        return new ParsedCargoResponse(
+                origin,
+                destination,
+                cargoType,
+                cargoDescription,
+                weightTon,
+                offeredFareKrw,
+                loadingDate,
+                loadingTimeText,
+                unloadingDate,
+                unloadingTimeText,
+                missingFields,
+                confidence,
+                warnings
+        );
+    }
+
     public ParsedCargoResponse withMissingFields(List<String> missingFields) {
         return new ParsedCargoResponse(
                 origin,
