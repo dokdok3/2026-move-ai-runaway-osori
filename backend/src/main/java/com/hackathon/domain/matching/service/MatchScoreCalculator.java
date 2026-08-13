@@ -11,8 +11,8 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
- * 화물↔기사 매칭 점수를 룰 기반으로 계산한다 (cargo-matching-api-design.md §4-8).
- * 외부 API 호출이 없어 목록 응답이 빠르고, 점수 근거를 그대로 설명할 수 있다. AI 아님.
+ * 화물↔기사 매칭 점수를 룰 기반으로 계산한다.
+ * 외부 API 호출이 없어 목록 응답이 빠르고, 점수 근거를 그대로 설명할 수 있다.
  */
 @Component
 public class MatchScoreCalculator {
