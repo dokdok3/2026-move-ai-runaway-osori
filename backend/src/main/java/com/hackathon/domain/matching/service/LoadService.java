@@ -54,13 +54,13 @@ public class LoadService {
         List<LoadResponse> postgisLoads = findPostgisLoads(driverId);
         if (postgisLoads != null) {
             List<LoadResponse> decorated = postgisLoads.stream()
-                    .map(load -> applyBelowAverageBadge(load, cargoRepository.getReferenceById(load.cargoId())))
+                    .map(load -> applyFareInfo(load, cargoRepository.getReferenceById(load.cargoId())))
                     .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
             AiRouteReranker.RerankResult result = aiRouteReranker.rerank(driverId, preferenceText, decorated, refresh);
             if (!result.applied() && org.springframework.util.StringUtils.hasText(preferenceText)) {
                 return result.loads().stream().map(load -> load.withRankingMode("RULE_FALLBACK")).toList();
             }
-            return applyBestMatchBadge(result.loads());
+            return result.loads();
         }
 
         List<LoadResponse> loads = new ArrayList<>();
@@ -70,26 +70,13 @@ public class LoadService {
             }
             LoadResponse load = LoadResponse.of(cargo,
                     scoreCalculator.calculateScore(cargo, driver, preferences, now));
-            loads.add(applyBelowAverageBadge(load, cargo));
+            loads.add(applyFareInfo(load, cargo));
         }
 
         loads.sort(Comparator.comparingInt(LoadResponse::matchScore).reversed()
                 .thenComparing(LoadResponse::fare, Comparator.reverseOrder())
                 .thenComparing(LoadResponse::cargoId));
-        // BELOW_AVERAGE가 이미 붙어 있으면 그대로 둔다 — 기사에게 불리한 정보를 우선 보여준다.
-        if (!loads.isEmpty() && loads.get(0).badge() == null) {
-            loads.set(0, loads.get(0).withBadge("BEST_MATCH"));
-        }
         return loads;
-    }
-
-    private List<LoadResponse> applyBestMatchBadge(List<LoadResponse> loads) {
-        if (loads.isEmpty() || loads.get(0).badge() != null) {
-            return loads;
-        }
-        List<LoadResponse> result = new ArrayList<>(loads);
-        result.set(0, result.get(0).withBadge("BEST_MATCH"));
-        return result;
     }
 
     private List<LoadResponse> findPostgisLoads(Long driverId) {
@@ -189,10 +176,10 @@ public class LoadService {
     }
 
     /**
-     * fare < averageFare * 0.8이면 BELOW_AVERAGE 배지를 붙인다.
-     * AI(시세 추정) 미연동/장애 시에도 목록 자체는 막지 않는다 — 실패하면 배지 없이 그대로 둔다.
+     * 시세 조회에 성공하면 fare < averageFare * 0.8 여부에 따라 LOW/FAIR 판정을 붙인다.
+     * AI(시세 추정) 미연동/장애 시에도 목록 자체는 막지 않는다 — 실패할 때만 시세 정보 없이 반환한다.
      */
-    private LoadResponse applyBelowAverageBadge(LoadResponse load, Cargo cargo) {
+    private LoadResponse applyFareInfo(LoadResponse load, Cargo cargo) {
         FareQuoteResponse fare;
         try {
             fare = fareQuoteService.quote(cargo.getOriginSido(), cargo.getDestSido(),
@@ -204,12 +191,14 @@ public class LoadService {
 
         Integer averageFare = fare.averageFare();
         Integer desiredFare = cargo.getDesiredFare();
-        if (averageFare == null || averageFare <= 0 || desiredFare == null
-                || desiredFare >= averageFare * BELOW_AVERAGE_RATIO) {
+        if (averageFare == null || averageFare <= 0 || desiredFare == null) {
             return load;
         }
 
+        if (desiredFare >= averageFare * BELOW_AVERAGE_RATIO) {
+            return load.withFareInfo("FAIR", averageFare, null);
+        }
         int belowPercent = (int) Math.round((averageFare - desiredFare) * 100.0 / averageFare);
-        return load.withBelowAverage(averageFare, belowPercent);
+        return load.withFareInfo("LOW", averageFare, belowPercent);
     }
 }

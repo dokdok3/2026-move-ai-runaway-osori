@@ -1,5 +1,9 @@
 package com.hackathon.domain.matching;
 
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,17 +47,28 @@ class LoadControllerTest {
     }
 
     @Test
-    @DisplayName("구간에 맞는 화물만 점수순으로 반환하고 최상위에 BEST_MATCH를 붙인다")
+    @DisplayName("구간에 맞는 화물만 점수순으로 반환하고 시세 정보를 함께 제공한다")
     void returnsScoredLoads() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
                         .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].badge").value("BEST_MATCH"))
+                .andExpect(jsonPath("$.data[0].badge").value("FAIR"))
+                .andExpect(jsonPath("$.data[0].regionAverageFare").isNumber())
                 .andExpect(jsonPath("$.data[0].origin").value("경기 수원시"))
                 .andExpect(jsonPath("$.data[0].destination").value("부산 강서구"))
                 .andExpect(jsonPath("$.data[0].matchScore").value(100))
                 // 광주→전주(구간 밖)는 목록에 없어야 한다
                 .andExpect(jsonPath("$.data[?(@.origin == '광주 광산구')]").isEmpty());
+    }
+
+    @Test
+    @DisplayName("시세 조회에 성공한 모든 화물에 평균 운임과 판정을 제공한다")
+    void returnsFareInfoForEveryLoad() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
+                        .header("X-User-Id", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[*].badge", everyItem(anyOf(is("LOW"), is("FAIR")))))
+                .andExpect(jsonPath("$.data[*].regionAverageFare", everyItem(notNullValue())));
     }
 
     @Test

@@ -46,17 +46,10 @@ public record LoadResponse(
         );
     }
 
-    public LoadResponse withBadge(String badge) {
+    public LoadResponse withFareInfo(String badge, Integer regionAverageFare, Integer belowPercent) {
         return new LoadResponse(cargoId, origin, destination, loadingAt, unloadingAt,
                 distanceKm, vehicleType, weightTon, bodyType, cargoType, fare,
                 matchScore, badge, regionAverageFare, belowPercent, pickupDistanceKm, destinationGapKm,
-                aiScore, finalScore, rankingMode, matchReasons);
-    }
-
-    public LoadResponse withBelowAverage(Integer regionAverageFare, Integer belowPercent) {
-        return new LoadResponse(cargoId, origin, destination, loadingAt, unloadingAt,
-                distanceKm, vehicleType, weightTon, bodyType, cargoType, fare,
-                matchScore, "BELOW_AVERAGE", regionAverageFare, belowPercent, pickupDistanceKm, destinationGapKm,
                 aiScore, finalScore, rankingMode, matchReasons);
     }
 
