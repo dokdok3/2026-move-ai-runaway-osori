@@ -140,7 +140,7 @@ export function CargoRequestForm({
           onChange={handleChange}
         />
         {error && <ErrorText role="alert">{error}</ErrorText>}
-        <Button type="button" fullWidth onClick={onSubmit} disabled={loading}>
+        <Button type="button" fullWidth onClick={onSubmit} disabled={loading || !value.trim()}>
           {loading ? '변환 중...' : 'AI 자동 변환'}
         </Button>
       </Card>

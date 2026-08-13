@@ -110,12 +110,16 @@ export const cargoHandlers = [
     return HttpResponse.json({
       success: true,
       data: {
-        origin: parsed.originSido ? { sido: parsed.originSido } : undefined,
-        destination: parsed.destinationSido ? { sido: parsed.destinationSido } : undefined,
+        origin: parsed.originSido ? { sido: parsed.originSido, sigungu: '전체' } : undefined,
+        destination: parsed.destinationSido
+          ? { sido: parsed.destinationSido, sigungu: '전체' }
+          : undefined,
         cargoType: parsed.cargoType,
         cargoDescription: body.requestText,
         weightTon: parsed.weightTon,
         offeredFareKrw: parsed.desiredFare,
+        loadingDate: body.requestText.includes('내일') ? '2026-08-14' : undefined,
+        unloadingDate: body.requestText.includes('내일') ? '2026-08-14' : undefined,
         missingFields,
         confidence: missingFields.length === 0 ? 'HIGH' : 'MEDIUM',
         warnings: [],

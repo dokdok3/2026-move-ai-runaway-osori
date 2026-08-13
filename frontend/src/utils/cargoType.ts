@@ -22,8 +22,8 @@ export function getCargoTypeLabel(cargoType: string | undefined): string {
 }
 
 /** AI 파싱 결과는 자유 문자열이라, 백엔드가 실제로 받는 리터럴 유니언으로 좁혀준다. */
-export function toCargoType(cargoType: string | undefined): CargoType {
+export function toCargoType(cargoType: string | undefined): CargoType | undefined {
   return (CARGO_TYPES as readonly string[]).includes(cargoType ?? '')
     ? (cargoType as CargoType)
-    : 'GENERAL'
+    : undefined
 }

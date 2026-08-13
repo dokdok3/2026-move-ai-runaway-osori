@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import styled from '@emotion/styled'
+import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Hero } from '@/components/Hero'
 import { Button } from '@/components/Button'
 import { PageLayout } from '@/components/PageLayout'
@@ -11,6 +13,7 @@ import {
   useCargoParseMutation,
 } from '@/api/cargo/service'
 import type { CreateCargoResponse } from '@/api/cargo/model'
+import { cargoQueryKeys } from '@/api/cargo/queries'
 import { toCargoType } from '@/utils/cargoType'
 import { CargoRequestForm } from './CargoRequestForm'
 import { CargoSummaryCard } from './CargoSummaryCard'
@@ -51,8 +54,14 @@ function extractCargoId(response: CreateCargoResponse): number | undefined {
 }
 
 export function ShipperPage() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { cargoId: cargoIdParam } = useParams()
+  const routeCargoId = cargoIdParam ? Number(cargoIdParam) : undefined
   const [rawText, setRawText] = useState('')
-  const [cargoId, setCargoId] = useState<number | undefined>(undefined)
+  const [cargoId, setCargoId] = useState<number | undefined>(() =>
+    Number.isFinite(routeCargoId) ? routeCargoId : undefined,
+  )
   const [formError, setFormError] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [cargoPage, setCargoPage] = useState(0)
@@ -81,56 +90,60 @@ export function ShipperPage() {
     try {
       const parsed = await parseMutation.mutateAsync({ requestText: rawText })
       const originSido = parsed.origin?.sido
+      const originSigungu = parsed.origin?.sigungu
       const destSido = parsed.destination?.sido
-      const weightTon = parsed.weightTon
+      const destSigungu = parsed.destination?.sigungu
       const cargoType = toCargoType(parsed.cargoType)
+      const weightTon =
+        typeof parsed.weightTon === 'number' &&
+        Number.isFinite(parsed.weightTon) &&
+        parsed.weightTon > 0
+          ? parsed.weightTon
+          : undefined
+      const desiredFare =
+        typeof parsed.offeredFareKrw === 'number' &&
+        Number.isFinite(parsed.offeredFareKrw) &&
+        parsed.offeredFareKrw > 0
+          ? parsed.offeredFareKrw
+          : undefined
+
+      // 인식 못한 항목은 빈 값으로 두고 등록 폼에서 에러 표시 + 등록 비활성으로 안내한다.
+      setManualCargo({
+        origin: originSido && originSigungu ? `${originSido} ${originSigungu}` : '',
+        destination: destSido && destSigungu ? `${destSido} ${destSigungu}` : '',
+        loadingAt: parsed.loadingDate ? `${parsed.loadingDate}T09:00` : '',
+        unloadingAt: parsed.unloadingDate ? `${parsed.unloadingDate}T18:00` : '',
+        cargoType: cargoType ?? '',
+        weightTon: weightTon === undefined ? '' : String(weightTon),
+        desiredFare: desiredFare === undefined ? '' : String(desiredFare),
+      })
+      setManualMode(true)
 
       if (
         !originSido ||
+        !originSigungu ||
         !destSido ||
+        !destSigungu ||
+        !cargoType ||
         weightTon === undefined ||
-        parsed.offeredFareKrw === undefined
+        desiredFare === undefined ||
+        !parsed.loadingDate ||
+        !parsed.unloadingDate
       ) {
         const detail = parsed.missingFields?.length
           ? ` (누락: ${parsed.missingFields.join(', ')})`
           : ''
-        setFormError(
-          `원문에서 출발지·도착지·톤수·운임을 인식하지 못했어요. 조금 더 구체적으로 적어주세요.${detail}`,
-        )
-        return
+        setFormError(`원문에서 인식하지 못한 항목이 있어요. 직접 채워주세요.${detail}`)
       }
-
-      const desiredFare = parsed.offeredFareKrw
-
-      const created = await createMutation.mutateAsync({
-        params: { shipperId: DEMO_SHIPPER_ID },
-        body: {
-          origin: { sido: originSido, sigungu: parsed.origin?.sigungu ?? '전체' },
-          destination: { sido: destSido, sigungu: parsed.destination?.sigungu ?? '전체' },
-          cargoType,
-          cargoDescription: parsed.cargoDescription ?? rawText,
-          weightTon,
-          desiredFare,
-          loadingAt: parsed.loadingDate
-            ? `${parsed.loadingDate}T09:00:00`
-            : new Date().toISOString(),
-          unloadingAt: parsed.unloadingDate
-            ? `${parsed.unloadingDate}T18:00:00`
-            : new Date().toISOString(),
-        },
-      })
-
-      const newCargoId = extractCargoId(created)
-      if (newCargoId === undefined) {
-        setFormError('화물 등록에 실패했어요. 다시 시도해 주세요.')
-        return
-      }
-
-      setCargoId(newCargoId)
-      setShowCreate(true)
-      await myCargosQuery.refetch()
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : '요청을 처리하지 못했어요.')
+      // 변환에 실패해도 빈 등록 폼으로 넘겨서 직접 입력할 수 있게 한다.
+      setManualCargo(EMPTY_MANUAL_CARGO)
+      setManualMode(true)
+      setFormError(
+        error instanceof Error
+          ? `${error.message} 직접 입력해주세요.`
+          : '요청을 처리하지 못했어요. 직접 입력해주세요.',
+      )
     }
   }
 
@@ -150,6 +163,8 @@ export function ShipperPage() {
 
     const [originSido, ...originDetail] = manualCargo.origin.trim().split(/\s+/)
     const [destinationSido, ...destinationDetail] = manualCargo.destination.trim().split(/\s+/)
+    const cargoType = toCargoType(manualCargo.cargoType)
+    if (!cargoType) return
 
     try {
       const created = await createMutation.mutateAsync({
@@ -160,7 +175,7 @@ export function ShipperPage() {
             sido: destinationSido,
             sigungu: destinationDetail.join(' ') || '전체',
           },
-          cargoType: manualCargo.cargoType,
+          cargoType,
           weightTon: Number(manualCargo.weightTon),
           desiredFare: Number(manualCargo.desiredFare),
           loadingAt: manualCargo.loadingAt,
@@ -171,9 +186,11 @@ export function ShipperPage() {
       if (newCargoId === undefined) throw new Error('화물 등록에 실패했어요.')
       setCargoId(newCargoId)
       setManualMode(false)
-      await myCargosQuery.refetch()
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : '화물 등록에 실패했어요.')
+      setShowCreate(false)
+      navigate(`/shipper/cargos/${newCargoId}`, { replace: true })
+      void queryClient.invalidateQueries({ queryKey: cargoQueryKeys.myCargosAll() })
+    } catch {
+      // 등록 API 오류는 입력 폼 하단에 노출하지 않는다.
     }
   }
 
@@ -181,7 +198,7 @@ export function ShipperPage() {
 
   return (
     <PageLayout>
-      {!showCreate && !cargo ? (
+      {cargoId !== undefined && !cargo ? null : !showCreate && !cargo ? (
         <>
           <Hero
             eyebrow="✦ 내 화물 한눈에 보기"
@@ -205,6 +222,7 @@ export function ShipperPage() {
             onSelect={(selectedCargoId) => {
               setSelectedFromList(true)
               setCargoId(selectedCargoId)
+              navigate(`/shipper/cargos/${selectedCargoId}`)
             }}
           />
         </>
@@ -230,6 +248,8 @@ export function ShipperPage() {
             error={formError}
             onManualEntry={() => {
               setFormError(null)
+              parseMutation.reset()
+              setManualCargo(EMPTY_MANUAL_CARGO)
               setManualMode(true)
             }}
           />
@@ -237,17 +257,29 @@ export function ShipperPage() {
       ) : manualMode && !cargo ? (
         <>
           <Hero
-            eyebrow="화물 직접 등록"
+            eyebrow={parseMutation.isSuccess ? '✦ AI가 정리한 내용' : '화물 직접 등록'}
             title="화물 정보 입력"
-            description="배차에 필요한 정보를 항목별로 입력해주세요."
+            description={
+              parseMutation.isSuccess
+                ? '원문에서 뽑아낸 정보예요. 맞는지 확인하고 등록해주세요.'
+                : '배차에 필요한 정보를 항목별로 입력해주세요.'
+            }
           />
           <ManualCargoForm
             value={manualCargo}
             onChange={setManualCargo}
             onSubmit={handleManualSubmit}
-            onCancel={() => setManualMode(false)}
+            onCancel={() => {
+              // 요청 입력 화면으로 돌아갈 때 이전 원문·변환 결과를 남기지 않는다.
+              setManualMode(false)
+              setManualCargo(EMPTY_MANUAL_CARGO)
+              setRawText('')
+              setFormError(null)
+              parseMutation.reset()
+            }}
             loading={createMutation.isPending}
             error={formError}
+            showErrors={parseMutation.isSuccess || parseMutation.isError}
           />
         </>
       ) : null}
@@ -269,6 +301,7 @@ export function ShipperPage() {
                 onClick={() => {
                   setCargoId(undefined)
                   setSelectedFromList(false)
+                  navigate('/shipper')
                 }}
               >
                 ← 목록
