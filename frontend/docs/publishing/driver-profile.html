@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 정보 · 집나간 벌꿀오소리</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="brand">
+  <img src="logo.png" alt="집나간 벌꿀오소리 로고">
+  <div>
+    <div class="name">집나간 벌꿀오소리</div>
+    <div class="tag">카카오모빌리티 물류 해커톤</div>
+  </div>
+</header>
+
+<main>
+
+  <section class="screen active">
+
+    <div class="list-head">
+      <h1 class="list-title">내 정보</h1>
+      <a class="btn subtle" href="driver.html">← 화물 보기</a>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title">기본 정보</div>
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="name">이름</label>
+        <input class="field" id="name" type="text" value="김도윤">
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="phone">연락처</label>
+        <input class="field" id="phone" type="tel" inputmode="tel" value="010-1234-5678">
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="plate">차량번호</label>
+        <input class="field" id="plate" type="text" value="12가 3456">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title">차량 정보</div>
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="vehicle-type">차종</label>
+        <select class="field" id="vehicle-type">
+          <option>1톤 트럭</option>
+          <option>2.5톤 트럭</option>
+          <option selected>5톤 트럭</option>
+          <option>11톤 트럭</option>
+          <option>카고트레일러</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="capacity">적재 중량</label>
+        <select class="field" id="capacity">
+          <option>1톤</option>
+          <option>2.5톤</option>
+          <option selected>5톤</option>
+          <option>11톤</option>
+          <option>18톤</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="body-type">적재함 형태</label>
+        <select class="field" id="body-type">
+          <option>카고</option>
+          <option selected>냉동탑차</option>
+          <option>윙바디</option>
+          <option>탱크로리</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <span class="area-label" id="cargo-types-label">운송 가능 화물</span>
+        <div class="check-list" role="group" aria-labelledby="cargo-types-label">
+          <label class="check-item"><input type="checkbox" checked> 냉장</label>
+          <label class="check-item"><input type="checkbox" checked> 일반화물</label>
+          <label class="check-item"><input type="checkbox"> 냉동</label>
+          <label class="check-item"><input type="checkbox"> 건설자재</label>
+          <label class="check-item"><input type="checkbox"> 위험물</label>
+        </div>
+        <p class="form-hint">고른 화물만 추천 목록에 올라와요. 최대 5개까지 고를 수 있어요.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title">운행 조건</div>
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="min-fare">희망 최소 운임</label>
+        <input class="field" id="min-fare" type="number" inputmode="numeric"
+               value="420000" step="10000">
+        <p class="form-hint">건당 금액이에요. 이보다 낮은 화물은 추천에서 빠져요.</p>
+      </div>
+
+      <div class="form-row">
+        <span class="area-label" id="contact-hours-label">연락 가능 시간</span>
+        <div class="row" role="group" aria-labelledby="contact-hours-label">
+          <input class="field" type="time" value="06:00" aria-label="연락 가능 시작 시간">
+          <input class="field" type="time" value="20:00" aria-label="연락 가능 종료 시간">
+        </div>
+      </div>
+    </div>
+
+    <div class="sticky-cta">
+      <a class="btn ghost" href="driver.html">취소</a>
+      <a class="btn primary" href="driver.html">수정하기</a>
+    </div>
+
+  </section>
+
+</main>
+
+</body>
+</html>
