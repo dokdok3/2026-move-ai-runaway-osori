@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 화물 요청 · 집나간 벌꿀오소리</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="brand">
+  <img src="logo.png" alt="집나간 벌꿀오소리 로고">
+  <div>
+    <div class="name">집나간 벌꿀오소리</div>
+    <div class="tag">카카오모빌리티 물류 해커톤</div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button type="button" class="active">전체 5</button>
+  <button type="button">진행 중 4</button>
+  <button type="button">완료 1</button>
+</nav>
+
+<main>
+
+  <section class="screen active">
+
+    <div class="list-head">
+      <h1 class="list-title">내가 등록한 화물</h1>
+      <a class="btn subtle" href="shipper.html">＋ 새 화물</a>
+    </div>
+
+    <ul class="req-list">
+
+      <li><a class="req-item" href="shipper-edit.html">
+        <div class="req-top">
+          <span class="badge warn">입력 필요</span>
+          <span class="request-date">08/13 등록</span>
+        </div>
+        <div class="req-route">인천 <span class="req-arrow" aria-hidden="true">→</span> 대전</div>
+        <div class="req-bottom">
+          <span class="req-sub">카고 · 3t · 일반화물</span>
+          <span class="req-price is-empty">운임 미정</span>
+        </div>
+      </a></li>
+
+      <li><a class="req-item" href="#">
+        <div class="req-top">
+          <span class="badge ok">배차 확정</span>
+          <span class="request-date">08/11 등록</span>
+        </div>
+        <div class="req-route">서울 <span class="req-arrow" aria-hidden="true">→</span> 부산</div>
+        <div class="req-bottom">
+          <span class="req-sub">08/11 14:00 상차 · 냉장 5t</span>
+          <span class="req-price">500,000원</span>
+        </div>
+        <div class="req-foot">김OO 기사 · 냉장탑차 5톤</div>
+      </a></li>
+
+      <li><a class="req-item" href="#">
+        <div class="req-top">
+          <span class="badge info">기사 찾는 중</span>
+          <span class="request-date">08/12 등록</span>
+        </div>
+        <div class="req-route">대전 <span class="req-arrow" aria-hidden="true">→</span> 광주</div>
+        <div class="req-bottom">
+          <span class="req-sub">08/13 08:00 상차 · 일반 3t</span>
+          <span class="req-price">320,000원</span>
+        </div>
+        <div class="req-foot is-warn">2시간째 지원한 기사가 없어요</div>
+      </a></li>
+
+      <li><a class="req-item" href="#">
+        <div class="req-top">
+          <span class="badge info">기사 찾는 중</span>
+          <span class="request-date">08/12 등록</span>
+        </div>
+        <div class="req-route">서울 <span class="req-arrow" aria-hidden="true">→</span> 원주</div>
+        <div class="req-bottom">
+          <span class="req-sub">08/14 06:00 상차 · 냉동 1t</span>
+          <span class="req-price">180,000원</span>
+        </div>
+        <div class="req-foot">기사 3명이 확인했어요</div>
+      </a></li>
+
+      <li><a class="req-item is-done" href="#">
+        <div class="req-top">
+          <span class="badge done">운송 완료</span>
+          <span class="request-date">08/05 등록</span>
+        </div>
+        <div class="req-route">서울 <span class="req-arrow" aria-hidden="true">→</span> 대구</div>
+        <div class="req-bottom">
+          <span class="req-sub">08/06 07:00 상차 · 일반 5t</span>
+          <span class="req-price">430,000원</span>
+        </div>
+      </a></li>
+
+    </ul>
+
+  </section>
+
+</main>
+
+</body>
+</html>

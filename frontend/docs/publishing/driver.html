@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기사 페이지 · 집나간 벌꿀오소리</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="brand">
+  <img src="logo.png" alt="집나간 벌꿀오소리 로고">
+  <div>
+    <div class="name">집나간 벌꿀오소리</div>
+    <div class="tag">카카오모빌리티 물류 해커톤</div>
+  </div>
+</header>
+
+<main>
+
+  <section class="screen active">
+    <div class="hero">
+      <div class="eyebrow">✦ 내 지역 화물만 골라보기</div>
+      <h1>오늘 뜬 화물,<br>바로 확인하세요</h1>
+      <p>활동 지역과 조건에 맞는 화물만 추천해서 놓치지 않게 알려드려요.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row"><div class="card-title">활동 지역 설정</div></div>
+      <div class="area-row">
+        <div class="area-label">출발지</div>
+        <div class="row">
+          <div class="field select-box">경기도 ▾</div>
+          <div class="field select-box">수원시 ▾</div>
+        </div>
+      </div>
+      <div class="area-row" style="margin-bottom:0;">
+        <div class="area-label">도착지</div>
+        <div class="row">
+          <div class="field select-box" style="margin-bottom:0;">서울특별시 ▾</div>
+          <div class="field select-box" style="margin-bottom:0;">전체 ▾</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title">추천 화물</div>
+        <div class="icon-btn" title="새로고침">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.3-6.4L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.3 6.4L3 16"/><path d="M3 21v-5h5"/></svg>
+        </div>
+      </div>
+
+      <div class="offer-list">
+        <div class="offer-card best">
+          <div class="offer-top">
+            <span class="badge ok">적정 운임</span>
+          </div>
+          <div class="cargo-summary__route">
+            <div class="cargo-summary__place">
+              <span class="cargo-summary__label">출발지</span>
+              <strong class="cargo-summary__city">대전 유성구</strong>
+              <time class="cargo-summary__time">05/13 09:00</time>
+            </div>
+            <div class="cargo-summary__arrow" aria-hidden="true">→</div>
+            <div class="cargo-summary__place">
+              <span class="cargo-summary__label">도착지</span>
+              <strong class="cargo-summary__city">경기 수원시</strong>
+              <time class="cargo-summary__time">05/13 15:00</time>
+            </div>
+          </div>
+          <div class="offer-meta">
+            <div class="offer-sub">카고&nbsp; | &nbsp;22톤&nbsp; | &nbsp;원종차&nbsp; | &nbsp;냉장</div>
+            <div class="price mono">180,000원</div>
+          </div>
+          <div class="row">
+            <div class="btn ghost">관심 없음</div>
+            <div class="btn primary">수락하기</div>
+          </div>
+        </div>
+
+        <div class="offer-card">
+          <div class="offer-top">
+            <span class="badge warn">낮은 운임</span>
+          </div>
+          <div class="cargo-summary__route">
+            <div class="cargo-summary__place">
+              <span class="cargo-summary__label">출발지</span>
+              <strong class="cargo-summary__city">인천</strong>
+              <time class="cargo-summary__time">05/13 14:00</time>
+            </div>
+            <div class="cargo-summary__arrow" aria-hidden="true">→</div>
+            <div class="cargo-summary__place">
+              <span class="cargo-summary__label">도착지</span>
+              <strong class="cargo-summary__city">대전</strong>
+              <time class="cargo-summary__time">05/13 18:00</time>
+            </div>
+          </div>
+          <div class="offer-meta">
+            <div class="offer-sub">카고&nbsp; | &nbsp;3톤&nbsp; | &nbsp;일반화물</div>
+            <div class="price mono">280,000원</div>
+          </div>
+          <div class="banner warn" style="margin-bottom:14px;">
+            <div class="ic">!</div>
+            <div>이 구간의 평균 운임은 390,000원이에요</div>
+          </div>
+          <div class="row">
+            <div class="btn ghost">관심 없음</div>
+            <div class="btn primary">수락하기</div>
+          </div>
+        </div>
+
+        <div class="offer-card">
+          <div class="offer-top">
+            <span class="badge ok">적정 운임</span>
+          </div>
+          <div class="cargo-summary__route">
+            <div class="cargo-summary__place">
+              <span class="cargo-summary__label">출발지</span>
+              <strong class="cargo-summary__city">대전 유성구</strong>
+              <time class="cargo-summary__time">05/13 09:00</time>
+            </div>
+            <div class="cargo-summary__arrow" aria-hidden="true">→</div>
+            <div class="cargo-summary__place">
+              <span class="cargo-summary__label">도착지</span>
+              <strong class="cargo-summary__city">경기 수원시</strong>
+              <time class="cargo-summary__time">05/13 15:00</time>
+            </div>
+          </div>
+          <div class="offer-meta">
+            <div class="offer-sub">카고&nbsp; | &nbsp;22톤&nbsp; | &nbsp;원종차</div>
+            <div class="price mono">180,000원</div>
+          </div>
+          <div class="row">
+            <div class="btn ghost">관심 없음</div>
+            <div class="btn primary">수락하기</div>
+          </div>
+        </div>
+
+        <div class="offer-card">
+          <div class="offer-top">
+            <span class="badge ok">적정 운임</span>
+          </div>
+          <div class="cargo-summary__route">
+            <div class="cargo-summary__place">
+              <span class="cargo-summary__label">출발지</span>
+              <strong class="cargo-summary__city">대전 유성구</strong>
+              <time class="cargo-summary__time">05/13 09:00</time>
+            </div>
+            <div class="cargo-summary__arrow" aria-hidden="true">→</div>
+            <div class="cargo-summary__place">
+              <span class="cargo-summary__label">도착지</span>
+              <strong class="cargo-summary__city">경기 수원시</strong>
+              <time class="cargo-summary__time">05/13 15:00</time>
+            </div>
+          </div>
+          <div class="offer-meta">
+            <div class="offer-sub">카고&nbsp; | &nbsp;22톤&nbsp; | &nbsp;원종차</div>
+            <div class="price mono">180,000원</div>
+          </div>
+          <div class="row">
+            <div class="btn ghost">관심 없음</div>
+            <div class="btn primary">수락하기</div>
+          </div>
+        </div>
+
+        <div class="offer-card">
+          <div class="offer-top">
+            <span class="badge ok">적정 운임</span>
+          </div>
+          <div class="cargo-summary__route">
+            <div class="cargo-summary__place">
+              <span class="cargo-summary__label">출발지</span>
+              <strong class="cargo-summary__city">대전 유성구</strong>
+              <time class="cargo-summary__time">05/13 09:00</time>
+            </div>
+            <div class="cargo-summary__arrow" aria-hidden="true">→</div>
+            <div class="cargo-summary__place">
+              <span class="cargo-summary__label">도착지</span>
+              <strong class="cargo-summary__city">경기 수원시</strong>
+              <time class="cargo-summary__time">05/13 15:00</time>
+            </div>
+          </div>
+          <div class="offer-meta">
+            <div class="offer-sub">카고&nbsp; | &nbsp;22톤&nbsp; | &nbsp;원종차</div>
+            <div class="price mono">180,000원</div>
+          </div>
+          <div class="row">
+            <div class="btn ghost">관심 없음</div>
+            <div class="btn primary">수락하기</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame-label">SCREEN 2 · 기사 페이지</div>
+  </section>
+
+</main>
+
+<footer class="note">
+  Hi-fi 목업 · 기사 등록 화면 없음 (mock 데이터 전제)
+</footer>
+
+</body>
+</html>
