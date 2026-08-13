@@ -14,11 +14,12 @@ src/
 │       ├── Badge.stories.tsx
 │       ├── Badge.test.tsx   (필요 시)
 │       └── index.ts         (export { Badge } from './Badge')
-├── features/
+├── api/
 │   └── user/
-│       ├── user.queries.ts  (query key factory + custom hooks)
-│       ├── user.api.ts      (fetch 함수)
-│       └── user.types.ts
+│       ├── model.ts    (파라미터/응답 타입)
+│       ├── api.ts      (fetch 함수)
+│       ├── queries.ts  (query key factory + queryOptions/mutationOptions)
+│       └── service.ts  (컴포넌트가 쓰는 훅)
 ├── theme/
 │   └── theme.ts              (Emotion ThemeProvider용 디자인 토큰)
 └── test/
@@ -42,7 +43,7 @@ import styled from '@emotion/styled'
 
 // 2. 내부 절대경로 모듈 (@/)
 import { Badge } from '@/components/Badge'
-import { useUserQuery } from '@/features/user/user.queries'
+import { useUserQuery } from '@/api/user/service'
 
 // 3. 같은 폴더 상대경로
 import type { CardProps } from './Card.types'
@@ -51,6 +52,7 @@ import type { CardProps } from './Card.types'
 ## TypeScript
 
 - 객체 타입은 `interface`를 기본으로 한다. 함수 시그니처나 유니언처럼 `interface`로 표현할 수 없는 경우에만 `type`을 쓴다.
+  - 예외: `api/<도메인>/model.ts`의 API 파라미터·응답 타입(`Get*Params`, `*Request`, `*Response`)은 `type`을 쓴다. 자세한 네이밍 규칙은 `api-convention` 스킬을 따른다.
 - `any`는 금지한다. 타입을 모르는 값은 `unknown`으로 받고 타입 가드로 좁혀서 사용한다.
 - Props 타입은 컴포넌트 파일 안에 `{ComponentName}Props`로 선언한다.
 
@@ -77,41 +79,11 @@ export function Badge({ label }: BadgeProps) {
 - **서버 상태**는 TanStack Query로만 관리한다. `useEffect` + `fetch` 조합으로 서버 데이터를 가져오지 않는다.
 - **클라이언트/로컬 상태**는 `useState`/`useReducer` + Context로 시작한다. 전역 상태 라이브러리(Zustand 등)는 실제로 필요해지기 전까지 도입하지 않는다.
 
-## TanStack Query — 도메인별 훅 + Query Key Factory
+## TanStack Query — 도메인별 API 계층
 
-컴포넌트에서 `useQuery`/`useMutation`을 직접 호출하지 않는다. 도메인별로 query key factory와 커스텀 훅을 만들어 감싼다.
+컴포넌트에서 `useQuery`/`useMutation`을 직접 호출하지 않고, `fetch`도 직접 부르지 않는다. 도메인별로 `model.ts`/`api.ts`/`queries.ts`/`service.ts` 네 파일로 나눠 감싼다 (의존 방향: `service.ts → queries.ts → api.ts → model.ts`). 컴포넌트는 `service.ts`의 훅만 import한다.
 
-```ts
-// src/features/user/user.queries.ts
-import { useQuery } from '@tanstack/react-query'
-import { fetchUser, fetchUsers } from './user.api'
-import type { UserFilters } from './user.types'
-
-export const userKeys = {
-  all: ['users'] as const,
-  lists: () => [...userKeys.all, 'list'] as const,
-  list: (filters: UserFilters) => [...userKeys.lists(), filters] as const,
-  details: () => [...userKeys.all, 'detail'] as const,
-  detail: (id: string) => [...userKeys.details(), id] as const,
-}
-
-export function useUserQuery(id: string) {
-  return useQuery({
-    queryKey: userKeys.detail(id),
-    queryFn: () => fetchUser(id),
-  })
-}
-
-export function useUsersQuery(filters: UserFilters) {
-  return useQuery({
-    queryKey: userKeys.list(filters),
-    queryFn: () => fetchUsers(filters),
-  })
-}
-```
-
-- key factory는 상위 key를 하위 key가 항상 포함하도록 만든다 (`invalidateQueries({ queryKey: userKeys.all })`로 한 번에 무효화 가능).
-- fetch 로직은 `{domain}.api.ts`에 분리하고, 훅은 query key와 옵션만 조립한다.
+파일 역할, query key factory 규칙, `queryOptions`/`mutationOptions` 사용법, 타입 네이밍은 `api-convention` 스킬(`.claude/skills/api-convention/SKILL.md`)을 따른다.
 
 ## 스타일링 (Emotion)
 
