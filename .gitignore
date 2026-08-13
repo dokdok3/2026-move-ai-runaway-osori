@@ -12,6 +12,8 @@ frontend/dist/
 frontend/storybook-static/
 frontend/playwright-report/
 frontend/test-results/
+frontend/.env.local
+frontend/.env.*.local
 
 postgres-data/
 redis-data/
