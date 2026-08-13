@@ -20,8 +20,8 @@ env:
 
 jobs:
   build-and-push:
-    name: Build and push images
-    runs-on: ubuntu-latest
+    name: Build and push images on EC2
+    runs-on: [self-hosted, Linux, X64, ec2, production]
     outputs:
       image-tag: ${{ steps.image.outputs.tag }}
     steps:
@@ -80,7 +80,7 @@ jobs:
     name: Blue-green deploy
     needs: build-and-push
     if: vars.EC2_READY == 'true'
-    runs-on: [self-hosted, Linux, X64, production]
+    runs-on: [self-hosted, Linux, X64, ec2, production]
     environment: production
     steps:
       - uses: actions/checkout@v4
