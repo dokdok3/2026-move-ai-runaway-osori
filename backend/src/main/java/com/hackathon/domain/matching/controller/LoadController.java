@@ -1,6 +1,7 @@
 package com.hackathon.domain.matching.controller;
 
 import com.hackathon.domain.matching.dto.AcceptResponse;
+import com.hackathon.domain.matching.dto.CancelResponse;
 import com.hackathon.domain.matching.dto.CompletedLoadResponse;
 import com.hackathon.domain.matching.dto.CompleteResponse;
 import com.hackathon.domain.matching.dto.LoadResponse;
@@ -53,6 +54,13 @@ public class LoadController {
     public ApiResponse<AcceptResponse> accept(@LoginUser Long driverId,
                                               @PathVariable Long cargoId) {
         return ApiResponse.ok(loadService.accept(driverId, cargoId));
+    }
+
+    @PostMapping("/{cargoId}/cancel")
+    @Operation(summary = "수락한 화물 취소")
+    public ApiResponse<CancelResponse> cancel(@LoginUser Long driverId,
+                                              @PathVariable Long cargoId) {
+        return ApiResponse.ok(loadService.cancel(driverId, cargoId));
     }
 
     @PostMapping("/{cargoId}/complete")

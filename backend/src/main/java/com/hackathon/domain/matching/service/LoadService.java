@@ -10,6 +10,7 @@ import com.hackathon.domain.driver.repository.DriverRoutePreferenceRepository;
 import com.hackathon.domain.fare.dto.FareQuoteResponse;
 import com.hackathon.domain.fare.service.FareQuoteService;
 import com.hackathon.domain.matching.dto.AcceptResponse;
+import com.hackathon.domain.matching.dto.CancelResponse;
 import com.hackathon.domain.matching.dto.CompletedLoadResponse;
 import com.hackathon.domain.matching.dto.CompleteResponse;
 import com.hackathon.domain.matching.dto.LoadResponse;
@@ -170,6 +171,34 @@ public class LoadService {
         }
         Assignment assignment = assignmentRepository.save(Assignment.of(cargoId, driverId));
         return new AcceptResponse(assignment.getId(), cargoId, CargoStatus.MATCHED.name());
+    }
+
+    @Transactional
+    public CancelResponse cancel(Long driverId, Long cargoId) {
+        driverRepository.findById(driverId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DRIVER_NOT_FOUND));
+        Cargo cargo = cargoRepository.findById(cargoId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CARGO_NOT_FOUND));
+        Assignment assignment = assignmentRepository.findByCargoId(cargoId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CARGO_ACCEPTANCE_NOT_FOUND));
+
+        if (!assignment.getDriverId().equals(driverId)) {
+            throw new BusinessException(ErrorCode.CARGO_ACCEPTANCE_ACCESS_DENIED);
+        }
+        if (assignment.getCompletedAt() != null || cargo.getStatus() == CargoStatus.COMPLETED) {
+            throw new BusinessException(ErrorCode.CARGO_ACCEPTANCE_ALREADY_COMPLETED);
+        }
+        if (cargo.getStatus() != CargoStatus.MATCHED) {
+            throw new BusinessException(ErrorCode.CARGO_ACCEPTANCE_NOT_CANCELABLE);
+        }
+
+        int updated = cargoRepository.updateStatusIf(cargoId, CargoStatus.MATCHED, CargoStatus.REQUESTED);
+        if (updated == 0) {
+            throw new BusinessException(ErrorCode.CARGO_ACCEPTANCE_NOT_CANCELABLE);
+        }
+
+        assignmentRepository.delete(assignment);
+        return new CancelResponse(cargoId, CargoStatus.REQUESTED.name());
     }
 
     public CompleteResponse complete(Long driverId, Long cargoId) {
