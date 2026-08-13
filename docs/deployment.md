@@ -3,9 +3,10 @@
 ## 흐름
 
 ```text
-main push
-  -> GitHub Actions 테스트 및 Backend bootJar 생성
-  -> Backend 실행 이미지 패키징 / Frontend 이미지 빌드
+애플리케이션 또는 배포 파일이 포함된 main push
+  -> Backend 테스트 및 bootJar 생성
+  -> Frontend lint 및 dist 생성
+  -> Backend 계층형 실행 이미지 / Frontend Nginx 이미지 패키징
   -> GHCR에 Git SHA 태그로 발행
   -> EC2 self-hosted 배포 러너가 비활성 색상(blue 또는 green) 기동
   -> Backend/Frontend health check
@@ -17,10 +18,16 @@ DB와 Redis는 색상 전환 대상이 아니며 두 애플리케이션이 공�
 버전이 동시에 실행되고, 전환이 끝나면 이전 버전을 중지한다. 현재 운영 인스턴스는
 `c7i.xlarge`(4 vCPU, 8 GiB)다.
 
-백엔드 JAR은 self-hosted runner의 Gradle 캐시를 사용하는 CI 단계에서 생성한다. 백엔드
-Dockerfile은 생성된 `backend/build/libs/*.jar`를 JRE 실행 이미지에 복사만 하므로, 소스가
-바뀔 때마다 Docker 원격 캐시에서 Gradle/JDK 중간 레이어를 내려받고 다시 올리지 않는다.
-BuildKit 상태도 `production-builder`에 유지하여 같은 EC2 러너의 로컬 레이어를 재사용한다.
+백엔드 JAR과 프론트엔드 `dist`는 self-hosted runner의 Gradle/pnpm 캐시를 사용하는 테스트
+단계에서 생성한다. Dockerfile은 결과물을 실행 이미지에 패키징만 하므로 Docker 안에서 같은
+빌드를 반복하지 않는다. 백엔드는 Spring Boot JAR을 의존성, 부트 로더, 스냅샷 의존성,
+애플리케이션 레이어로 분리하여 코드 변경 시 애플리케이션 레이어만 갱신한다. BuildKit 상태도
+`production-builder`에 유지하여 같은 EC2 러너의 로컬 레이어를 재사용한다.
+
+`AGENTS.md`, 일반 문서처럼 서비스와 배포 구성에 영향을 주지 않는 파일만 변경한 main push는
+배포 워크플로를 실행하지 않는다. PR과 develop에서는 별도 CI가 검증하며, main의 애플리케이션
+변경은 배포 워크플로 자체의 테스트를 통과해야 이미지를 발행한다. 운영 배포는 Git SHA 태그만
+사용하고 가변적인 `latest` 태그는 발행하지 않는다.
 
 ## EC2 최초 설정
 

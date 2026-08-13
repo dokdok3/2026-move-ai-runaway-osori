@@ -11,15 +11,15 @@
 GET {{baseUrl}}/api/health
 
 
-### ===================== AI 미구현 확인 (TODO 지점) =====================
-### 아래 두 요청은 AI가 아직 연동되지 않아 501 Not Implemented + TODO(AI) 메시지가 정상이다.
+### ===================== AI 연동 =====================
 
-### 01. 자연어 파싱 [TODO(AI)] — 501 예상
+### 01. 자연어 화물 요청 파싱
 POST {{baseUrl}}/api/v1/cargos/parse
 Content-Type: application/json
 
 {
-  "rawText": "내일 서울→부산 냉장 5톤 예산 50만원"
+  "requestText": "내일 서울→부산 냉장 5톤 예산 50만원",
+  "referenceDate": "2026-08-13"
 }
 
 

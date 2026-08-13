@@ -81,7 +81,8 @@ feat : 화주 페이지 구성
 
 ## CI/CD
 
-- PR과 `develop`, `main` 푸시에서는 백엔드 테스트와 프론트엔드 lint/build를 수행한다.
-- `main` 푸시는 GHCR 이미지를 만든 뒤 EC2 self-hosted runner에서 blue/green 방식으로 배포한다.
+- PR과 `develop`의 애플리케이션 변경은 CI에서 백엔드 테스트와 프론트엔드 lint/build를 수행한다.
+- `main`의 애플리케이션·배포 구성 변경은 배포 워크플로에서 동일한 검증을 수행한 뒤 GHCR 이미지를
+  만들고 EC2 self-hosted runner에서 blue/green 방식으로 배포한다. 문서 전용 변경은 배포하지 않는다.
 - AWS 액세스 키를 저장소나 GitHub Actions에 저장하지 않는다.
 - 배포 구성과 복구 절차는 `docs/deployment.md`를 따른다.

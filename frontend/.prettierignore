@@ -3,3 +3,5 @@ storybook-static
 playwright-report
 test-results
 pnpm-lock.yaml
+public
+src/mocks/data/*.csv

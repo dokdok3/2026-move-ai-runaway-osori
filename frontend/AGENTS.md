@@ -24,6 +24,10 @@ src/
 │       └── service.ts  (컴포넌트가 쓰는 훅)
 ├── theme/
 │   └── theme.ts              (Emotion ThemeProvider용 디자인 토큰)
+├── mocks/
+│   ├── browser.ts            (MSW 워커 설정)
+│   ├── handlers/              (도메인별 MSW 핸들러)
+│   └── data/                  (목데이터 CSV + 파싱/변환)
 └── test/
     └── setup.ts               (Vitest + Testing Library 설정)
 ```
@@ -91,6 +95,15 @@ export function Badge({ label }: BadgeProps) {
 
 파일 역할, query key factory 규칙, `queryOptions`/`mutationOptions` 사용법, 타입 네이밍, `ApiResponse` 언래핑은 `api-convention` 스킬(`.claude/skills/api-convention/SKILL.md`)을 따른다.
 
+## MSW 목업
+
+백엔드가 아직 없는 엔드포인트도 화면 개발이 가능하도록, `.env.local`에 `VITE_API_MOCKING=enabled`를 넣으면 `pnpm dev`가 실제 백엔드 대신 MSW(`src/mocks/`)로 응답한다 (`.env.local.example` 참고). 기본값은 꺼짐이며, 프로덕션 빌드에는 이 값이 없어 MSW 관련 코드가 번들에서 완전히 트리쉐이킹된다.
+
+- 핸들러는 `openapi-msw`의 `createOpenApiHttp<paths>()`로 만들어 실제 OpenAPI 스펙과 경로·파라미터가 어긋나면 타입 에러가 난다. 단, 이 백엔드 스펙은 응답 content-type을 `*/*`로 내보내서 `openapi-msw`의 타입화된 `.json()` 헬퍼가 쓸모없어진다 — 응답 바디는 `msw`의 `HttpResponse.json(...)`을 직접 쓴다.
+- 목데이터는 `src/mocks/data/*.csv`(기사 36명, 화물 500건, 구간별 시세 24건 — [dokdok/docs/mock-data.md](https://github.com/dokdok3/dokdok/blob/main/docs/mock-data.md)와 동일한 시드)를 `src/mocks/data/dataset.ts`가 파싱한다. `freights.csv`는 `pnpm mocks:fetch`로 원본을 재수집할 수 있고, `drivers.csv`/`fares.csv`는 문서에 인라인으로만 있어 수동으로 옮겨야 한다.
+- `src/mocks/data/transform.ts`가 CSV 행을 실제 API 응답 DTO(`DriverResponse`, `LoadResponse`, `CargoDetailResponse`, `FareQuoteResponse`)로 변환한다. 매칭 점수·운임 판정(`LOW`/`FAIR`/`UNKNOWN`)은 mock-data.md의 "필수 데모 시나리오" 표와 일치하도록 만든 근사 로직이다 — 실제 백엔드 알고리즘이 아니다.
+- 화물 생성·수정·수락은 `src/mocks/data/store.ts`의 메모리 Map에 반영돼 같은 세션 안에서는 상태가 유지된다. 새로고침하면 초기화된다.
+
 ## 스타일링 (Emotion)
 
 - `styled()` API를 기본으로 쓴다. `css` prop은 쓰지 않는다.
@@ -99,9 +112,9 @@ export function Badge({ label }: BadgeProps) {
 
 ## 테스트
 
-- **단위 테스트**: Vitest + Testing Library. 파일은 대상 컴포넌트/모듈과 같은 폴더에 `*.test.ts(x)`로 둔다. `pnpm test`로 실행한다.
-- **e2e 테스트**: Playwright, `e2e/*.spec.ts`. `pnpm test:e2e`로 실행한다.
-- 두 테스트 러너의 대상 경로가 겹치지 않게 한다 (`vite.config.ts`의 `test.include`가 `src/**/*.{test,spec}.{ts,tsx}`로 제한되어 있음).
+- 이 프로젝트는 **단위 테스트만** 작성한다: Vitest + Testing Library. 파일은 대상 컴포넌트/모듈과 같은 폴더에 `*.test.ts(x)`로 둔다. `pnpm test`로 실행한다.
+- Playwright e2e 설정(`playwright.config.ts`, `e2e/`, `pnpm test:e2e`)은 초기 스캐폴딩으로 남아있지만 이 프로젝트의 테스트 컨벤션은 아니다 — 새 e2e 테스트를 추가하지 않는다.
+- Vitest의 `test.include`(`vite.config.ts`)는 `src/**/*.{test,spec}.{ts,tsx}`로 제한되어 있어 `e2e/` 아래 Playwright 스펙과 겹치지 않는다.
 
 ## 포맷팅 / 린트
 
