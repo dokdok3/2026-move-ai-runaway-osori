@@ -1,5 +1,6 @@
 package com.hackathon.domain.cargo.dto;
 
+import com.hackathon.domain.cargo.entity.Cargo;
 import com.hackathon.domain.cargo.entity.CargoType;
 import com.hackathon.domain.driver.dto.RegionPoint;
 import jakarta.validation.constraints.NotNull;
@@ -19,4 +20,15 @@ public record CargoCreateRequest(
         LocalDateTime unloadingAt,
         Integer distanceKm
 ) {
+    public Cargo toEntity(Long shipperId) {
+        return Cargo.create(
+                shipperId,
+                origin.sido(), origin.sigungu(),
+                destination.sido(), destination.sigungu(),
+                cargoType, cargoDescription, weightTon,
+                vehicleType, bodyType,
+                desiredFare,
+                loadingAt, unloadingAt,
+                distanceKm);
+    }
 }
