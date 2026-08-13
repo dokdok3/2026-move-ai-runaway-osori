@@ -3,8 +3,10 @@ package com.hackathon.domain.matching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hackathon.domain.cargo.entity.Cargo;
 import com.hackathon.domain.cargo.entity.CargoType;
@@ -15,23 +17,25 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 class AiConnectionRecommenderTest {
 
     private final OpenAiClient openAiClient = Mockito.mock(OpenAiClient.class);
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final AiConnectionRecommender recommender =
-            new AiConnectionRecommender(openAiClient, new ObjectMapper());
+            new AiConnectionRecommender(openAiClient, objectMapper);
 
     @Test
-    void selectsExactlyOneCandidateAndReturnsAiReasons() {
+    void selectsExactlyOneCandidateAndReturnsAiReasons() throws Exception {
         when(openAiClient.generateStructured(
                 eq("connection_recommendation"), any(), any(), any()))
                 .thenReturn("""
                         {
-                          "cargoId": 2,
-                          "recommendationSummary": "공차 이동이 짧고 운임이 좋은 화물입니다.",
-                          "reasons": ["공차 이동 거리가 8km입니다.", "추가 운임은 70만원입니다."]
+                          "cargoId": 1,
+                          "recommendationSummary": "규칙 점수가 가장 높은 화물입니다.",
+                          "reasons": ["규칙 점수는 90점입니다.", "공차 이동 거리는 5km입니다."]
                         }
                         """);
 
@@ -40,9 +44,28 @@ class AiConnectionRecommenderTest {
                 candidate(2L, 85, 700_000, 8.0, 90)
         ));
 
-        assertThat(result.cargoId()).isEqualTo(2L);
+        assertThat(result.cargoId()).isEqualTo(1L);
         assertThat(result.reasons()).hasSize(2);
         assertThat(result.explanationMode()).isEqualTo("AI");
+
+        ArgumentCaptor<String> instructionsCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> inputCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<JsonNode> schemaCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        verify(openAiClient).generateStructured(eq("connection_recommendation"),
+                instructionsCaptor.capture(), inputCaptor.capture(), schemaCaptor.capture());
+
+        assertThat(instructionsCaptor.getValue())
+                .contains("서버의 규칙 순위를 유지")
+                .contains("ruleScore가 가장 높은 후보")
+                .contains("별도 가중치를 만들거나 점수를 재계산하지 않는다")
+                .contains("emptyDistanceKm가 짧은 후보, fareKrw가 높은 후보, cargoId가 작은 후보")
+                .contains("정확히 1건만 선택");
+        JsonNode input = objectMapper.readTree(inputCaptor.getValue());
+        assertThat(input.at("/candidates/0/cargoId").asLong()).isEqualTo(1L);
+        assertThat(input.at("/candidates/0/ruleScore").asInt()).isEqualTo(90);
+        assertThat(input.at("/candidates/0/waitMinutes").asLong()).isEqualTo(120L);
+        assertThat(schemaCaptor.getValue().at("/properties/recommendationSummary/minLength").asInt())
+                .isEqualTo(1);
     }
 
     @Test
@@ -64,6 +87,27 @@ class AiConnectionRecommenderTest {
 
         assertThat(result.cargoId()).isEqualTo(1L);
         assertThat(result.reasons()).hasSize(3);
+        assertThat(result.explanationMode()).isEqualTo("RULE_FALLBACK");
+    }
+
+    @Test
+    void fallsBackToRuleTopCandidateWhenAiChangesRuleOrder() {
+        when(openAiClient.generateStructured(
+                eq("connection_recommendation"), any(), any(), any()))
+                .thenReturn("""
+                        {
+                          "cargoId": 2,
+                          "recommendationSummary": "후순위 후보를 선택했습니다.",
+                          "reasons": ["공차 이동 거리는 8km입니다.", "운임은 70만원입니다."]
+                        }
+                        """);
+
+        AiConnectionRecommender.RecommendationDecision result = recommender.recommend(List.of(
+                candidate(1L, 90, 600_000, 5.0, 120),
+                candidate(2L, 85, 700_000, 8.0, 90)
+        ));
+
+        assertThat(result.cargoId()).isEqualTo(1L);
         assertThat(result.explanationMode()).isEqualTo("RULE_FALLBACK");
     }
 

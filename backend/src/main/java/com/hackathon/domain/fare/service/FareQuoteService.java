@@ -24,13 +24,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class FareQuoteService {
 
     private static final String AI_INSTRUCTIONS = """
-            당신은 대한민국 화물 운임의 보수적 추정 도우미다.
-            제공된 구간·화물 유형·중량·최근 동일 조건 집계만 근거로 평균 운임을 추정한다.
-            제공되지 않은 계약, 실제 도로 거리, 실시간 시장 데이터를 알고 있는 것처럼 주장하지 않는다.
-            averageFare와 sameDayThreshold는 한국 원화 정수이며 양수여야 한다.
-            sameDayThreshold는 averageFare보다 클 수 없다.
-            distanceKm은 근거가 없으면 null을 반환한다.
-            반드시 제공된 JSON Schema에 맞는 JSON만 반환한다.
+            역할: 제공된 집계값으로 대한민국 화물 운임 기준을 계산하는 도우미다.
+
+            목표: 입력값만 사용해 재현 가능한 평균 운임, 당일 저가 기준, 거리 값을 반환한다.
+
+            계산 규칙:
+            1. recentComparableCount가 1 이상이고 recentAverageFareKrw가 있으면 averageFare에 그 값을 그대로 사용한다. 아니면 baselineFareKrw를 사용한다.
+            2. sameDayThreshold는 averageFare의 85%를 원 단위에서 반올림한 정수다.
+            3. recentAverageDistanceKm가 있으면 distanceKm에 그 값을 그대로 사용하고, 없으면 null로 둔다.
+            4. requestedWeightTon은 요청 문맥이다. 중량별 단가나 보정 규칙이 입력에 없으므로 이를 근거로 운임을 임의 조정하지 않는다.
+            5. 실제 계약, 도로 거리, 실시간 시장 상황, 입력에 없는 할증을 추측하지 않는다.
+
+            출력: 원화 값은 양의 정수이며 스키마에 없는 필드나 설명을 추가하지 않는다.
             """;
     private static final String AI_SCHEMA_JSON = """
             {
@@ -74,7 +79,7 @@ public class FareQuoteService {
                                    BigDecimal weightTon, Integer desiredFare) {
         String key = quoteKey(originSido, destSido, cargoType);
         FareQuote quote = fareQuoteRepository.findByQuoteKey(key)
-                .orElseGet(() -> estimateAndCache(key, originSido, destSido, cargoType));
+                .orElseGet(() -> estimateAndCache(key, originSido, destSido, cargoType, weightTon));
         return FareQuoteResponse.of(quote, desiredFare);
     }
 
@@ -82,11 +87,12 @@ public class FareQuoteService {
      * 캐시 미스에서만 AI로 시세를 추정하고 결과를 저장한다.
      * AI 장애·키 미설정·계약 위반 응답에는 등록 화물 평균 및 기본값으로 폴백한다.
      */
-    private FareQuote estimateAndCache(String key, String originSido, String destSido, CargoType cargoType) {
+    private FareQuote estimateAndCache(String key, String originSido, String destSido, CargoType cargoType,
+                                       BigDecimal weightTon) {
         List<Cargo> cargos = cargoRepository.findByOriginSidoAndDestSidoAndCargoType(
                 originSido, destSido, cargoType);
         try {
-            FareEstimate estimate = estimateWithAi(originSido, destSido, cargoType, cargos);
+            FareEstimate estimate = estimateWithAi(originSido, destSido, cargoType, weightTon, cargos);
             return fareQuoteRepository.save(FareQuote.create(key, estimate.averageFare(),
                     estimate.sameDayThreshold(), estimate.distanceKm()));
         } catch (Exception e) {
@@ -97,30 +103,39 @@ public class FareQuoteService {
     }
 
     private FareEstimate estimateWithAi(String originSido, String destSido, CargoType cargoType,
-                                        List<Cargo> cargos) throws JsonProcessingException {
+                                        BigDecimal weightTon, List<Cargo> cargos) throws JsonProcessingException {
         String output = openAiClient.generateStructured("fare_quote", AI_INSTRUCTIONS,
-                aiInput(originSido, destSido, cargoType, cargos), aiSchema);
+                aiInput(originSido, destSido, cargoType, weightTon, cargos), aiSchema);
         FareEstimate estimate = objectMapper.readValue(output, FareEstimate.class);
+        FareEstimate expected = referenceEstimate(originSido, destSido, cargoType, cargos);
         if (estimate == null || estimate.averageFare() == null || estimate.sameDayThreshold() == null
                 || estimate.averageFare() < 10_000 || estimate.averageFare() > 10_000_000
                 || estimate.sameDayThreshold() < 10_000 || estimate.sameDayThreshold() > estimate.averageFare()
-                || (estimate.distanceKm() != null && (estimate.distanceKm() < 0 || estimate.distanceKm() > 2_000))) {
+                || (estimate.distanceKm() != null && (estimate.distanceKm() < 0 || estimate.distanceKm() > 2_000))
+                || !estimate.equals(expected)) {
             throw new IllegalArgumentException("AI 시세 추정 응답이 올바르지 않습니다.");
         }
         return estimate;
     }
 
-    private String aiInput(String originSido, String destSido, CargoType cargoType, List<Cargo> cargos)
+    private String aiInput(String originSido, String destSido, CargoType cargoType,
+                           BigDecimal weightTon, List<Cargo> cargos)
             throws JsonProcessingException {
         ObjectNode input = objectMapper.createObjectNode();
         input.put("originSido", originSido);
         input.put("destSido", destSido);
         input.put("cargoType", cargoType.name());
+        if (weightTon == null) {
+            input.putNull("requestedWeightTon");
+        } else {
+            input.put("requestedWeightTon", weightTon);
+        }
         input.put("recentComparableCount", cargos.size());
         putAverage(input, "recentAverageFareKrw", cargos.stream().map(Cargo::getDesiredFare)
                 .filter(java.util.Objects::nonNull).mapToInt(Integer::intValue).average());
         putAverage(input, "recentAverageDistanceKm", cargos.stream().map(Cargo::getDistanceKm)
                 .filter(java.util.Objects::nonNull).mapToInt(Integer::intValue).average());
+        input.put("baselineFareKrw", fallbackFare(originSido, destSido, cargoType));
         return objectMapper.writeValueAsString(input);
     }
 
@@ -134,6 +149,12 @@ public class FareQuoteService {
 
     private FareQuote fallbackQuote(String key, String originSido, String destSido, CargoType cargoType,
                                     List<Cargo> cargos) {
+        FareEstimate estimate = referenceEstimate(originSido, destSido, cargoType, cargos);
+        return FareQuote.create(key, estimate.averageFare(), estimate.sameDayThreshold(), estimate.distanceKm());
+    }
+
+    private FareEstimate referenceEstimate(String originSido, String destSido, CargoType cargoType,
+                                           List<Cargo> cargos) {
         int averageFare = cargos.stream().map(Cargo::getDesiredFare).filter(java.util.Objects::nonNull)
                 .mapToInt(Integer::intValue).average().stream().mapToInt(value -> (int) Math.round(value))
                 .findFirst().orElseGet(() -> fallbackFare(originSido, destSido, cargoType));
@@ -142,7 +163,7 @@ public class FareQuoteService {
                 .boxed().findFirst().orElse(null);
         int sameDayThreshold = BigDecimal.valueOf(averageFare).multiply(new BigDecimal("0.85"))
                 .setScale(0, RoundingMode.HALF_UP).intValue();
-        return FareQuote.create(key, averageFare, sameDayThreshold, distanceKm);
+        return new FareEstimate(averageFare, sameDayThreshold, distanceKm);
     }
 
     private int fallbackFare(String originSido, String destSido, CargoType cargoType) {
