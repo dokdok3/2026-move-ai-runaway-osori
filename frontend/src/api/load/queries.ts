@@ -10,10 +10,10 @@ import type {
 
 export const loadQueryKeys = {
   all: ['load'] as const,
+  lists: () => [...loadQueryKeys.all, 'list'] as const,
   list: (params: GetLoadListParams) =>
     [
-      ...loadQueryKeys.all,
-      'list',
+      ...loadQueryKeys.lists(),
       params.driverId,
       params.preferenceText ?? '',
       params.refresh ?? false,

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import styled from '@emotion/styled'
 import { AlertDialog } from '@/components/AlertDialog'
 import { Hero } from '@/components/Hero'
@@ -14,6 +15,8 @@ import {
   useLoadListQuery,
 } from '@/api/load/service'
 import type { LoadFilter, NextLoadRecommendationResponse } from '@/api/load/model'
+import type { GetLoadListResponse } from '@/api/load/model'
+import { loadQueryKeys } from '@/api/load/queries'
 import { getCargoTypeLabel } from '@/utils/cargoType'
 import { formatFare, formatShortDateTime } from '@/utils/format'
 import { RouteFilterCard } from './RouteFilterCard'
@@ -93,6 +96,7 @@ const ProfileLink = styled(Link)`
 `
 
 export function DriverPage() {
+  const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const [route, setRoute] = useState<RouteDraft>(EMPTY_ROUTE)
   const [acceptingCargoId, setAcceptingCargoId] = useState<number | undefined>(undefined)
@@ -104,6 +108,7 @@ export function DriverPage() {
   const [cancelingCargoId, setCancelingCargoId] = useState<number | undefined>(undefined)
   const seededRef = useRef(false)
   const loadMoreObserverRef = useRef<IntersectionObserver | null>(null)
+  const fetchingNextPageRef = useRef(false)
 
   const driverProfileQuery = useDriverProfileQuery({ driverId: DEMO_DRIVER_ID })
   const regionListQuery = useRegionListQuery()
@@ -184,7 +189,19 @@ export function DriverPage() {
         driverId: DEMO_DRIVER_ID,
       })
       setNextRecommendation(response.nextLoadRecommendation ?? null)
-      await loadListQuery.refetch()
+      queryClient.setQueriesData<InfiniteData<GetLoadListResponse>>(
+        { queryKey: loadQueryKeys.lists() },
+        (current) =>
+          current
+            ? {
+                ...current,
+                pages: current.pages.map((page) => ({
+                  ...page,
+                  content: page.content?.filter((load) => load.cargoId !== cargoId),
+                })),
+              }
+            : current,
+      )
     } catch (error) {
       setAcceptError(error instanceof Error ? error.message : '하차 완료 처리에 실패했어요.')
     } finally {
@@ -217,18 +234,27 @@ export function DriverPage() {
   const visibleLoads = (loadListQuery.data?.pages ?? [])
     .flatMap((page) => page.content ?? [])
     .filter((load) => load.cargoId !== undefined)
+  const { fetchNextPage, hasNextPage } = loadListQuery
 
-  const setLoadMoreRef = (node: HTMLDivElement | null) => {
-    loadMoreObserverRef.current?.disconnect()
-    if (!node || !loadListQuery.hasNextPage || typeof IntersectionObserver === 'undefined') return
+  const setLoadMoreRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      loadMoreObserverRef.current?.disconnect()
+      if (!node || !hasNextPage || typeof IntersectionObserver === 'undefined') return
 
-    loadMoreObserverRef.current = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting && !loadListQuery.isFetchingNextPage) {
-        loadListQuery.fetchNextPage()
-      }
-    })
-    loadMoreObserverRef.current.observe(node)
-  }
+      loadMoreObserverRef.current = new IntersectionObserver((entries) => {
+        if (!entries[0]?.isIntersecting || fetchingNextPageRef.current) return
+
+        fetchingNextPageRef.current = true
+        void fetchNextPage().finally(() => {
+          fetchingNextPageRef.current = false
+        })
+      })
+      loadMoreObserverRef.current.observe(node)
+    },
+    [fetchNextPage, hasNextPage],
+  )
+
+  useEffect(() => () => loadMoreObserverRef.current?.disconnect(), [])
 
   const handleFilterChange = (nextFilter: LoadFilter) => {
     const nextParams = new URLSearchParams(searchParams)
