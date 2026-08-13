@@ -15,32 +15,40 @@
 
 ### 핵심 기능
 
-- 비정형 화물 요청 AI 파싱 및 수정
-- 화물 조건과 기사 활동 지역을 반영한 양방향 랭킹 추천
-- 거리, 차량 조건, 운임을 이용한 최적 기사 매칭
+- 비정형 화물 요청 AI 파싱, 직접 입력 및 등록 전 수정
+- 화주 화물의 진행 중·완료 상태별 목록과 상세 조회
+- 화물 조건과 기사 활동 지역을 반영한 추천 화물 조회
+- 기사 활동 지역 및 차량·운행 조건 프로필 수정
+- 추천 화물 숨기기, 수락, 수락 취소 및 하차 완료
+- 하차 완료 후 다음 연결 화물 추천
 - 구간 평균 운임 비교 및 비정상 저가 운임 경고
-- 화주용 요청·매칭 화면과 기사용 추천 화물 화면 제공
+- 화주 목록 페이지네이션과 기사 추천 목록 무한 스크롤
 
 ## 기술 스택
 
 - Backend: Java 25, Spring Boot 3.5, Gradle, JPA, Flyway, PostgreSQL/PostGIS, Redis, Swagger
 - Frontend: Node.js 22, pnpm 9, React 19, TypeScript 5.9, Vite 7, Emotion 11, TanStack Query 5
-- Test: JUnit, Storybook 10, Playwright 1.57
+- Test: JUnit, Vitest 4, Testing Library, Storybook 10, Playwright 1.57
 
 ## 디렉터리
 
 ```text
-backend/       Spring Boot API
-frontend/      React 웹 애플리케이션
-compose.yaml   PostgreSQL/PostGIS 및 Redis
+backend/          Spring Boot API
+frontend/         React 웹 애플리케이션과 정적 퍼블리싱 문서
+docs/             배포 및 예외 처리 문서
+deploy/           Nginx, 배포 상태, APM 정적 파일
+scripts/          배포·운영 및 데이터 관련 스크립트
+compose.yaml      로컬 PostgreSQL/PostGIS 및 Redis
+compose.prod.yaml EC2 blue/green 운영 구성
 ```
 
 ## 로컬 실행
 
-먼저 PostgreSQL과 Redis를 실행합니다.
+저장소 루트에서 환경 변수 파일을 만들고 PostgreSQL과 Redis를 실행합니다.
 
 ```bash
-docker compose up -d
+cp .env.example .env
+docker compose up -d postgres redis
 ```
 
 백엔드 실행:
@@ -53,12 +61,22 @@ cd backend
 프론트엔드 실행:
 
 ```bash
+cd frontend
 corepack enable
 corepack prepare pnpm@9.15.9 --activate
-cd frontend
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
+
+개발 서버의 `/api` 요청은 현재 `frontend/vite.config.ts`에 설정된 백엔드로 프록시됩니다.
+
+## 화면 경로
+
+- `/`: 화주·기사 역할 선택
+- `/shipper`: 화주 화물 목록 및 등록
+- `/shipper/cargos/:cargoId`: 화주 화물 상세
+- `/driver`: 기사 활동 지역 및 추천 화물
+- `/driver/profile`: 기사 정보 수정
 
 ## 접속 주소
 
@@ -70,14 +88,23 @@ pnpm dev
 ## 테스트
 
 ```bash
-cd backend && ./gradlew test
-cd frontend && pnpm lint && pnpm build
+cd backend
+./gradlew test
+
+cd ../frontend
+pnpm lint
+pnpm test
+pnpm build
+pnpm build-storybook
 ```
+
+Playwright E2E 테스트는 `cd frontend && pnpm test:e2e`로 별도 실행합니다.
 
 DB 스키마 변경은 `backend/src/main/resources/db/migration`에 Flyway SQL 파일로 추가합니다.
 
 ## 배포
 
-`main` 브랜치에 푸시하면 GitHub Actions가 테스트와 컨테이너 빌드를 수행합니다. 운영 배포는
-단일 EC2에서 blue/green 애플리케이션을 교대로 기동하고 health check 후 Nginx를 전환합니다.
-최초 EC2 및 GitHub 설정은 `docs/deployment.md`를 참고합니다.
+PR과 `develop` 브랜치의 애플리케이션 변경은 CI에서 백엔드 테스트, 프론트엔드 lint·build,
+Storybook build를 수행합니다. `main` 브랜치의 애플리케이션·배포 구성 변경은 배포 워크플로에서
+변경된 애플리케이션을 검증하고 GHCR 이미지를 만든 뒤, EC2 self-hosted runner에서 blue/green으로
+교체합니다. 최초 EC2 및 GitHub 설정과 복구 절차는 `docs/deployment.md`를 참고합니다.

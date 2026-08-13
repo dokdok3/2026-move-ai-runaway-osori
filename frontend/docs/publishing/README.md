@@ -12,13 +12,13 @@ React로 구현하기 전에 화면을 정적 HTML로 먼저 확정하는 공간
 | `index.html` | 역할 선택 (화주 / 기사) | `RoleSelectPage/` |
 | `shipper-list.html` | 내 화물 요청 목록 | `ShipperPage/MyCargoList.tsx` |
 | `shipper.html` | 카톡 붙여넣기 → AI 화물 등록 | `ShipperPage/CargoRequestForm.tsx` |
-| `shipper-manual.html` | 화물 정보 직접 입력 (AI 실패 대체 경로) | 미구현 |
+| `shipper-manual.html` | 화물 정보 직접 입력 (AI 실패 대체 경로) | `ShipperPage/ManualCargoForm.tsx` |
 | `shipper-edit.html` | AI 파싱 결과 확인·수정 | `ShipperPage/CargoSummaryCard.tsx` |
-| `shipper-searching-detail.html` | 기사 찾는 중 상세 | 미구현 |
+| `shipper-searching-detail.html` | 기사 찾는 중 상세 | `ShipperPage/MatchedDriverCard.tsx` |
 | `shipper-detail.html` | 배차 확정 상세 | `ShipperPage/MatchedDriverCard.tsx` |
-| `shipper-completed-detail.html` | 운송 완료 상세 | 미구현 |
+| `shipper-completed-detail.html` | 운송 완료 상세 | `ShipperPage/MatchedDriverCard.tsx` |
 | `driver.html` | 기사 — 활동 지역 설정 + 추천 화물 | `DriverPage/` |
-| `driver-profile.html` | 기사 — 내 정보 수정 | 미구현 |
+| `driver-profile.html` | 기사 — 내 정보 수정 | `DriverProfilePage/` |
 | `style.css` | 전 화면 공용 스타일 (단일 파일) | `src/theme/theme.ts` + 각 컴포넌트 Emotion |
 
 화면 이동은 `<a href>`로만 한다. JS 없이 링크만 눌러도 전체 플로우가 돌아가야 한다.
