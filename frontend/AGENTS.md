@@ -15,9 +15,11 @@ src/
 │       ├── Badge.test.tsx   (필요 시)
 │       └── index.ts         (export { Badge } from './Badge')
 ├── api/
+│   ├── schema.gen.ts   (OpenAPI 스펙에서 생성한 타입, 직접 수정 금지)
+│   ├── client.ts        (openapi-fetch 클라이언트)
 │   └── user/
-│       ├── model.ts    (파라미터/응답 타입)
-│       ├── api.ts      (fetch 함수)
+│       ├── model.ts    (파라미터/응답 타입, schema.gen.ts 참조)
+│       ├── api.ts      (apiClient 호출)
 │       ├── queries.ts  (query key factory + queryOptions/mutationOptions)
 │       └── service.ts  (컴포넌트가 쓰는 훅)
 ├── theme/
@@ -79,11 +81,15 @@ export function Badge({ label }: BadgeProps) {
 - **서버 상태**는 TanStack Query로만 관리한다. `useEffect` + `fetch` 조합으로 서버 데이터를 가져오지 않는다.
 - **클라이언트/로컬 상태**는 `useState`/`useReducer` + Context로 시작한다. 전역 상태 라이브러리(Zustand 등)는 실제로 필요해지기 전까지 도입하지 않는다.
 
-## TanStack Query — 도메인별 API 계층
+## API 연동 (OpenAPI + TanStack Query)
 
-컴포넌트에서 `useQuery`/`useMutation`을 직접 호출하지 않고, `fetch`도 직접 부르지 않는다. 도메인별로 `model.ts`/`api.ts`/`queries.ts`/`service.ts` 네 파일로 나눠 감싼다 (의존 방향: `service.ts → queries.ts → api.ts → model.ts`). 컴포넌트는 `service.ts`의 훅만 import한다.
+백엔드 스펙은 `openapi/schema.json`에 스냅샷으로 저장하고, `pnpm api:fetch`로 갱신, `pnpm api:generate`로 `src/api/schema.gen.ts` 타입을 재생성한다. 통신은 `src/api/client.ts`의 `apiClient`(openapi-fetch)로만 하고 `fetch()`를 직접 부르지 않는다.
 
-파일 역할, query key factory 규칙, `queryOptions`/`mutationOptions` 사용법, 타입 네이밍은 `api-convention` 스킬(`.claude/skills/api-convention/SKILL.md`)을 따른다.
+로컬 개발 시 `/api/*` 요청은 `vite.config.ts`의 dev 프록시가 `http://localhost:8080`(로컬 백엔드)으로 전달한다. 프로덕션은 Nginx가 같은 방식으로 라우팅해 프론트와 백엔드가 동일 오리진처럼 동작하므로, base URL을 환경별로 분기하지 않는다.
+
+컴포넌트에서 `useQuery`/`useMutation`을 직접 호출하지 않는다. 도메인별로 `model.ts`/`api.ts`/`queries.ts`/`service.ts` 네 파일로 나눠 감싼다 (의존 방향: `service.ts → queries.ts → api.ts → model.ts`). 컴포넌트는 `service.ts`의 훅만 import한다.
+
+파일 역할, query key factory 규칙, `queryOptions`/`mutationOptions` 사용법, 타입 네이밍, `ApiResponse` 언래핑은 `api-convention` 스킬(`.claude/skills/api-convention/SKILL.md`)을 따른다.
 
 ## 스타일링 (Emotion)
 

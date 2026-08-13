@@ -19,12 +19,15 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "api:fetch": "curl -sS \"${API_DOCS_URL:-http://43.202.205.211/v3/api-docs}\" | node -e \"const fs=require('fs');let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>fs.writeFileSync('openapi/schema.json',JSON.stringify(JSON.parse(d),null,2)+'\\n'))\"",
+    "api:generate": "openapi-typescript openapi/schema.json -o src/api/schema.gen.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@tanstack/react-query": "^5.90.11",
+    "openapi-fetch": "^0.17.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
@@ -47,6 +50,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
     "jsdom": "^30.0.1",
+    "openapi-typescript": "^7.13.0",
     "prettier": "^3.9.6",
     "storybook": "^10.1.2",
     "typescript": "~5.9.3",
