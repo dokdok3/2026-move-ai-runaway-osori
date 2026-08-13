@@ -80,6 +80,7 @@ pnpm dev
 
 ## 접속 주소
 
+- 운영 서비스: https://43.202.205.211/
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8080
 - Swagger UI: http://localhost:8080/swagger-ui.html
