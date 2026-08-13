@@ -213,4 +213,75 @@ describe('ShipperPage', () => {
     expect(screen.getByLabelText('출발지 시도')).toBeValid()
     expect(screen.getByLabelText('출발지 시군구')).toBeValid()
   })
+
+  it('AI 자동 변환 후 등록하면 aiParsed를 true로 전송한다', async () => {
+    let aiParsed: boolean | undefined
+    server.use(
+      http.post('/api/v1/cargos', async ({ request }) => {
+        const body = (await request.json()) as { aiParsed?: boolean }
+        aiParsed = body.aiParsed
+        return HttpResponse.json({ success: true, data: { cargoId: 999 } })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<ShipperPage />)
+
+    await user.click(screen.getByRole('button', { name: /새 화물/ }))
+    await user.type(
+      screen.getByLabelText('화물 요청 원문'),
+      '내일 서울에서 부산으로 냉장 5톤 50만원에 보내주세요',
+    )
+    await user.click(screen.getByRole('button', { name: 'AI 자동 변환' }))
+    await user.click(await screen.findByRole('button', { name: '등록하기' }))
+
+    await waitFor(() => expect(aiParsed).toBe(true))
+  })
+
+  it('등록 후 상세 조회에 실패하면 오류 문구 없이 목록으로 돌아간다', async () => {
+    server.use(
+      http.post('/api/v1/cargos', () =>
+        HttpResponse.json({ success: true, data: { cargoId: 999999 } }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<ShipperPage />)
+
+    await user.click(screen.getByRole('button', { name: /새 화물/ }))
+    await user.type(
+      screen.getByLabelText('화물 요청 원문'),
+      '내일 서울에서 부산으로 냉장 5톤 50만원에 보내주세요',
+    )
+    await user.click(screen.getByRole('button', { name: 'AI 자동 변환' }))
+    await user.click(await screen.findByRole('button', { name: '등록하기' }))
+
+    expect(await screen.findByRole('button', { name: /새 화물/ })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('직접 입력 후 등록하면 aiParsed를 false로 전송한다', async () => {
+    let aiParsed: boolean | undefined
+    server.use(
+      http.post('/api/v1/cargos', async ({ request }) => {
+        const body = (await request.json()) as { aiParsed?: boolean }
+        aiParsed = body.aiParsed
+        return HttpResponse.json({ success: true, data: { cargoId: 999 } })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<ShipperPage />)
+
+    await user.click(screen.getByRole('button', { name: /새 화물/ }))
+    await user.click(screen.getByRole('button', { name: /직접 입력하기/ }))
+    await user.selectOptions(await screen.findByLabelText('출발지 시도'), '서울특별시')
+    await user.selectOptions(screen.getByLabelText('출발지 시군구'), '송파구')
+    await user.selectOptions(screen.getByLabelText('도착지 시도'), '부산광역시')
+    await user.selectOptions(screen.getByLabelText('도착지 시군구'), '강서구')
+    await user.type(screen.getByLabelText('출발 일시'), '2026-08-14T09:00')
+    await user.type(screen.getByLabelText('도착 일시'), '2026-08-14T18:00')
+    await user.type(screen.getByLabelText('중량'), '5')
+    await user.type(screen.getByLabelText('운임'), '500000')
+    await user.click(screen.getByRole('button', { name: '등록하기' }))
+
+    await waitFor(() => expect(aiParsed).toBe(false))
+  })
 })

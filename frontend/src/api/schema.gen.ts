@@ -4,1113 +4,1169 @@
  */
 
 export interface paths {
-  '/api/v1/shippers/me': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** 내 화주 프로필 조회 */
-    get: operations['getMe']
-    /** 내 화주 프로필 수정 */
-    put: operations['updateMe']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/drivers/me': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** 내 기사 프로필 조회 */
-    get: operations['getMe_1']
-    /** 내 기사 프로필 수정 */
-    put: operations['updateMe_1']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/drivers/me/route-preferences': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    /** 다니는 구간 전체 교체 저장 */
-    put: operations['updateRoutePreferences']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/loads/{cargoId}/hide': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** 화물 목록에서 숨기기 */
-    post: operations['hide']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/loads/{cargoId}/complete': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** 수락한 화물 운송 완료 */
-    post: operations['complete']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/loads/{cargoId}/accept': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** 화물 수락 */
-    post: operations['accept']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/cargos': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** 화물 등록 */
-    post: operations['create']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/cargos/parse': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** 자연어 문장을 화물 항목으로 파싱 (저장하지 않음) */
-    post: operations['parse']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/cargos/{cargoId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** 화물 상세 조회 */
-    get: operations['detail']
-    put?: never
-    post?: never
-    /** 내 화물 삭제 (배차 대기 상태만 가능) */
-    delete: operations['delete']
-    options?: never
-    head?: never
-    /** 화물 부분 수정 (보낸 필드만 반영) */
-    patch: operations['update']
-    trace?: never
-  }
-  '/api/v1/regions': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** 시도·시군구 지역 목록 조회 */
-    get: operations['getRegions']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/loads': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** 기사 화물 목록 조회 (10건 커서 페이지네이션) */
-    get: operations['getLoads']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/loads/completed': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** 기사가 완료한 화물 목록 */
-    get: operations['getCompletedLoads']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/fares/quote': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** 구간 운임 시세 조회 (DB 캐시 우선, miss 시 AI 추정) */
-    get: operations['quote']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/cargos/me': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** 내가 등록한 화물 목록 조회 */
-    get: operations['getMyCargos']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/health': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** API 상태 확인 */
-    get: operations['health']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    "/api/v1/shippers/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 내 화주 프로필 조회 */
+        get: operations["getMe"];
+        /** 내 화주 프로필 수정 */
+        put: operations["updateMe"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 내 기사 프로필 조회 */
+        get: operations["getMe_1"];
+        /** 내 기사 프로필 수정 */
+        put: operations["updateMe_1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me/route-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 다니는 구간 전체 교체 저장 */
+        put: operations["updateRoutePreferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loads/{cargoId}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 화물 목록에서 숨기기 */
+        post: operations["hide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loads/{cargoId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 수락한 화물 운송 완료 */
+        post: operations["complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loads/{cargoId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 수락한 화물 취소 */
+        post: operations["cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loads/{cargoId}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 화물 수락 */
+        post: operations["accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cargos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 화물 등록 */
+        post: operations["create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cargos/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 자연어 문장을 화물 항목으로 파싱 (저장하지 않음) */
+        post: operations["parse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cargos/{cargoId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 화물 상세 조회 */
+        get: operations["detail"];
+        put?: never;
+        post?: never;
+        /** 내 화물 삭제 (배차 대기 상태만 가능) */
+        delete: operations["delete"];
+        options?: never;
+        head?: never;
+        /** 화물 부분 수정 (보낸 필드만 반영) */
+        patch: operations["update"];
+        trace?: never;
+    };
+    "/api/v1/regions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 시도·시군구 지역 목록 조회 */
+        get: operations["getRegions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 기사 화물 목록 조회 (10건 커서 페이지네이션) */
+        get: operations["getLoads"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loads/completed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 기사가 완료한 화물 목록 */
+        get: operations["getCompletedLoads"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/fares/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 구간 운임 시세 조회 (DB 캐시 우선, miss 시 AI 추정) */
+        get: operations["quote"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cargos/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 내가 등록한 화물 목록 조회 */
+        get: operations["getMyCargos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** API 상태 확인 */
+        get: operations["health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
-export type webhooks = Record<string, never>
+export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    ShipperProfileRequest: {
-      companyName: string
-      contactName: string
-      phoneNumber: string
-      businessNumber?: string
-      address?: string
-    }
-    ApiResponseShipperProfileResponse: {
-      success?: boolean
-      data?: components['schemas']['ShipperProfileResponse']
-      message?: string
-    }
-    ShipperProfileResponse: {
-      /** Format: int64 */
-      shipperId?: number
-      companyName?: string
-      contactName?: string
-      phoneNumber?: string
-      businessNumber?: string
-      address?: string
-    }
-    DriverProfileRequest: {
-      name: string
-      phoneNumber: string
-      plateNumber: string
-      vehicleType: string
-      capacityTon: number
-      bodyType: string
-      vehicleCargoTypes: string[]
-      /** Format: int32 */
-      minAcceptFare: number
-      contactableFrom: string
-      contactableTo: string
-    }
-    ApiResponseDriverResponse: {
-      success?: boolean
-      data?: components['schemas']['DriverResponse']
-      message?: string
-    }
-    DriverResponse: {
-      /** Format: int64 */
-      driverId?: number
-      name?: string
-      phoneNumber?: string
-      plateNumber?: string
-      vehicleType?: string
-      capacityTon?: number
-      bodyType?: string
-      vehicleCargoTypes?: string[]
-      rating?: number
-      /** Format: int32 */
-      totalTrips?: number
-      /** Format: int32 */
-      completionRate?: number
-      /** Format: int32 */
-      minAcceptFare?: number
-      contactableFrom?: string
-      contactableTo?: string
-      recentTripSummary?: string
-      routePreferences?: components['schemas']['RoutePreferences']
-    }
-    RegionPoint: {
-      sido?: string
-      sigungu?: string
-    }
-    RoutePreferences: {
-      origins?: components['schemas']['RegionPoint'][]
-      destinations?: components['schemas']['RegionPoint'][]
-    }
-    RoutePreferenceRequest: {
-      origins: components['schemas']['RegionPoint'][]
-      destinations: components['schemas']['RegionPoint'][]
-    }
-    ApiResponseVoid: {
-      success?: boolean
-      data?: unknown
-      message?: string
-    }
-    ApiResponseCompleteResponse: {
-      success?: boolean
-      data?: components['schemas']['CompleteResponse']
-      message?: string
-    }
-    CompleteResponse: {
-      /** Format: int64 */
-      assignmentId?: number
-      /** Format: int64 */
-      cargoId?: number
-      status?: string
-      /** Format: date-time */
-      completedAt?: string
-      nextLoadRecommendation?: components['schemas']['NextLoadRecommendationResponse']
-    }
-    NextLoadRecommendationResponse: {
-      /** Format: int64 */
-      cargoId?: number
-      origin?: string
-      destination?: string
-      /** Format: date-time */
-      loadingAt?: string
-      /** Format: date-time */
-      unloadingAt?: string
-      cargoType?: string
-      weightTon?: number
-      /** Format: int32 */
-      fare?: number
-      /** Format: double */
-      emptyDistanceKm?: number
-      /** Format: int64 */
-      waitMinutes?: number
-      /** Format: int32 */
-      connectionScore?: number
-      recommendationSummary?: string
-      recommendationReasons?: string[]
-      explanationMode?: string
-    }
-    AcceptResponse: {
-      /** Format: int64 */
-      assignmentId?: number
-      /** Format: int64 */
-      cargoId?: number
-      status?: string
-    }
-    ApiResponseAcceptResponse: {
-      success?: boolean
-      data?: components['schemas']['AcceptResponse']
-      message?: string
-    }
-    CargoCreateRequest: {
-      origin: components['schemas']['CargoRegionPoint']
-      destination: components['schemas']['CargoRegionPoint']
-      /** @enum {string} */
-      cargoType: 'REFRIGERATED' | 'GENERAL' | 'FROZEN' | 'CONSTRUCTION' | 'HAZARDOUS'
-      cargoDescription?: string
-      weightTon: number
-      vehicleType?: string
-      bodyType?: string
-      /** Format: int32 */
-      desiredFare: number
-      /** Format: date-time */
-      loadingAt: string
-      /** Format: date-time */
-      unloadingAt: string
-      /** Format: int32 */
-      distanceKm?: number
-    }
-    CargoRegionPoint: {
-      sido: string
-      sigungu: string
-    }
-    ApiResponseMapStringObject: {
-      success?: boolean
-      data?: {
-        [key: string]: unknown
-      }
-      message?: string
-    }
-    ParseRequest: {
-      requestText: string
-      /** Format: date */
-      referenceDate?: string
-    }
-    ApiResponseParsedCargoResponse: {
-      success?: boolean
-      data?: components['schemas']['ParsedCargoResponse']
-      message?: string
-    }
-    ParsedAddress: {
-      sido?: string
-      sigungu?: string
-      detail?: string
-    }
-    ParsedCargoResponse: {
-      origin?: components['schemas']['ParsedAddress']
-      destination?: components['schemas']['ParsedAddress']
-      cargoType?: string
-      cargoDescription?: string
-      /** Format: double */
-      weightTon?: number
-      /** Format: int32 */
-      offeredFareKrw?: number
-      /** Format: date */
-      loadingDate?: string
-      loadingTimeText?: string
-      /** Format: date */
-      unloadingDate?: string
-      unloadingTimeText?: string
-      missingFields?: string[]
-      confidence?: string
-      warnings?: string[]
-    }
-    CargoUpdateRequest: {
-      origin?: components['schemas']['RegionPoint']
-      destination?: components['schemas']['RegionPoint']
-      /** @enum {string} */
-      cargoType?: 'REFRIGERATED' | 'GENERAL' | 'FROZEN' | 'CONSTRUCTION' | 'HAZARDOUS'
-      cargoDescription?: string
-      weightTon?: number
-      vehicleType?: string
-      bodyType?: string
-      /** Format: int32 */
-      desiredFare?: number
-      /** Format: date-time */
-      loadingAt?: string
-      /** Format: date-time */
-      unloadingAt?: string
-      /** Format: int32 */
-      distanceKm?: number
-    }
-    ApiResponseCargoDetailResponse: {
-      success?: boolean
-      data?: components['schemas']['CargoDetailResponse']
-      message?: string
-    }
-    CargoDetailResponse: {
-      /** Format: int64 */
-      cargoId?: number
-      status?: string
-      origin?: components['schemas']['RegionPoint']
-      destination?: components['schemas']['RegionPoint']
-      cargoType?: string
-      cargoDescription?: string
-      weightTon?: number
-      vehicleType?: string
-      bodyType?: string
-      /** Format: int32 */
-      desiredFare?: number
-      /** Format: date-time */
-      loadingAt?: string
-      /** Format: date-time */
-      unloadingAt?: string
-      /** Format: int32 */
-      distanceKm?: number
-      fare?: components['schemas']['FareQuoteResponse']
-      assignedDriver?: components['schemas']['DriverResponse']
-    }
-    FareQuoteResponse: {
-      /** Format: int32 */
-      averageFare?: number
-      /** Format: int32 */
-      sameDayThreshold?: number
-      /** Format: int32 */
-      distanceKm?: number
-      verdict?: string
-      message?: string
-    }
-    ApiResponseListRegionResponse: {
-      success?: boolean
-      data?: components['schemas']['RegionResponse'][]
-      message?: string
-    }
-    RegionResponse: {
-      sido?: string
-      sigungus?: string[]
-    }
-    ApiResponseCursorPageResponseLoadResponse: {
-      success?: boolean
-      data?: components['schemas']['CursorPageResponseLoadResponse']
-      message?: string
-    }
-    CursorPageResponseLoadResponse: {
-      content?: components['schemas']['LoadResponse'][]
-      nextCursor?: string
-      hasNext?: boolean
-      /** Format: int32 */
-      size?: number
-    }
-    LoadResponse: {
-      /** Format: int64 */
-      cargoId?: number
-      origin?: string
-      destination?: string
-      /** Format: date-time */
-      loadingAt?: string
-      /** Format: date-time */
-      unloadingAt?: string
-      /** Format: int32 */
-      distanceKm?: number
-      vehicleType?: string
-      weightTon?: number
-      bodyType?: string
-      cargoType?: string
-      /** Format: int32 */
-      fare?: number
-      /** Format: int32 */
-      matchScore?: number
-      badge?: string
-      /** Format: int32 */
-      regionAverageFare?: number
-      /** Format: int32 */
-      belowPercent?: number
-      /** Format: double */
-      pickupDistanceKm?: number
-      /** Format: double */
-      destinationGapKm?: number
-      /** Format: int32 */
-      aiScore?: number
-      /** Format: double */
-      finalScore?: number
-      rankingMode?: string
-      matchReasons?: string[]
-    }
-    ApiResponseListCompletedLoadResponse: {
-      success?: boolean
-      data?: components['schemas']['CompletedLoadResponse'][]
-      message?: string
-    }
-    CompletedLoadResponse: {
-      /** Format: int64 */
-      assignmentId?: number
-      /** Format: int64 */
-      cargoId?: number
-      origin?: string
-      destination?: string
-      /** Format: date-time */
-      loadingAt?: string
-      /** Format: date-time */
-      unloadingAt?: string
-      /** Format: int32 */
-      distanceKm?: number
-      vehicleType?: string
-      weightTon?: number
-      bodyType?: string
-      cargoType?: string
-      /** Format: int32 */
-      fare?: number
-      status?: string
-      /** Format: date-time */
-      acceptedAt?: string
-      /** Format: date-time */
-      completedAt?: string
-    }
-    ApiResponseFareQuoteResponse: {
-      success?: boolean
-      data?: components['schemas']['FareQuoteResponse']
-      message?: string
-    }
-    Pageable: {
-      /** Format: int32 */
-      page?: number
-      /** Format: int32 */
-      size?: number
-      sort?: string[]
-    }
-    ApiResponsePageResponseShipperCargoResponse: {
-      success?: boolean
-      data?: components['schemas']['PageResponseShipperCargoResponse']
-      message?: string
-    }
-    PageResponseShipperCargoResponse: {
-      content?: components['schemas']['ShipperCargoResponse'][]
-      /** Format: int32 */
-      page?: number
-      /** Format: int32 */
-      size?: number
-      /** Format: int64 */
-      totalElements?: number
-      /** Format: int32 */
-      totalPages?: number
-      first?: boolean
-      last?: boolean
-    }
-    ShipperCargoResponse: {
-      /** Format: int64 */
-      cargoId?: number
-      status?: string
-      origin?: components['schemas']['RegionPoint']
-      destination?: components['schemas']['RegionPoint']
-      cargoType?: string
-      cargoDescription?: string
-      weightTon?: number
-      /** Format: int32 */
-      desiredFare?: number
-      /** Format: date-time */
-      loadingAt?: string
-      /** Format: date-time */
-      unloadingAt?: string
-      /** Format: date-time */
-      createdAt?: string
-    }
-  }
-  responses: never
-  parameters: never
-  requestBodies: never
-  headers: never
-  pathItems: never
+    schemas: {
+        ShipperProfileRequest: {
+            companyName: string;
+            contactName: string;
+            phoneNumber: string;
+            businessNumber?: string;
+            address?: string;
+        };
+        ApiResponseShipperProfileResponse: {
+            success?: boolean;
+            data?: components["schemas"]["ShipperProfileResponse"];
+            message?: string;
+        };
+        ShipperProfileResponse: {
+            /** Format: int64 */
+            shipperId?: number;
+            companyName?: string;
+            contactName?: string;
+            phoneNumber?: string;
+            businessNumber?: string;
+            address?: string;
+        };
+        DriverProfileRequest: {
+            name: string;
+            phoneNumber: string;
+            plateNumber: string;
+            vehicleType: string;
+            capacityTon: number;
+            bodyType: string;
+            vehicleCargoTypes: string[];
+            /** Format: int32 */
+            minAcceptFare: number;
+            contactableFrom: string;
+            contactableTo: string;
+        };
+        ApiResponseDriverResponse: {
+            success?: boolean;
+            data?: components["schemas"]["DriverResponse"];
+            message?: string;
+        };
+        DriverResponse: {
+            /** Format: int64 */
+            driverId?: number;
+            name?: string;
+            phoneNumber?: string;
+            plateNumber?: string;
+            vehicleType?: string;
+            capacityTon?: number;
+            bodyType?: string;
+            vehicleCargoTypes?: string[];
+            rating?: number;
+            /** Format: int32 */
+            totalTrips?: number;
+            /** Format: int32 */
+            completionRate?: number;
+            /** Format: int32 */
+            minAcceptFare?: number;
+            contactableFrom?: string;
+            contactableTo?: string;
+            recentTripSummary?: string;
+            routePreferences?: components["schemas"]["RoutePreferences"];
+        };
+        RegionPoint: {
+            sido?: string;
+            sigungu?: string;
+        };
+        RoutePreferences: {
+            origins?: components["schemas"]["RegionPoint"][];
+            destinations?: components["schemas"]["RegionPoint"][];
+        };
+        RoutePreferenceRequest: {
+            origins: components["schemas"]["RegionPoint"][];
+            destinations: components["schemas"]["RegionPoint"][];
+        };
+        ApiResponseVoid: {
+            success?: boolean;
+            data?: unknown;
+            message?: string;
+        };
+        ApiResponseCompleteResponse: {
+            success?: boolean;
+            data?: components["schemas"]["CompleteResponse"];
+            message?: string;
+        };
+        CompleteResponse: {
+            /** Format: int64 */
+            assignmentId?: number;
+            /** Format: int64 */
+            cargoId?: number;
+            status?: string;
+            /** Format: date-time */
+            completedAt?: string;
+            nextLoadRecommendation?: components["schemas"]["NextLoadRecommendationResponse"];
+        };
+        NextLoadRecommendationResponse: {
+            /** Format: int64 */
+            cargoId?: number;
+            origin?: string;
+            destination?: string;
+            /** Format: date-time */
+            loadingAt?: string;
+            /** Format: date-time */
+            unloadingAt?: string;
+            cargoType?: string;
+            weightTon?: number;
+            /** Format: int32 */
+            fare?: number;
+            /** Format: double */
+            emptyDistanceKm?: number;
+            /** Format: int64 */
+            waitMinutes?: number;
+            /** Format: int32 */
+            connectionScore?: number;
+            recommendationSummary?: string;
+            recommendationReasons?: string[];
+            explanationMode?: string;
+        };
+        ApiResponseCancelResponse: {
+            success?: boolean;
+            data?: components["schemas"]["CancelResponse"];
+            message?: string;
+        };
+        CancelResponse: {
+            /** Format: int64 */
+            cargoId?: number;
+            status?: string;
+        };
+        AcceptResponse: {
+            /** Format: int64 */
+            assignmentId?: number;
+            /** Format: int64 */
+            cargoId?: number;
+            status?: string;
+        };
+        ApiResponseAcceptResponse: {
+            success?: boolean;
+            data?: components["schemas"]["AcceptResponse"];
+            message?: string;
+        };
+        CargoCreateRequest: {
+            origin: components["schemas"]["CargoRegionPoint"];
+            destination: components["schemas"]["CargoRegionPoint"];
+            /** @enum {string} */
+            cargoType: "REFRIGERATED" | "GENERAL" | "FROZEN" | "CONSTRUCTION" | "HAZARDOUS";
+            cargoDescription?: string;
+            weightTon: number;
+            vehicleType?: string;
+            bodyType?: string;
+            /** Format: int32 */
+            desiredFare: number;
+            /** Format: date-time */
+            loadingAt: string;
+            /** Format: date-time */
+            unloadingAt: string;
+            /** Format: int32 */
+            distanceKm?: number;
+            aiParsed?: boolean;
+        };
+        CargoRegionPoint: {
+            sido: string;
+            sigungu: string;
+        };
+        ApiResponseMapStringObject: {
+            success?: boolean;
+            data?: {
+                [key: string]: unknown;
+            };
+            message?: string;
+        };
+        ParseRequest: {
+            requestText: string;
+            /** Format: date */
+            referenceDate?: string;
+        };
+        ApiResponseParsedCargoResponse: {
+            success?: boolean;
+            data?: components["schemas"]["ParsedCargoResponse"];
+            message?: string;
+        };
+        ParsedAddress: {
+            sido?: string;
+            sigungu?: string;
+            detail?: string;
+        };
+        ParsedCargoResponse: {
+            origin?: components["schemas"]["ParsedAddress"];
+            destination?: components["schemas"]["ParsedAddress"];
+            cargoType?: string;
+            cargoDescription?: string;
+            /** Format: double */
+            weightTon?: number;
+            /** Format: int32 */
+            offeredFareKrw?: number;
+            /** Format: date */
+            loadingDate?: string;
+            loadingTimeText?: string;
+            /** Format: date */
+            unloadingDate?: string;
+            unloadingTimeText?: string;
+            missingFields?: string[];
+            confidence?: string;
+            warnings?: string[];
+        };
+        CargoUpdateRequest: {
+            origin?: components["schemas"]["CargoRegionPoint"];
+            destination?: components["schemas"]["CargoRegionPoint"];
+            /** @enum {string} */
+            cargoType?: "REFRIGERATED" | "GENERAL" | "FROZEN" | "CONSTRUCTION" | "HAZARDOUS";
+            cargoDescription?: string;
+            weightTon?: number;
+            vehicleType?: string;
+            bodyType?: string;
+            /** Format: int32 */
+            desiredFare?: number;
+            /** Format: date-time */
+            loadingAt?: string;
+            /** Format: date-time */
+            unloadingAt?: string;
+            /** Format: int32 */
+            distanceKm?: number;
+        };
+        ApiResponseCargoDetailResponse: {
+            success?: boolean;
+            data?: components["schemas"]["CargoDetailResponse"];
+            message?: string;
+        };
+        CargoDetailResponse: {
+            /** Format: int64 */
+            cargoId?: number;
+            status?: string;
+            origin?: components["schemas"]["RegionPoint"];
+            destination?: components["schemas"]["RegionPoint"];
+            cargoType?: string;
+            cargoDescription?: string;
+            weightTon?: number;
+            vehicleType?: string;
+            bodyType?: string;
+            /** Format: int32 */
+            desiredFare?: number;
+            /** Format: date-time */
+            loadingAt?: string;
+            /** Format: date-time */
+            unloadingAt?: string;
+            /** Format: int32 */
+            distanceKm?: number;
+            aiParsed?: boolean;
+            fare?: components["schemas"]["FareQuoteResponse"];
+            assignedDriver?: components["schemas"]["DriverResponse"];
+        };
+        FareQuoteResponse: {
+            /** Format: int32 */
+            averageFare?: number;
+            /** Format: int32 */
+            sameDayThreshold?: number;
+            /** Format: int32 */
+            distanceKm?: number;
+            verdict?: string;
+            message?: string;
+        };
+        ApiResponseListRegionResponse: {
+            success?: boolean;
+            data?: components["schemas"]["RegionResponse"][];
+            message?: string;
+        };
+        RegionResponse: {
+            sido?: string;
+            sigungus?: string[];
+        };
+        ApiResponseCursorPageResponseLoadResponse: {
+            success?: boolean;
+            data?: components["schemas"]["CursorPageResponseLoadResponse"];
+            message?: string;
+        };
+        CursorPageResponseLoadResponse: {
+            content?: components["schemas"]["LoadResponse"][];
+            nextCursor?: string;
+            hasNext?: boolean;
+            /** Format: int32 */
+            size?: number;
+        };
+        LoadResponse: {
+            /** Format: int64 */
+            cargoId?: number;
+            origin?: string;
+            destination?: string;
+            /** Format: date-time */
+            loadingAt?: string;
+            /** Format: date-time */
+            unloadingAt?: string;
+            /** Format: int32 */
+            distanceKm?: number;
+            vehicleType?: string;
+            weightTon?: number;
+            bodyType?: string;
+            cargoType?: string;
+            /** Format: int32 */
+            fare?: number;
+            /** Format: int32 */
+            matchScore?: number;
+            badge?: string;
+            /** Format: int32 */
+            regionAverageFare?: number;
+            /** Format: int32 */
+            belowPercent?: number;
+            /** Format: double */
+            pickupDistanceKm?: number;
+            /** Format: double */
+            destinationGapKm?: number;
+            /** Format: int32 */
+            aiScore?: number;
+            /** Format: double */
+            finalScore?: number;
+            rankingMode?: string;
+            matchReasons?: string[];
+            status?: string;
+            /** Format: date-time */
+            completedAt?: string;
+        };
+        ApiResponseListCompletedLoadResponse: {
+            success?: boolean;
+            data?: components["schemas"]["CompletedLoadResponse"][];
+            message?: string;
+        };
+        CompletedLoadResponse: {
+            /** Format: int64 */
+            assignmentId?: number;
+            /** Format: int64 */
+            cargoId?: number;
+            origin?: string;
+            destination?: string;
+            /** Format: date-time */
+            loadingAt?: string;
+            /** Format: date-time */
+            unloadingAt?: string;
+            /** Format: int32 */
+            distanceKm?: number;
+            vehicleType?: string;
+            weightTon?: number;
+            bodyType?: string;
+            cargoType?: string;
+            /** Format: int32 */
+            fare?: number;
+            status?: string;
+            /** Format: date-time */
+            acceptedAt?: string;
+            /** Format: date-time */
+            completedAt?: string;
+        };
+        ApiResponseFareQuoteResponse: {
+            success?: boolean;
+            data?: components["schemas"]["FareQuoteResponse"];
+            message?: string;
+        };
+        Pageable: {
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            sort?: string[];
+        };
+        ApiResponsePageResponseShipperCargoResponse: {
+            success?: boolean;
+            data?: components["schemas"]["PageResponseShipperCargoResponse"];
+            message?: string;
+        };
+        PageResponseShipperCargoResponse: {
+            content?: components["schemas"]["ShipperCargoResponse"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
+            last?: boolean;
+        };
+        ShipperCargoResponse: {
+            /** Format: int64 */
+            cargoId?: number;
+            status?: string;
+            origin?: components["schemas"]["RegionPoint"];
+            destination?: components["schemas"]["RegionPoint"];
+            cargoType?: string;
+            cargoDescription?: string;
+            weightTon?: number;
+            /** Format: int32 */
+            desiredFare?: number;
+            /** Format: date-time */
+            loadingAt?: string;
+            /** Format: date-time */
+            unloadingAt?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
-export type $defs = Record<string, never>
+export type $defs = Record<string, never>;
 export interface operations {
-  getMe: {
-    parameters: {
-      query: {
-        shipperId: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseShipperProfileResponse']
-        }
-      }
-    }
-  }
-  updateMe: {
-    parameters: {
-      query: {
-        shipperId: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ShipperProfileRequest']
-      }
-    }
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseShipperProfileResponse']
-        }
-      }
-    }
-  }
-  getMe_1: {
-    parameters: {
-      query: {
-        driverId: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseDriverResponse']
-        }
-      }
-    }
-  }
-  updateMe_1: {
-    parameters: {
-      query: {
-        driverId: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['DriverProfileRequest']
-      }
-    }
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseDriverResponse']
-        }
-      }
-    }
-  }
-  updateRoutePreferences: {
-    parameters: {
-      query: {
-        driverId: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RoutePreferenceRequest']
-      }
-    }
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseDriverResponse']
-        }
-      }
-    }
-  }
-  hide: {
-    parameters: {
-      query: {
-        driverId: number
-      }
-      header?: never
-      path: {
-        cargoId: number
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseVoid']
-        }
-      }
-    }
-  }
-  complete: {
-    parameters: {
-      query: {
-        driverId: number
-      }
-      header?: never
-      path: {
-        cargoId: number
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseCompleteResponse']
-        }
-      }
-    }
-  }
-  accept: {
-    parameters: {
-      query: {
-        driverId: number
-      }
-      header?: never
-      path: {
-        cargoId: number
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseAcceptResponse']
-        }
-      }
-    }
-  }
-  create: {
-    parameters: {
-      query: {
-        shipperId: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CargoCreateRequest']
-      }
-    }
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseMapStringObject']
-        }
-      }
-    }
-  }
-  parse: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ParseRequest']
-      }
-    }
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseParsedCargoResponse']
-        }
-      }
-    }
-  }
-  detail: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        cargoId: number
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseCargoDetailResponse']
-        }
-      }
-    }
-  }
-  delete: {
-    parameters: {
-      query: {
-        shipperId: number
-      }
-      header?: never
-      path: {
-        cargoId: number
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseMapStringObject']
-        }
-      }
-    }
-  }
-  update: {
-    parameters: {
-      query: {
-        shipperId: number
-      }
-      header?: never
-      path: {
-        cargoId: number
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CargoUpdateRequest']
-      }
-    }
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseCargoDetailResponse']
-        }
-      }
-    }
-  }
-  getRegions: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseListRegionResponse']
-        }
-      }
-    }
-  }
-  getLoads: {
-    parameters: {
-      query: {
-        driverId: number
-        filter?: 'ALL' | 'ACCEPTED' | 'HIDDEN'
-        preferenceText?: string
-        refresh?: boolean
-        cursor?: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseCursorPageResponseLoadResponse']
-        }
-      }
-    }
-  }
-  getCompletedLoads: {
-    parameters: {
-      query: {
-        driverId: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseListCompletedLoadResponse']
-        }
-      }
-    }
-  }
-  quote: {
-    parameters: {
-      query: {
-        originSido: string
-        destSido: string
-        cargoType: 'REFRIGERATED' | 'GENERAL' | 'FROZEN' | 'CONSTRUCTION' | 'HAZARDOUS'
-        weightTon?: number
-        desiredFare?: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseFareQuoteResponse']
-        }
-      }
-    }
-  }
-  getMyCargos: {
-    parameters: {
-      query: {
-        shipperId: number
-        pageable: components['schemas']['Pageable']
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponsePageResponseShipperCargoResponse']
-        }
-      }
-    }
-  }
-  health: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': {
-            [key: string]: string
-          }
-        }
-      }
-    }
-  }
+    getMe: {
+        parameters: {
+            query: {
+                shipperId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseShipperProfileResponse"];
+                };
+            };
+        };
+    };
+    updateMe: {
+        parameters: {
+            query: {
+                shipperId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShipperProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseShipperProfileResponse"];
+                };
+            };
+        };
+    };
+    getMe_1: {
+        parameters: {
+            query: {
+                driverId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseDriverResponse"];
+                };
+            };
+        };
+    };
+    updateMe_1: {
+        parameters: {
+            query: {
+                driverId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DriverProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseDriverResponse"];
+                };
+            };
+        };
+    };
+    updateRoutePreferences: {
+        parameters: {
+            query: {
+                driverId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoutePreferenceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseDriverResponse"];
+                };
+            };
+        };
+    };
+    hide: {
+        parameters: {
+            query: {
+                driverId: number;
+            };
+            header?: never;
+            path: {
+                cargoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    complete: {
+        parameters: {
+            query: {
+                driverId: number;
+            };
+            header?: never;
+            path: {
+                cargoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCompleteResponse"];
+                };
+            };
+        };
+    };
+    cancel: {
+        parameters: {
+            query: {
+                driverId: number;
+            };
+            header?: never;
+            path: {
+                cargoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCancelResponse"];
+                };
+            };
+        };
+    };
+    accept: {
+        parameters: {
+            query: {
+                driverId: number;
+            };
+            header?: never;
+            path: {
+                cargoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseAcceptResponse"];
+                };
+            };
+        };
+    };
+    create: {
+        parameters: {
+            query: {
+                shipperId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CargoCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMapStringObject"];
+                };
+            };
+        };
+    };
+    parse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseParsedCargoResponse"];
+                };
+            };
+        };
+    };
+    detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cargoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCargoDetailResponse"];
+                };
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query: {
+                shipperId: number;
+            };
+            header?: never;
+            path: {
+                cargoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMapStringObject"];
+                };
+            };
+        };
+    };
+    update: {
+        parameters: {
+            query: {
+                shipperId: number;
+            };
+            header?: never;
+            path: {
+                cargoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CargoUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCargoDetailResponse"];
+                };
+            };
+        };
+    };
+    getRegions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListRegionResponse"];
+                };
+            };
+        };
+    };
+    getLoads: {
+        parameters: {
+            query: {
+                driverId: number;
+                filter?: "ALL" | "ACCEPTED" | "HIDDEN";
+                preferenceText?: string;
+                refresh?: boolean;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCursorPageResponseLoadResponse"];
+                };
+            };
+        };
+    };
+    getCompletedLoads: {
+        parameters: {
+            query: {
+                driverId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListCompletedLoadResponse"];
+                };
+            };
+        };
+    };
+    quote: {
+        parameters: {
+            query: {
+                originSido: string;
+                destSido: string;
+                cargoType: "REFRIGERATED" | "GENERAL" | "FROZEN" | "CONSTRUCTION" | "HAZARDOUS";
+                weightTon?: number;
+                desiredFare?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseFareQuoteResponse"];
+                };
+            };
+        };
+    };
+    getMyCargos: {
+        parameters: {
+            query: {
+                shipperId: number;
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponseShipperCargoResponse"];
+                };
+            };
+        };
+    };
+    health: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
 }

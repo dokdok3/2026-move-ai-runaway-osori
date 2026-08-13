@@ -5,11 +5,18 @@
     "description": "Logistics matching hackathon API",
     "version": "v1"
   },
-  "servers": [{ "url": "http://43.202.205.211", "description": "Generated server url" }],
+  "servers": [
+    {
+      "url": "http://43.202.205.211",
+      "description": "Generated server url"
+    }
+  ],
   "paths": {
     "/api/v1/shippers/me": {
       "get": {
-        "tags": ["Shipper"],
+        "tags": [
+          "Shipper"
+        ],
         "summary": "내 화주 프로필 조회",
         "operationId": "getMe",
         "parameters": [
@@ -17,7 +24,10 @@
             "name": "shipperId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
@@ -25,14 +35,18 @@
             "description": "OK",
             "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/ApiResponseShipperProfileResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShipperProfileResponse"
+                }
               }
             }
           }
         }
       },
       "put": {
-        "tags": ["Shipper"],
+        "tags": [
+          "Shipper"
+        ],
         "summary": "내 화주 프로필 수정",
         "operationId": "updateMe",
         "parameters": [
@@ -40,13 +54,18 @@
             "name": "shipperId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ShipperProfileRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/ShipperProfileRequest"
+              }
             }
           },
           "required": true
@@ -56,7 +75,9 @@
             "description": "OK",
             "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/ApiResponseShipperProfileResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShipperProfileResponse"
+                }
               }
             }
           }
@@ -65,7 +86,9 @@
     },
     "/api/v1/drivers/me": {
       "get": {
-        "tags": ["Driver"],
+        "tags": [
+          "Driver"
+        ],
         "summary": "내 기사 프로필 조회",
         "operationId": "getMe_1",
         "parameters": [
@@ -73,20 +96,29 @@
             "name": "driverId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseDriverResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDriverResponse"
+                }
+              }
             }
           }
         }
       },
       "put": {
-        "tags": ["Driver"],
+        "tags": [
+          "Driver"
+        ],
         "summary": "내 기사 프로필 수정",
         "operationId": "updateMe_1",
         "parameters": [
@@ -94,13 +126,18 @@
             "name": "driverId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/DriverProfileRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/DriverProfileRequest"
+              }
             }
           },
           "required": true
@@ -109,7 +146,11 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseDriverResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDriverResponse"
+                }
+              }
             }
           }
         }
@@ -117,7 +158,9 @@
     },
     "/api/v1/drivers/me/route-preferences": {
       "put": {
-        "tags": ["Driver"],
+        "tags": [
+          "Driver"
+        ],
         "summary": "다니는 구간 전체 교체 저장",
         "operationId": "updateRoutePreferences",
         "parameters": [
@@ -125,13 +168,18 @@
             "name": "driverId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/RoutePreferenceRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/RoutePreferenceRequest"
+              }
             }
           },
           "required": true
@@ -140,7 +188,11 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseDriverResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDriverResponse"
+                }
+              }
             }
           }
         }
@@ -148,7 +200,9 @@
     },
     "/api/v1/loads/{cargoId}/hide": {
       "post": {
-        "tags": ["Load"],
+        "tags": [
+          "Load"
+        ],
         "summary": "화물 목록에서 숨기기",
         "operationId": "hide",
         "parameters": [
@@ -156,26 +210,40 @@
             "name": "driverId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           },
           {
             "name": "cargoId",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/v1/loads/{cargoId}/complete": {
       "post": {
-        "tags": ["Load"],
+        "tags": [
+          "Load"
+        ],
         "summary": "수락한 화물 운송 완료",
         "operationId": "complete",
         "parameters": [
@@ -183,20 +251,71 @@
             "name": "driverId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           },
           {
             "name": "cargoId",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseCompleteResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCompleteResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/loads/{cargoId}/cancel": {
+      "post": {
+        "tags": [
+          "Load"
+        ],
+        "summary": "수락한 화물 취소",
+        "operationId": "cancel",
+        "parameters": [
+          {
+            "name": "driverId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "cargoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCancelResponse"
+                }
+              }
             }
           }
         }
@@ -204,7 +323,9 @@
     },
     "/api/v1/loads/{cargoId}/accept": {
       "post": {
-        "tags": ["Load"],
+        "tags": [
+          "Load"
+        ],
         "summary": "화물 수락",
         "operationId": "accept",
         "parameters": [
@@ -212,20 +333,30 @@
             "name": "driverId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           },
           {
             "name": "cargoId",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseAcceptResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAcceptResponse"
+                }
+              }
             }
           }
         }
@@ -233,7 +364,9 @@
     },
     "/api/v1/cargos": {
       "post": {
-        "tags": ["Cargo"],
+        "tags": [
+          "Cargo"
+        ],
         "summary": "화물 등록",
         "operationId": "create",
         "parameters": [
@@ -241,12 +374,19 @@
             "name": "shipperId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/CargoCreateRequest" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CargoCreateRequest"
+              }
+            }
           },
           "required": true
         },
@@ -254,7 +394,11 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseMapStringObject" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMapStringObject"
+                }
+              }
             }
           }
         }
@@ -262,12 +406,18 @@
     },
     "/api/v1/cargos/parse": {
       "post": {
-        "tags": ["Cargo"],
+        "tags": [
+          "Cargo"
+        ],
         "summary": "자연어 문장을 화물 항목으로 파싱 (저장하지 않음)",
         "operationId": "parse",
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/ParseRequest" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParseRequest"
+              }
+            }
           },
           "required": true
         },
@@ -275,7 +425,11 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseParsedCargoResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseParsedCargoResponse"
+                }
+              }
             }
           }
         }
@@ -283,7 +437,9 @@
     },
     "/api/v1/cargos/{cargoId}": {
       "get": {
-        "tags": ["Cargo"],
+        "tags": [
+          "Cargo"
+        ],
         "summary": "화물 상세 조회",
         "operationId": "detail",
         "parameters": [
@@ -291,20 +447,29 @@
             "name": "cargoId",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseCargoDetailResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCargoDetailResponse"
+                }
+              }
             }
           }
         }
       },
       "delete": {
-        "tags": ["Cargo"],
+        "tags": [
+          "Cargo"
+        ],
         "summary": "내 화물 삭제 (배차 대기 상태만 가능)",
         "operationId": "delete",
         "parameters": [
@@ -312,26 +477,38 @@
             "name": "cargoId",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           },
           {
             "name": "shipperId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseMapStringObject" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMapStringObject"
+                }
+              }
             }
           }
         }
       },
       "patch": {
-        "tags": ["Cargo"],
+        "tags": [
+          "Cargo"
+        ],
         "summary": "화물 부분 수정 (보낸 필드만 반영)",
         "operationId": "update",
         "parameters": [
@@ -339,18 +516,28 @@
             "name": "cargoId",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           },
           {
             "name": "shipperId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/CargoUpdateRequest" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CargoUpdateRequest"
+              }
+            }
           },
           "required": true
         },
@@ -358,7 +545,11 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseCargoDetailResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCargoDetailResponse"
+                }
+              }
             }
           }
         }
@@ -366,14 +557,20 @@
     },
     "/api/v1/regions": {
       "get": {
-        "tags": ["Region"],
+        "tags": [
+          "Region"
+        ],
         "summary": "시도·시군구 지역 목록 조회",
         "operationId": "getRegions",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseListRegionResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListRegionResponse"
+                }
+              }
             }
           }
         }
@@ -381,7 +578,9 @@
     },
     "/api/v1/loads": {
       "get": {
-        "tags": ["Load"],
+        "tags": [
+          "Load"
+        ],
         "summary": "기사 화물 목록 조회 (10건 커서 페이지네이션)",
         "operationId": "getLoads",
         "parameters": [
@@ -389,27 +588,50 @@
             "name": "driverId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           },
           {
             "name": "filter",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "default": "ALL", "enum": ["ALL", "ACCEPTED", "HIDDEN"] }
+            "schema": {
+              "type": "string",
+              "default": "ALL",
+              "enum": [
+                "ALL",
+                "ACCEPTED",
+                "HIDDEN"
+              ]
+            }
           },
           {
             "name": "preferenceText",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "refresh",
             "in": "query",
             "required": false,
-            "schema": { "type": "boolean", "default": false }
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           },
-          { "name": "cursor", "in": "query", "required": false, "schema": { "type": "string" } }
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -427,7 +649,9 @@
     },
     "/api/v1/loads/completed": {
       "get": {
-        "tags": ["Load"],
+        "tags": [
+          "Load"
+        ],
         "summary": "기사가 완료한 화물 목록",
         "operationId": "getCompletedLoads",
         "parameters": [
@@ -435,7 +659,10 @@
             "name": "driverId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
@@ -443,7 +670,9 @@
             "description": "OK",
             "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/ApiResponseListCompletedLoadResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListCompletedLoadResponse"
+                }
               }
             }
           }
@@ -452,34 +681,70 @@
     },
     "/api/v1/fares/quote": {
       "get": {
-        "tags": ["Fare"],
+        "tags": [
+          "Fare"
+        ],
         "summary": "구간 운임 시세 조회 (DB 캐시 우선, miss 시 AI 추정)",
         "operationId": "quote",
         "parameters": [
-          { "name": "originSido", "in": "query", "required": true, "schema": { "type": "string" } },
-          { "name": "destSido", "in": "query", "required": true, "schema": { "type": "string" } },
+          {
+            "name": "originSido",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "destSido",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "cargoType",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["REFRIGERATED", "GENERAL", "FROZEN", "CONSTRUCTION", "HAZARDOUS"]
+              "enum": [
+                "REFRIGERATED",
+                "GENERAL",
+                "FROZEN",
+                "CONSTRUCTION",
+                "HAZARDOUS"
+              ]
             }
           },
-          { "name": "weightTon", "in": "query", "required": false, "schema": { "type": "number" } },
+          {
+            "name": "weightTon",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
           {
             "name": "desiredFare",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "format": "int32" }
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseFareQuoteResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseFareQuoteResponse"
+                }
+              }
             }
           }
         }
@@ -487,7 +752,9 @@
     },
     "/api/v1/cargos/me": {
       "get": {
-        "tags": ["Cargo"],
+        "tags": [
+          "Cargo"
+        ],
         "summary": "내가 등록한 화물 목록 조회",
         "operationId": "getMyCargos",
         "parameters": [
@@ -495,13 +762,18 @@
             "name": "shipperId",
             "in": "query",
             "required": true,
-            "schema": { "type": "integer", "format": "int64" }
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           },
           {
             "name": "pageable",
             "in": "query",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/Pageable" }
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
           }
         ],
         "responses": {
@@ -520,7 +792,9 @@
     },
     "/api/health": {
       "get": {
-        "tags": ["System"],
+        "tags": [
+          "System"
+        ],
         "summary": "API 상태 확인",
         "operationId": "health",
         "responses": {
@@ -528,7 +802,12 @@
             "description": "OK",
             "content": {
               "*/*": {
-                "schema": { "type": "object", "additionalProperties": { "type": "string" } }
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }
@@ -541,42 +820,108 @@
       "ShipperProfileRequest": {
         "type": "object",
         "properties": {
-          "companyName": { "type": "string", "maxLength": 100, "minLength": 0 },
-          "contactName": { "type": "string", "maxLength": 50, "minLength": 0 },
-          "phoneNumber": { "type": "string", "maxLength": 20, "minLength": 0 },
-          "businessNumber": { "type": "string", "maxLength": 20, "minLength": 0 },
-          "address": { "type": "string", "maxLength": 200, "minLength": 0 }
+          "companyName": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "contactName": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          },
+          "phoneNumber": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "businessNumber": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 0
+          }
         },
-        "required": ["companyName", "contactName", "phoneNumber"]
+        "required": [
+          "companyName",
+          "contactName",
+          "phoneNumber"
+        ]
       },
       "ApiResponseShipperProfileResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/ShipperProfileResponse" },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShipperProfileResponse"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "ShipperProfileResponse": {
         "type": "object",
         "properties": {
-          "shipperId": { "type": "integer", "format": "int64" },
-          "companyName": { "type": "string" },
-          "contactName": { "type": "string" },
-          "phoneNumber": { "type": "string" },
-          "businessNumber": { "type": "string" },
-          "address": { "type": "string" }
+          "shipperId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "contactName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "businessNumber": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
         }
       },
       "DriverProfileRequest": {
         "type": "object",
         "properties": {
-          "name": { "type": "string", "maxLength": 50, "minLength": 0 },
-          "phoneNumber": { "type": "string", "maxLength": 20, "minLength": 0 },
-          "plateNumber": { "type": "string", "maxLength": 20, "minLength": 0 },
-          "vehicleType": { "type": "string", "maxLength": 20, "minLength": 0 },
-          "capacityTon": { "type": "number", "minimum": 0.1 },
-          "bodyType": { "type": "string", "maxLength": 20, "minLength": 0 },
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          },
+          "phoneNumber": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "plateNumber": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "vehicleType": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "capacityTon": {
+            "type": "number",
+            "minimum": 0.1
+          },
+          "bodyType": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
           "vehicleCargoTypes": {
             "type": "array",
             "items": {
@@ -586,7 +931,10 @@
             "maxItems": 5,
             "minItems": 0
           },
-          "minAcceptFare": { "type": "integer", "format": "int32" },
+          "minAcceptFare": {
+            "type": "integer",
+            "format": "int32"
+          },
           "contactableFrom": {
             "type": "string",
             "minLength": 1,
@@ -614,43 +962,102 @@
       "ApiResponseDriverResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/DriverResponse" },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DriverResponse"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "DriverResponse": {
         "type": "object",
         "properties": {
-          "driverId": { "type": "integer", "format": "int64" },
-          "name": { "type": "string" },
-          "phoneNumber": { "type": "string" },
-          "plateNumber": { "type": "string" },
-          "vehicleType": { "type": "string" },
-          "capacityTon": { "type": "number" },
-          "bodyType": { "type": "string" },
-          "vehicleCargoTypes": { "type": "array", "items": { "type": "string" } },
-          "rating": { "type": "number" },
-          "totalTrips": { "type": "integer", "format": "int32" },
-          "completionRate": { "type": "integer", "format": "int32" },
-          "minAcceptFare": { "type": "integer", "format": "int32" },
-          "contactableFrom": { "type": "string" },
-          "contactableTo": { "type": "string" },
-          "recentTripSummary": { "type": "string" },
-          "routePreferences": { "$ref": "#/components/schemas/RoutePreferences" }
+          "driverId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "plateNumber": {
+            "type": "string"
+          },
+          "vehicleType": {
+            "type": "string"
+          },
+          "capacityTon": {
+            "type": "number"
+          },
+          "bodyType": {
+            "type": "string"
+          },
+          "vehicleCargoTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rating": {
+            "type": "number"
+          },
+          "totalTrips": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completionRate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minAcceptFare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "contactableFrom": {
+            "type": "string"
+          },
+          "contactableTo": {
+            "type": "string"
+          },
+          "recentTripSummary": {
+            "type": "string"
+          },
+          "routePreferences": {
+            "$ref": "#/components/schemas/RoutePreferences"
+          }
         }
       },
       "RegionPoint": {
         "type": "object",
-        "properties": { "sido": { "type": "string" }, "sigungu": { "type": "string" } }
+        "properties": {
+          "sido": {
+            "type": "string"
+          },
+          "sigungu": {
+            "type": "string"
+          }
+        }
       },
       "RoutePreferences": {
         "type": "object",
         "properties": {
-          "origins": { "type": "array", "items": { "$ref": "#/components/schemas/RegionPoint" } },
+          "origins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegionPoint"
+            }
+          },
           "destinations": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/RegionPoint" }
+            "items": {
+              "$ref": "#/components/schemas/RegionPoint"
+            }
           }
         }
       },
@@ -659,40 +1066,68 @@
         "properties": {
           "origins": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/RegionPoint" },
+            "items": {
+              "$ref": "#/components/schemas/RegionPoint"
+            },
             "minItems": 1
           },
           "destinations": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/RegionPoint" },
+            "items": {
+              "$ref": "#/components/schemas/RegionPoint"
+            },
             "minItems": 1
           }
         },
-        "required": ["destinations", "origins"]
+        "required": [
+          "destinations",
+          "origins"
+        ]
       },
       "ApiResponseVoid": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
+          "success": {
+            "type": "boolean"
+          },
           "data": {},
-          "message": { "type": "string" }
+          "message": {
+            "type": "string"
+          }
         }
       },
       "ApiResponseCompleteResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/CompleteResponse" },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CompleteResponse"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "CompleteResponse": {
         "type": "object",
         "properties": {
-          "assignmentId": { "type": "integer", "format": "int64" },
-          "cargoId": { "type": "integer", "format": "int64" },
-          "status": { "type": "string" },
-          "completedAt": { "type": "string", "format": "date-time" },
+          "assignmentId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cargoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "nextLoadRecommendation": {
             "$ref": "#/components/schemas/NextLoadRecommendationResponse"
           }
@@ -701,55 +1136,166 @@
       "NextLoadRecommendationResponse": {
         "type": "object",
         "properties": {
-          "cargoId": { "type": "integer", "format": "int64" },
-          "origin": { "type": "string" },
-          "destination": { "type": "string" },
-          "loadingAt": { "type": "string", "format": "date-time" },
-          "unloadingAt": { "type": "string", "format": "date-time" },
-          "cargoType": { "type": "string" },
-          "weightTon": { "type": "number" },
-          "fare": { "type": "integer", "format": "int32" },
-          "emptyDistanceKm": { "type": "number", "format": "double" },
-          "waitMinutes": { "type": "integer", "format": "int64" },
-          "connectionScore": { "type": "integer", "format": "int32" },
-          "recommendationSummary": { "type": "string" },
-          "recommendationReasons": { "type": "array", "items": { "type": "string" } },
-          "explanationMode": { "type": "string" }
+          "cargoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string"
+          },
+          "loadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unloadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cargoType": {
+            "type": "string"
+          },
+          "weightTon": {
+            "type": "number"
+          },
+          "fare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "emptyDistanceKm": {
+            "type": "number",
+            "format": "double"
+          },
+          "waitMinutes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "connectionScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recommendationSummary": {
+            "type": "string"
+          },
+          "recommendationReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "explanationMode": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseCancelResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CancelResponse"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "CancelResponse": {
+        "type": "object",
+        "properties": {
+          "cargoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string"
+          }
         }
       },
       "AcceptResponse": {
         "type": "object",
         "properties": {
-          "assignmentId": { "type": "integer", "format": "int64" },
-          "cargoId": { "type": "integer", "format": "int64" },
-          "status": { "type": "string" }
+          "assignmentId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cargoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string"
+          }
         }
       },
       "ApiResponseAcceptResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/AcceptResponse" },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AcceptResponse"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "CargoCreateRequest": {
         "type": "object",
         "properties": {
-          "origin": { "$ref": "#/components/schemas/CargoRegionPoint" },
-          "destination": { "$ref": "#/components/schemas/CargoRegionPoint" },
+          "origin": {
+            "$ref": "#/components/schemas/CargoRegionPoint"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/CargoRegionPoint"
+          },
           "cargoType": {
             "type": "string",
-            "enum": ["REFRIGERATED", "GENERAL", "FROZEN", "CONSTRUCTION", "HAZARDOUS"]
+            "enum": [
+              "REFRIGERATED",
+              "GENERAL",
+              "FROZEN",
+              "CONSTRUCTION",
+              "HAZARDOUS"
+            ]
           },
-          "cargoDescription": { "type": "string" },
-          "weightTon": { "type": "number" },
-          "vehicleType": { "type": "string" },
-          "bodyType": { "type": "string" },
-          "desiredFare": { "type": "integer", "format": "int32" },
-          "loadingAt": { "type": "string", "format": "date-time" },
-          "unloadingAt": { "type": "string", "format": "date-time" },
-          "distanceKm": { "type": "integer", "format": "int32" }
+          "cargoDescription": {
+            "type": "string"
+          },
+          "weightTon": {
+            "type": "number"
+          },
+          "vehicleType": {
+            "type": "string"
+          },
+          "bodyType": {
+            "type": "string"
+          },
+          "desiredFare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "loadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unloadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceKm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aiParsed": {
+            "type": "boolean"
+          }
         },
         "required": [
           "cargoType",
@@ -764,229 +1310,556 @@
       "CargoRegionPoint": {
         "type": "object",
         "properties": {
-          "sido": { "type": "string", "minLength": 1 },
-          "sigungu": { "type": "string", "minLength": 1 }
+          "sido": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sigungu": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!\\s*전체\\s*$).*$"
+          }
         },
-        "required": ["sido", "sigungu"]
+        "required": [
+          "sido",
+          "sigungu"
+        ]
       },
       "ApiResponseMapStringObject": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "type": "object", "additionalProperties": {} },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "ParseRequest": {
         "type": "object",
         "properties": {
-          "requestText": { "type": "string", "minLength": 1 },
-          "referenceDate": { "type": "string", "format": "date" }
+          "requestText": {
+            "type": "string",
+            "minLength": 1
+          },
+          "referenceDate": {
+            "type": "string",
+            "format": "date"
+          }
         },
-        "required": ["requestText"]
+        "required": [
+          "requestText"
+        ]
       },
       "ApiResponseParsedCargoResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/ParsedCargoResponse" },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ParsedCargoResponse"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "ParsedAddress": {
         "type": "object",
         "properties": {
-          "sido": { "type": "string" },
-          "sigungu": { "type": "string" },
-          "detail": { "type": "string" }
+          "sido": {
+            "type": "string"
+          },
+          "sigungu": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
         }
       },
       "ParsedCargoResponse": {
         "type": "object",
         "properties": {
-          "origin": { "$ref": "#/components/schemas/ParsedAddress" },
-          "destination": { "$ref": "#/components/schemas/ParsedAddress" },
-          "cargoType": { "type": "string" },
-          "cargoDescription": { "type": "string" },
-          "weightTon": { "type": "number", "format": "double" },
-          "offeredFareKrw": { "type": "integer", "format": "int32" },
-          "loadingDate": { "type": "string", "format": "date" },
-          "loadingTimeText": { "type": "string" },
-          "unloadingDate": { "type": "string", "format": "date" },
-          "unloadingTimeText": { "type": "string" },
-          "missingFields": { "type": "array", "items": { "type": "string" } },
-          "confidence": { "type": "string" },
-          "warnings": { "type": "array", "items": { "type": "string" } }
+          "origin": {
+            "$ref": "#/components/schemas/ParsedAddress"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/ParsedAddress"
+          },
+          "cargoType": {
+            "type": "string"
+          },
+          "cargoDescription": {
+            "type": "string"
+          },
+          "weightTon": {
+            "type": "number",
+            "format": "double"
+          },
+          "offeredFareKrw": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "loadingDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "loadingTimeText": {
+            "type": "string"
+          },
+          "unloadingDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "unloadingTimeText": {
+            "type": "string"
+          },
+          "missingFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confidence": {
+            "type": "string"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "CargoUpdateRequest": {
         "type": "object",
         "properties": {
-          "origin": { "$ref": "#/components/schemas/RegionPoint" },
-          "destination": { "$ref": "#/components/schemas/RegionPoint" },
+          "origin": {
+            "$ref": "#/components/schemas/CargoRegionPoint"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/CargoRegionPoint"
+          },
           "cargoType": {
             "type": "string",
-            "enum": ["REFRIGERATED", "GENERAL", "FROZEN", "CONSTRUCTION", "HAZARDOUS"]
+            "enum": [
+              "REFRIGERATED",
+              "GENERAL",
+              "FROZEN",
+              "CONSTRUCTION",
+              "HAZARDOUS"
+            ]
           },
-          "cargoDescription": { "type": "string" },
-          "weightTon": { "type": "number" },
-          "vehicleType": { "type": "string" },
-          "bodyType": { "type": "string" },
-          "desiredFare": { "type": "integer", "format": "int32" },
-          "loadingAt": { "type": "string", "format": "date-time" },
-          "unloadingAt": { "type": "string", "format": "date-time" },
-          "distanceKm": { "type": "integer", "format": "int32" }
+          "cargoDescription": {
+            "type": "string"
+          },
+          "weightTon": {
+            "type": "number"
+          },
+          "vehicleType": {
+            "type": "string"
+          },
+          "bodyType": {
+            "type": "string"
+          },
+          "desiredFare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "loadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unloadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceKm": {
+            "type": "integer",
+            "format": "int32"
+          }
         }
       },
       "ApiResponseCargoDetailResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/CargoDetailResponse" },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CargoDetailResponse"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "CargoDetailResponse": {
         "type": "object",
         "properties": {
-          "cargoId": { "type": "integer", "format": "int64" },
-          "status": { "type": "string" },
-          "origin": { "$ref": "#/components/schemas/RegionPoint" },
-          "destination": { "$ref": "#/components/schemas/RegionPoint" },
-          "cargoType": { "type": "string" },
-          "cargoDescription": { "type": "string" },
-          "weightTon": { "type": "number" },
-          "vehicleType": { "type": "string" },
-          "bodyType": { "type": "string" },
-          "desiredFare": { "type": "integer", "format": "int32" },
-          "loadingAt": { "type": "string", "format": "date-time" },
-          "unloadingAt": { "type": "string", "format": "date-time" },
-          "distanceKm": { "type": "integer", "format": "int32" },
-          "fare": { "$ref": "#/components/schemas/FareQuoteResponse" },
-          "assignedDriver": { "$ref": "#/components/schemas/DriverResponse" }
+          "cargoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/RegionPoint"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/RegionPoint"
+          },
+          "cargoType": {
+            "type": "string"
+          },
+          "cargoDescription": {
+            "type": "string"
+          },
+          "weightTon": {
+            "type": "number"
+          },
+          "vehicleType": {
+            "type": "string"
+          },
+          "bodyType": {
+            "type": "string"
+          },
+          "desiredFare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "loadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unloadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceKm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aiParsed": {
+            "type": "boolean"
+          },
+          "fare": {
+            "$ref": "#/components/schemas/FareQuoteResponse"
+          },
+          "assignedDriver": {
+            "$ref": "#/components/schemas/DriverResponse"
+          }
         }
       },
       "FareQuoteResponse": {
         "type": "object",
         "properties": {
-          "averageFare": { "type": "integer", "format": "int32" },
-          "sameDayThreshold": { "type": "integer", "format": "int32" },
-          "distanceKm": { "type": "integer", "format": "int32" },
-          "verdict": { "type": "string" },
-          "message": { "type": "string" }
+          "averageFare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sameDayThreshold": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "distanceKm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "verdict": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "ApiResponseListRegionResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "type": "array", "items": { "$ref": "#/components/schemas/RegionResponse" } },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegionResponse"
+            }
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "RegionResponse": {
         "type": "object",
         "properties": {
-          "sido": { "type": "string" },
-          "sigungus": { "type": "array", "items": { "type": "string" } }
+          "sido": {
+            "type": "string"
+          },
+          "sigungus": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "ApiResponseCursorPageResponseLoadResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/CursorPageResponseLoadResponse" },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CursorPageResponseLoadResponse"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "CursorPageResponseLoadResponse": {
         "type": "object",
         "properties": {
-          "content": { "type": "array", "items": { "$ref": "#/components/schemas/LoadResponse" } },
-          "nextCursor": { "type": "string" },
-          "hasNext": { "type": "boolean" },
-          "size": { "type": "integer", "format": "int32" }
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LoadResponse"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          },
+          "hasNext": {
+            "type": "boolean"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          }
         }
       },
       "LoadResponse": {
         "type": "object",
         "properties": {
-          "cargoId": { "type": "integer", "format": "int64" },
-          "origin": { "type": "string" },
-          "destination": { "type": "string" },
-          "loadingAt": { "type": "string", "format": "date-time" },
-          "unloadingAt": { "type": "string", "format": "date-time" },
-          "distanceKm": { "type": "integer", "format": "int32" },
-          "vehicleType": { "type": "string" },
-          "weightTon": { "type": "number" },
-          "bodyType": { "type": "string" },
-          "cargoType": { "type": "string" },
-          "fare": { "type": "integer", "format": "int32" },
-          "matchScore": { "type": "integer", "format": "int32" },
-          "badge": { "type": "string" },
-          "regionAverageFare": { "type": "integer", "format": "int32" },
-          "belowPercent": { "type": "integer", "format": "int32" },
-          "pickupDistanceKm": { "type": "number", "format": "double" },
-          "destinationGapKm": { "type": "number", "format": "double" },
-          "aiScore": { "type": "integer", "format": "int32" },
-          "finalScore": { "type": "number", "format": "double" },
-          "rankingMode": { "type": "string" },
-          "matchReasons": { "type": "array", "items": { "type": "string" } }
+          "cargoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string"
+          },
+          "loadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unloadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceKm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vehicleType": {
+            "type": "string"
+          },
+          "weightTon": {
+            "type": "number"
+          },
+          "bodyType": {
+            "type": "string"
+          },
+          "cargoType": {
+            "type": "string"
+          },
+          "fare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "matchScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "badge": {
+            "type": "string"
+          },
+          "regionAverageFare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "belowPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pickupDistanceKm": {
+            "type": "number",
+            "format": "double"
+          },
+          "destinationGapKm": {
+            "type": "number",
+            "format": "double"
+          },
+          "aiScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "finalScore": {
+            "type": "number",
+            "format": "double"
+          },
+          "rankingMode": {
+            "type": "string"
+          },
+          "matchReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "ApiResponseListCompletedLoadResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
+          "success": {
+            "type": "boolean"
+          },
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CompletedLoadResponse" }
+            "items": {
+              "$ref": "#/components/schemas/CompletedLoadResponse"
+            }
           },
-          "message": { "type": "string" }
+          "message": {
+            "type": "string"
+          }
         }
       },
       "CompletedLoadResponse": {
         "type": "object",
         "properties": {
-          "assignmentId": { "type": "integer", "format": "int64" },
-          "cargoId": { "type": "integer", "format": "int64" },
-          "origin": { "type": "string" },
-          "destination": { "type": "string" },
-          "loadingAt": { "type": "string", "format": "date-time" },
-          "unloadingAt": { "type": "string", "format": "date-time" },
-          "distanceKm": { "type": "integer", "format": "int32" },
-          "vehicleType": { "type": "string" },
-          "weightTon": { "type": "number" },
-          "bodyType": { "type": "string" },
-          "cargoType": { "type": "string" },
-          "fare": { "type": "integer", "format": "int32" },
-          "status": { "type": "string" },
-          "acceptedAt": { "type": "string", "format": "date-time" },
-          "completedAt": { "type": "string", "format": "date-time" }
+          "assignmentId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cargoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string"
+          },
+          "loadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unloadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceKm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vehicleType": {
+            "type": "string"
+          },
+          "weightTon": {
+            "type": "number"
+          },
+          "bodyType": {
+            "type": "string"
+          },
+          "cargoType": {
+            "type": "string"
+          },
+          "fare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "ApiResponseFareQuoteResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/FareQuoteResponse" },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FareQuoteResponse"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "Pageable": {
         "type": "object",
         "properties": {
-          "page": { "type": "integer", "format": "int32", "minimum": 0 },
-          "size": { "type": "integer", "format": "int32", "minimum": 1 },
-          "sort": { "type": "array", "items": { "type": "string" } }
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "ApiResponsePageResponseShipperCargoResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/PageResponseShipperCargoResponse" },
-          "message": { "type": "string" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageResponseShipperCargoResponse"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "PageResponseShipperCargoResponse": {
@@ -994,30 +1867,75 @@
         "properties": {
           "content": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ShipperCargoResponse" }
+            "items": {
+              "$ref": "#/components/schemas/ShipperCargoResponse"
+            }
           },
-          "page": { "type": "integer", "format": "int32" },
-          "size": { "type": "integer", "format": "int32" },
-          "totalElements": { "type": "integer", "format": "int64" },
-          "totalPages": { "type": "integer", "format": "int32" },
-          "first": { "type": "boolean" },
-          "last": { "type": "boolean" }
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          }
         }
       },
       "ShipperCargoResponse": {
         "type": "object",
         "properties": {
-          "cargoId": { "type": "integer", "format": "int64" },
-          "status": { "type": "string" },
-          "origin": { "$ref": "#/components/schemas/RegionPoint" },
-          "destination": { "$ref": "#/components/schemas/RegionPoint" },
-          "cargoType": { "type": "string" },
-          "cargoDescription": { "type": "string" },
-          "weightTon": { "type": "number" },
-          "desiredFare": { "type": "integer", "format": "int32" },
-          "loadingAt": { "type": "string", "format": "date-time" },
-          "unloadingAt": { "type": "string", "format": "date-time" },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "cargoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/RegionPoint"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/RegionPoint"
+          },
+          "cargoType": {
+            "type": "string"
+          },
+          "cargoDescription": {
+            "type": "string"
+          },
+          "weightTon": {
+            "type": "number"
+          },
+          "desiredFare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "loadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unloadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       }
     }

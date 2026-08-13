@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled from '@emotion/styled'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -82,6 +82,17 @@ export function ShipperPage() {
   })
 
   const isSubmitting = parseMutation.isPending || createMutation.isPending
+
+  useEffect(() => {
+    if (!cargoDetailQuery.isError) return
+
+    setCargoId(undefined)
+    setSelectedFromList(false)
+    setShowCreate(false)
+    setManualMode(false)
+    navigate('/shipper', { replace: true })
+    void queryClient.invalidateQueries({ queryKey: cargoQueryKeys.myCargosAll() })
+  }, [cargoDetailQuery.isError, navigate, queryClient])
 
   const handleConvert = async () => {
     setFormError(null)
@@ -176,6 +187,7 @@ export function ShipperPage() {
       const created = await createMutation.mutateAsync({
         params: { shipperId: DEMO_SHIPPER_ID },
         body: {
+          aiParsed: parseMutation.isSuccess,
           origin: { sido: manualCargo.originSido, sigungu: manualCargo.originSigungu },
           destination: {
             sido: manualCargo.destinationSido,
