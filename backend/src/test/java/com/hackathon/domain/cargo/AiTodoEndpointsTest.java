@@ -86,8 +86,8 @@ class AiTodoEndpointsTest {
     }
 
     @Test
-    @DisplayName("AI 누락 목록 대신 실제 빈 값을 검사해 한글 항목명으로 안내한다")
-    void reportsActualMissingFieldsInKorean() throws Exception {
+    @DisplayName("파싱값이 부족해도 성공 응답에 실제 누락 항목을 한글로 반환한다")
+    void returnsActualMissingFieldsInKorean() throws Exception {
         when(openAiClient.generateStructured(any(), any(), any(JsonNode.class)))
                 .thenReturn("""
                         {
@@ -115,13 +115,14 @@ class AiTodoEndpointsTest {
                                   "referenceDate":"2026-08-13"
                                 }
                                 """))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value(
-                        "출발지 시군구는 필수입니다. "
-                                + "도착지 시도는 필수입니다. "
-                                + "화물 종류는 필수입니다. "
-                                + "하차일은 필수입니다."));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.origin.sido").value("서울특별시"))
+                .andExpect(jsonPath("$.data.destination.sigungu").value("화순군"))
+                .andExpect(jsonPath("$.data.missingFields[0]").value("출발지 시군구는 필수입니다."))
+                .andExpect(jsonPath("$.data.missingFields[1]").value("도착지 시도는 필수입니다."))
+                .andExpect(jsonPath("$.data.missingFields[2]").value("화물 종류는 필수입니다."))
+                .andExpect(jsonPath("$.data.missingFields[3]").value("하차일은 필수입니다."));
     }
 
     @Test

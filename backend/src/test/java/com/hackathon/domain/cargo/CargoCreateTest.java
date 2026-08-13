@@ -1,5 +1,7 @@
 package com.hackathon.domain.cargo;
 
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -167,7 +169,7 @@ class CargoCreateTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalid))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("시군구는 필수입니다."));
+                .andExpect(jsonPath("$.message").value("출발지 시군구는 필수입니다."));
     }
 
     @Test
@@ -182,6 +184,27 @@ class CargoCreateTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalid))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("시군구는 필수입니다."));
+                .andExpect(jsonPath("$.message", allOf(
+                        containsString("출발지 시군구는 필수입니다."),
+                        containsString("도착지 시군구는 필수입니다."))));
+    }
+
+    @Test
+    @DisplayName("등록 필수값이 여러 개 없으면 각 항목을 모두 안내한다")
+    void reportsEveryMissingFieldOnCreate() throws Exception {
+        String invalid = BODY
+                .replace("\"sigungu\": \"강남구\"", "\"sigungu\": null")
+                .replace("\"desiredFare\": 500000,", "\"desiredFare\": null,")
+                .replace("\"unloadingAt\": \"2026-08-12T18:00:00\",", "\"unloadingAt\": null,");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos")
+                        .header("X-User-Id", "100")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalid))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", allOf(
+                        containsString("출발지 시군구는 필수입니다."),
+                        containsString("희망 운임은 필수입니다."),
+                        containsString("하차 일시는 필수입니다."))));
     }
 }

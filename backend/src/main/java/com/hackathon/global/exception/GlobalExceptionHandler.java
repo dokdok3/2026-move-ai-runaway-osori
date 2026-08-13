@@ -4,6 +4,7 @@ import com.hackathon.global.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -32,10 +33,21 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException e) {
         log.warn("validation failed", e);
         String message = e.getBindingResult().getFieldErrors().stream()
-                .findFirst()
-                .map(fe -> fe.getDefaultMessage())
+                .map(this::toUserMessage)
+                .distinct()
+                .reduce((left, right) -> left + " " + right)
                 .orElse("잘못된 요청입니다.");
         return ResponseEntity.badRequest().body(ApiResponse.fail(message));
+    }
+
+    private String toUserMessage(FieldError fieldError) {
+        return switch (fieldError.getField()) {
+            case "origin.sido" -> "출발지 시도는 필수입니다.";
+            case "origin.sigungu" -> "출발지 시군구는 필수입니다.";
+            case "destination.sido" -> "도착지 시도는 필수입니다.";
+            case "destination.sigungu" -> "도착지 시군구는 필수입니다.";
+            default -> fieldError.getDefaultMessage();
+        };
     }
 
     @ExceptionHandler(Exception.class)

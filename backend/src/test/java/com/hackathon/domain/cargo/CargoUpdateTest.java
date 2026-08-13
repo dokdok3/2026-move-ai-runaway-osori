@@ -1,5 +1,7 @@
 package com.hackathon.domain.cargo;
 
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -64,9 +66,11 @@ class CargoUpdateTest {
                                   "origin": {"sido": "서울특별시", "sigungu": null},
                                   "destination": {"sido": "부산광역시"}
                                 }
-                                """))
+                """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("시군구는 필수입니다."));
+                .andExpect(jsonPath("$.message", allOf(
+                        containsString("출발지 시군구는 필수입니다."),
+                        containsString("도착지 시군구는 필수입니다."))));
 
         Cargo cargo = cargoRepository.findById(id).orElseThrow();
         org.assertj.core.api.Assertions.assertThat(cargo.getOriginSigungu()).isEqualTo("수원시");
@@ -81,11 +85,11 @@ class CargoUpdateTest {
         mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/cargos/" + id)
                         .header("X-User-Id", "200")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+                .content("""
                                 {"origin": {"sido": "서울특별시", "sigungu": "전체"}}
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("시군구는 필수입니다."));
+                .andExpect(jsonPath("$.message").value("출발지 시군구는 필수입니다."));
 
         Cargo cargo = cargoRepository.findById(id).orElseThrow();
         org.assertj.core.api.Assertions.assertThat(cargo.getOriginSigungu()).isEqualTo("수원시");

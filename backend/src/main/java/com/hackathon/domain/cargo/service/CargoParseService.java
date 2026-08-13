@@ -100,14 +100,7 @@ public class CargoParseService {
             throw new BusinessException(ErrorCode.AI_CALL_FAILED);
         }
 
-        List<String> validationMessages = findValidationMessages(parsed);
-        if (!validationMessages.isEmpty()) {
-            throw new BusinessException(
-                    ErrorCode.AI_PARSING_FAILED,
-                    String.join(" ", validationMessages)
-            );
-        }
-        return parsed;
+        return parsed.withMissingFields(findValidationMessages(parsed));
     }
 
     private List<String> findValidationMessages(ParsedCargoResponse parsed) {

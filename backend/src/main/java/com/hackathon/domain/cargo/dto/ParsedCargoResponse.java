@@ -19,6 +19,24 @@ public record ParsedCargoResponse(
         String confidence,
         List<String> warnings
 ) {
+    public ParsedCargoResponse withMissingFields(List<String> missingFields) {
+        return new ParsedCargoResponse(
+                origin,
+                destination,
+                cargoType,
+                cargoDescription,
+                weightTon,
+                offeredFareKrw,
+                loadingDate,
+                loadingTimeText,
+                unloadingDate,
+                unloadingTimeText,
+                List.copyOf(missingFields),
+                confidence,
+                warnings
+        );
+    }
+
     public record ParsedAddress(String sido, String sigungu, String detail) {
     }
 }
