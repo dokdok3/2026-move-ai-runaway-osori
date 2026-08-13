@@ -10,4 +10,6 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     Optional<Assignment> findByCargoId(Long cargoId);
 
     List<Assignment> findByDriverIdAndCompletedAtIsNotNullOrderByCompletedAtDesc(Long driverId);
+
+    List<Assignment> findByDriverIdOrderByAcceptedAtDesc(Long driverId);
 }

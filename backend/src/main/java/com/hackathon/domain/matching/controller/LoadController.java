@@ -4,6 +4,7 @@ import com.hackathon.domain.matching.dto.AcceptResponse;
 import com.hackathon.domain.matching.dto.CompletedLoadResponse;
 import com.hackathon.domain.matching.dto.CompleteResponse;
 import com.hackathon.domain.matching.dto.LoadResponse;
+import com.hackathon.domain.matching.entity.LoadType;
 import com.hackathon.domain.matching.service.LoadService;
 import com.hackathon.global.auth.LoginUser;
 import com.hackathon.global.response.ApiResponse;
@@ -27,11 +28,12 @@ public class LoadController {
     private final LoadService loadService;
 
     @GetMapping
-    @Operation(summary = "기사 구간 기준 매칭 점수순 화물 목록")
+    @Operation(summary = "기사 화물 목록 조회 (type: AVAILABLE 매칭 가능 · ACCEPTED 수락함 · HIDDEN 숨김)")
     public ApiResponse<List<LoadResponse>> getLoads(@LoginUser Long driverId,
+                                                     @RequestParam(defaultValue = "AVAILABLE") LoadType type,
                                                      @RequestParam(required = false) String preferenceText,
                                                      @RequestParam(defaultValue = "false") boolean refresh) {
-        return ApiResponse.ok(loadService.findAvailableLoads(driverId, preferenceText, refresh));
+        return ApiResponse.ok(loadService.findLoads(driverId, type, preferenceText, refresh));
     }
 
     @GetMapping("/completed")
@@ -52,5 +54,13 @@ public class LoadController {
     public ApiResponse<CompleteResponse> complete(@LoginUser Long driverId,
                                                    @PathVariable Long cargoId) {
         return ApiResponse.ok(loadService.complete(driverId, cargoId));
+    }
+
+    @PostMapping("/{cargoId}/hide")
+    @Operation(summary = "화물 목록에서 숨기기")
+    public ApiResponse<Void> hide(@LoginUser Long driverId,
+                                  @PathVariable Long cargoId) {
+        loadService.hide(driverId, cargoId);
+        return ApiResponse.ok(null);
     }
 }

@@ -14,7 +14,11 @@ import com.hackathon.domain.matching.dto.CompletedLoadResponse;
 import com.hackathon.domain.matching.dto.CompleteResponse;
 import com.hackathon.domain.matching.dto.LoadResponse;
 import com.hackathon.domain.matching.entity.Assignment;
+import com.hackathon.domain.matching.entity.DriverHiddenCargo;
+import com.hackathon.domain.matching.entity.DriverHiddenCargoId;
+import com.hackathon.domain.matching.entity.LoadType;
 import com.hackathon.domain.matching.repository.AssignmentRepository;
+import com.hackathon.domain.matching.repository.DriverHiddenCargoRepository;
 import com.hackathon.global.exception.BusinessException;
 import com.hackathon.global.exception.ErrorCode;
 import java.time.LocalDateTime;
@@ -23,8 +27,13 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,11 +52,44 @@ public class LoadService {
     private final FareQuoteService fareQuoteService;
     private final AiRouteReranker aiRouteReranker;
     private final PostgisCandidateRepository postgisCandidateRepository;
+    private final DriverHiddenCargoRepository driverHiddenCargoRepository;
 
     @Transactional(readOnly = true)
-    public List<LoadResponse> findAvailableLoads(Long driverId, String preferenceText, boolean refresh) {
+    public List<LoadResponse> findLoads(Long driverId, LoadType type, String preferenceText, boolean refresh) {
+        return switch (type) {
+            case ACCEPTED -> findAcceptedLoads(driverId);
+            case HIDDEN -> findHiddenLoads(driverId);
+            case AVAILABLE -> findAvailableLoads(driverId, preferenceText, refresh);
+        };
+    }
+
+    private List<LoadResponse> findAcceptedLoads(Long driverId) {
+        List<Long> cargoIds = assignmentRepository.findByDriverIdOrderByAcceptedAtDesc(driverId).stream()
+                .map(Assignment::getCargoId)
+                .toList();
+        return loadResponsesFor(cargoIds);
+    }
+
+    private List<LoadResponse> findHiddenLoads(Long driverId) {
+        List<Long> cargoIds = driverHiddenCargoRepository.findByDriverIdOrderByHiddenAtDesc(driverId).stream()
+                .map(DriverHiddenCargo::getCargoId)
+                .toList();
+        return loadResponsesFor(cargoIds);
+    }
+
+    private List<LoadResponse> loadResponsesFor(List<Long> cargoIds) {
+        Map<Long, Cargo> cargos = cargoRepository.findAllById(cargoIds).stream()
+                .collect(java.util.stream.Collectors.toMap(Cargo::getId, Function.identity()));
+        return cargoIds.stream()
+                       .map(cargos::get)
+                       .filter(Objects::nonNull)
+                       .map(cargo -> LoadResponse.of(cargo, 0))
+                       .toList();
+    }
+
+    private List<LoadResponse> findAvailableLoads(Long driverId, String preferenceText, boolean refresh) {
         Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DRIVER_NOT_FOUND));
+                                        .orElseThrow(() -> new BusinessException(ErrorCode.DRIVER_NOT_FOUND));
         List<DriverRoutePreference> preferences = preferenceRepository.findByDriverId(driverId);
         LocalDateTime now = LocalDateTime.now();
 
@@ -63,9 +105,13 @@ public class LoadService {
             return result.loads();
         }
 
+        Set<Long> hiddenCargoIds = driverHiddenCargoRepository.findByDriverIdOrderByHiddenAtDesc(driverId)
+                                                              .stream()
+                                                              .map(DriverHiddenCargo::getCargoId)
+                                                              .collect(Collectors.toSet());
         List<LoadResponse> loads = new ArrayList<>();
         for (Cargo cargo : cargoRepository.findByStatus(CargoStatus.REQUESTED)) {
-            if (!scoreCalculator.isEligible(cargo, driver, preferences, now)) {
+            if (hiddenCargoIds.contains(cargo.getId()) || !scoreCalculator.isEligible(cargo, driver, preferences, now)) {
                 continue;
             }
             LoadResponse load = LoadResponse.of(cargo,
@@ -84,16 +130,16 @@ public class LoadService {
             List<PostgisCandidateRepository.PostgisCandidate> candidates = postgisCandidateRepository.findTop50(driverId);
             Map<Long, Cargo> cargos = cargoRepository.findAllById(candidates.stream()
                             .map(PostgisCandidateRepository.PostgisCandidate::cargoId).toList())
-                    .stream().collect(java.util.stream.Collectors.toMap(Cargo::getId, Function.identity()));
-            return candidates.stream().map(candidate -> {
-                Cargo cargo = cargos.get(candidate.cargoId());
+                    .stream().collect(Collectors.toMap(Cargo::getId, Function.identity()));
+            return candidates.stream().map(it -> {
+                Cargo cargo = cargos.get(it.cargoId());
                 if (cargo == null) {
                     throw new IllegalStateException("PostGIS 후보 화물을 찾을 수 없습니다.");
                 }
-                return LoadResponse.of(cargo, (int) Math.round(candidate.baseScore()))
-                        .withPostgisMetrics(candidate.pickupDistanceM(), candidate.destinationGapM(), candidate.baseScore());
+                return LoadResponse.of(cargo, (int) Math.round(it.baseScore()))
+                        .withPostgisMetrics(it.pickupDistanceM(), it.destinationGapM(), it.baseScore());
             }).toList();
-        } catch (org.springframework.dao.DataAccessException e) {
+        } catch (DataAccessException e) {
             log.info("PostGIS 후보 검색을 사용할 수 없어 룰 기반 목록으로 폴백합니다.");
             return null;
         }
@@ -173,6 +219,20 @@ public class LoadService {
                 .map(assignment -> CompletedLoadResponse.of(
                         assignment, cargos.get(assignment.getCargoId())))
                 .toList();
+    }
+
+    @Transactional
+    public void hide(Long driverId, Long cargoId) {
+        if (!driverRepository.existsById(driverId)) {
+            throw new BusinessException(ErrorCode.DRIVER_NOT_FOUND);
+        }
+        if (!cargoRepository.existsById(cargoId)) {
+            throw new BusinessException(ErrorCode.CARGO_NOT_FOUND);
+        }
+        DriverHiddenCargoId id = new DriverHiddenCargoId(driverId, cargoId);
+        if (!driverHiddenCargoRepository.existsById(id)) {
+            driverHiddenCargoRepository.save(DriverHiddenCargo.of(driverId, cargoId));
+        }
     }
 
     /**
