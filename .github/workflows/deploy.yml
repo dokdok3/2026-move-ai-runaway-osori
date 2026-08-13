@@ -97,3 +97,6 @@ jobs:
           cd "$HOME/hackathon-deploy"
           BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" \
             scripts/deploy-blue-green.sh '${{ needs.build-and-push.outputs.image-tag }}'
+      - name: Logout from GHCR
+        if: always()
+        run: docker logout ghcr.io || true
