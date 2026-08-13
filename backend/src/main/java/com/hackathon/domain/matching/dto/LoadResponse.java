@@ -26,7 +26,9 @@ public record LoadResponse(
         Integer aiScore,
         Double finalScore,
         String rankingMode,
-        List<String> matchReasons
+        List<String> matchReasons,
+        String status,
+        LocalDateTime completedAt
 ) {
     public static LoadResponse of(Cargo cargo, int matchScore) {
         return new LoadResponse(
@@ -42,7 +44,8 @@ public record LoadResponse(
                 cargo.getCargoType() != null ? cargo.getCargoType().name() : null,
                 cargo.getDesiredFare(),
                 matchScore,
-                null, null, null, null, null, null, null, "RULE_BASE", List.of()
+                null, null, null, null, null, null, null, "RULE_BASE", List.of(),
+                cargo.getStatus().name(), null
         );
     }
 
@@ -50,7 +53,7 @@ public record LoadResponse(
         return new LoadResponse(cargoId, origin, destination, loadingAt, unloadingAt,
                 distanceKm, vehicleType, weightTon, bodyType, cargoType, fare,
                 matchScore, badge, regionAverageFare, belowPercent, pickupDistanceKm, destinationGapKm,
-                aiScore, finalScore, rankingMode, matchReasons);
+                aiScore, finalScore, rankingMode, matchReasons, status, completedAt);
     }
 
     public LoadResponse withPostgisMetrics(Long pickupDistanceM, Long destinationGapM, Double baseScore) {
@@ -61,7 +64,7 @@ public record LoadResponse(
         return new LoadResponse(cargoId, origin, destination, loadingAt, unloadingAt,
                 distanceKm, vehicleType, weightTon, bodyType, cargoType, fare, (int) Math.round(baseScore),
                 badge, regionAverageFare, belowPercent, pickupDistanceM / 1000.0, destinationGapM / 1000.0,
-                null, null, "RULE_BASE", reasons);
+                null, null, "RULE_BASE", reasons, status, completedAt);
     }
 
     public LoadResponse withAiRanking(Integer aiScore, List<String> reasons) {
@@ -69,14 +72,21 @@ public record LoadResponse(
         return new LoadResponse(cargoId, origin, destination, loadingAt, unloadingAt,
                 distanceKm, vehicleType, weightTon, bodyType, cargoType, fare, matchScore,
                 badge, regionAverageFare, belowPercent, pickupDistanceKm, destinationGapKm,
-                aiScore, finalScore, "HYBRID", reasons);
+                aiScore, finalScore, "HYBRID", reasons, status, completedAt);
     }
 
     public LoadResponse withRankingMode(String rankingMode) {
         return new LoadResponse(cargoId, origin, destination, loadingAt, unloadingAt,
                 distanceKm, vehicleType, weightTon, bodyType, cargoType, fare, matchScore,
                 badge, regionAverageFare, belowPercent, pickupDistanceKm, destinationGapKm,
-                aiScore, finalScore, rankingMode, matchReasons);
+                aiScore, finalScore, rankingMode, matchReasons, status, completedAt);
+    }
+
+    public LoadResponse withCompletedAt(LocalDateTime completedAt) {
+        return new LoadResponse(cargoId, origin, destination, loadingAt, unloadingAt,
+                distanceKm, vehicleType, weightTon, bodyType, cargoType, fare, matchScore,
+                badge, regionAverageFare, belowPercent, pickupDistanceKm, destinationGapKm,
+                aiScore, finalScore, rankingMode, matchReasons, status, completedAt);
     }
 
     /** "서울특별시 강남구" → "서울 강남구" 처럼 화면 표기용으로 시도명만 줄인다. */

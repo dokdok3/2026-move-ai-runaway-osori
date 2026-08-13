@@ -71,6 +71,7 @@ class AiRouteRerankerTest {
         return new LoadResponse(cargoId, "서울 송파구", "부산 강서구",
                 LocalDateTime.of(2026, 8, 14, 8, 0), LocalDateTime.of(2026, 8, 14, 15, 0),
                 null, null, new BigDecimal("5.0"), null, "REFRIGERATED", fare, score,
-                null, null, null, null, null, null, null, "RULE_BASE", List.of());
+                null, null, null, null, null, null, null, "RULE_BASE", List.of(),
+                "REQUESTED", null);
     }
 }

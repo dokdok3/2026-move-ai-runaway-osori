@@ -67,6 +67,7 @@ class LoadCursorPaginatorTest {
         return new LoadResponse(cargoId, "서울 송파구", "부산 강서구",
                 LocalDateTime.of(2026, 8, 14, 8, 0), LocalDateTime.of(2026, 8, 14, 15, 0),
                 null, null, new BigDecimal("5.0"), null, "GENERAL", 600_000, 80,
-                "FAIR", 600_000, null, null, null, null, null, "RULE_BASE", List.of());
+                "FAIR", 600_000, null, null, null, null, null, "RULE_BASE", List.of(),
+                "REQUESTED", null);
     }
 }

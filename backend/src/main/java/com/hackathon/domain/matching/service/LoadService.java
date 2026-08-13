@@ -68,10 +68,21 @@ public class LoadService {
     }
 
     private List<LoadResponse> findAcceptedLoads(Long driverId) {
-        List<Long> cargoIds = assignmentRepository.findByDriverIdOrderByAcceptedAtDesc(driverId).stream()
+        List<Assignment> assignments = assignmentRepository.findByDriverIdOrderByAcceptedAtDesc(driverId);
+        List<Long> cargoIds = assignments.stream()
                 .map(Assignment::getCargoId)
                 .toList();
-        return loadResponsesFor(cargoIds);
+        Map<Long, Cargo> cargos = cargoRepository.findAllById(cargoIds).stream()
+                .collect(Collectors.toMap(Cargo::getId, Function.identity()));
+        return assignments.stream()
+                .map(assignment -> {
+                    Cargo cargo = cargos.get(assignment.getCargoId());
+                    return cargo == null
+                            ? null
+                            : LoadResponse.of(cargo, 0).withCompletedAt(assignment.getCompletedAt());
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     private List<LoadResponse> findHiddenLoads(Long driverId) {

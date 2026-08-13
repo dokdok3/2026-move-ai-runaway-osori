@@ -154,6 +154,39 @@ class LoadCompletionTest {
     }
 
     @Test
+    @DisplayName("수락 목록은 완료 화물의 상태와 완료 시각을 함께 반환한다")
+    void returnsCompletionStateInAcceptedFilter() throws Exception {
+        Long completedCargoId = createCargo();
+        Long matchedCargoId = createCargo();
+        loadService.accept(1L, completedCargoId);
+        loadService.accept(1L, matchedCargoId);
+        loadService.complete(1L, completedCargoId);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
+                        .header("X-User-Id", "1")
+                        .param("filter", "ACCEPTED"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode content = objectMapper.readTree(result.getResponse().getContentAsByteArray())
+                .path("data")
+                .path("content");
+        JsonNode completedLoad = StreamSupport.stream(content.spliterator(), false)
+                .filter(node -> node.get("cargoId").asLong() == completedCargoId)
+                .findFirst()
+                .orElseThrow();
+        JsonNode matchedLoad = StreamSupport.stream(content.spliterator(), false)
+                .filter(node -> node.get("cargoId").asLong() == matchedCargoId)
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(completedLoad.get("status").asText()).isEqualTo("COMPLETED");
+        assertThat(completedLoad.get("completedAt").asText()).isNotBlank();
+        assertThat(matchedLoad.get("status").asText()).isEqualTo("MATCHED");
+        assertThat(matchedLoad.get("completedAt").isNull()).isTrue();
+    }
+
+    @Test
     @DisplayName("수락하지 않은 기사는 다른 기사의 화물을 완료할 수 없다")
     void rejectsOtherDriver() throws Exception {
         Long cargoId = createCargo();
