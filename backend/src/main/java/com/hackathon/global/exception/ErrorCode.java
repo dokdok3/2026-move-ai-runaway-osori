@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ErrorCode {
+public enum ErrorCode implements ErrorCodeSpec {
     UNAUTHORIZED(401, "사용자 식별에 실패했습니다."),
     CARGO_NOT_FOUND(404, "화물을 찾을 수 없습니다."),
     CARGO_ALREADY_MATCHED(409, "이미 배차된 화물입니다."),

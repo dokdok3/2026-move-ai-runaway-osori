@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>집나간 벌꿀오소리 · 배포 현황</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0d1117;
+        color: #f0f3f6;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 20% 0%, rgba(255, 190, 46, 0.13), transparent 34rem),
+          #0d1117;
+      }
+      main {
+        width: min(680px, 100%);
+        border: 1px solid #30363d;
+        border-radius: 20px;
+        padding: clamp(24px, 5vw, 42px);
+        background: rgba(22, 27, 34, 0.94);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+      }
+      .eyebrow { color: #f3ba2f; font-weight: 750; letter-spacing: 0.04em; }
+      h1 { margin: 10px 0 28px; font-size: clamp(28px, 5vw, 42px); }
+      .state { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 700; }
+      .dot { width: 13px; height: 13px; border-radius: 50%; background: #8b949e; }
+      .dot.running { background: #f3ba2f; box-shadow: 0 0 0 7px rgba(243, 186, 47, 0.12); animation: pulse 1.3s infinite; }
+      .dot.success { background: #3fb950; box-shadow: 0 0 0 7px rgba(63, 185, 80, 0.12); }
+      .dot.failed { background: #f85149; box-shadow: 0 0 0 7px rgba(248, 81, 73, 0.12); }
+      .progress { height: 7px; margin: 24px 0 30px; overflow: hidden; border-radius: 99px; background: #30363d; }
+      .bar { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #f3ba2f, #ffdf7e); transition: width 0.4s ease; }
+      dl { display: grid; grid-template-columns: 130px 1fr; gap: 14px 20px; margin: 0; }
+      dt { color: #8b949e; }
+      dd { margin: 0; overflow-wrap: anywhere; }
+      .colors { display: flex; align-items: center; gap: 10px; }
+      .badge { padding: 3px 9px; border: 1px solid #484f58; border-radius: 999px; text-transform: uppercase; font-size: 13px; }
+      .arrow { color: #8b949e; }
+      footer { margin-top: 30px; color: #8b949e; font-size: 13px; }
+      a { color: #f3ba2f; }
+      @keyframes pulse { 50% { opacity: 0.55; } }
+      @media (max-width: 500px) { dl { grid-template-columns: 1fr; gap: 5px; } dd { margin-bottom: 10px; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">집나간 벌꿀오소리</div>
+      <h1>배포 현황</h1>
+      <div class="state"><span id="dot" class="dot"></span><span id="state">상태 확인 중</span></div>
+      <div class="progress"><div id="bar" class="bar"></div></div>
+      <dl>
+        <dt>현재 단계</dt><dd id="stage">-</dd>
+        <dt>Blue / Green</dt><dd class="colors"><span id="active" class="badge">-</span><span class="arrow">→</span><span id="target" class="badge">-</span></dd>
+        <dt>버전</dt><dd id="version">-</dd>
+        <dt>시작 시각</dt><dd id="started">-</dd>
+        <dt>경과 시간</dt><dd id="elapsed">-</dd>
+        <dt>마지막 갱신</dt><dd id="updated">-</dd>
+      </dl>
+      <footer>이 페이지는 2초마다 자동 갱신됩니다. 서비스는 Blue/Green 전환 중에도 계속 제공됩니다.</footer>
+    </main>
+    <script>
+      const stages = {
+        test: ["백엔드·프론트엔드 검증", 15],
+        "image-build": ["Docker 이미지 빌드·푸시", 35],
+        "image-ready": ["배포 준비 완료", 50],
+        "pull-images": ["새 이미지 받는 중", 60],
+        "start-candidate": ["새 버전 기동 중", 72],
+        "health-check": ["새 버전 상태 확인 중", 84],
+        "switch-traffic": ["Nginx 트래픽 전환 중", 94],
+        complete: ["배포 완료", 100],
+        failed: ["배포 실패", 100],
+      };
+      const statuses = {
+        building: ["빌드 중", "running"],
+        deploying: ["배포 중", "running"],
+        success: ["정상 배포 완료", "success"],
+        failed: ["배포 실패", "failed"],
+      };
+      let latest;
+      const formatDate = (value) => value ? new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "medium" }).format(new Date(value)) : "-";
+      const formatElapsed = (start, end) => {
+        const seconds = Math.max(0, Math.floor(((end ? new Date(end) : new Date()) - new Date(start)) / 1000));
+        const minutes = Math.floor(seconds / 60);
+        return minutes ? `${minutes}분 ${seconds % 60}초` : `${seconds}초`;
+      };
+      function render(data) {
+        latest = data;
+        const [stateText, stateClass] = statuses[data.status] || ["알 수 없음", ""];
+        const [stageText, progress] = stages[data.stage] || [data.stage || "-", 0];
+        document.querySelector("#state").textContent = stateText;
+        document.querySelector("#dot").className = `dot ${stateClass}`;
+        document.querySelector("#bar").style.width = `${progress}%`;
+        document.querySelector("#stage").textContent = stageText;
+        document.querySelector("#active").textContent = data.activeColor;
+        document.querySelector("#target").textContent = data.targetColor;
+        document.querySelector("#version").textContent = data.imageTag === "unknown" ? "확정 전" : data.imageTag.slice(0, 12);
+        document.querySelector("#started").textContent = formatDate(data.startedAt);
+        document.querySelector("#elapsed").textContent = formatElapsed(data.startedAt, data.completedAt);
+        document.querySelector("#updated").textContent = formatDate(data.updatedAt);
+      }
+      async function refresh() {
+        try {
+          const response = await fetch("/deploy-status.json", { cache: "no-store" });
+          if (!response.ok) throw new Error("status unavailable");
+          render(await response.json());
+        } catch {
+          document.querySelector("#state").textContent = "상태 정보를 불러올 수 없음";
+          document.querySelector("#dot").className = "dot failed";
+        }
+      }
+      refresh();
+      setInterval(refresh, 2000);
+      setInterval(() => { if (latest) document.querySelector("#elapsed").textContent = formatElapsed(latest.startedAt, latest.completedAt); }, 1000);
+    </script>
+  </body>
+</html>
+
