@@ -40,7 +40,6 @@ jobs:
         with:
           distribution: temurin
           java-version: "25"
-          cache: gradle
       - name: Test backend
         working-directory: backend
         run: ./gradlew test --no-daemon
@@ -50,11 +49,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
       - name: Test frontend
         working-directory: frontend
-        run: pnpm install --frozen-lockfile && pnpm lint && pnpm build
+        run: pnpm install --frozen-lockfile --prefer-offline && pnpm lint && pnpm build
       - name: Mark image build status
         run: |
           DEPLOY_STATUS_DIR=/var/www/hackathon-deploy \
