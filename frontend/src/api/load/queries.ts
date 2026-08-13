@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query'
-import { acceptLoad, getLoadList } from './api'
-import type { AcceptLoadParams, GetLoadListParams } from './model'
+import { acceptLoad, getLoadList, hideLoad } from './api'
+import type { AcceptLoadParams, GetLoadListParams, HideLoadParams } from './model'
 
 export const loadQueryKeys = {
   all: ['load'] as const,
@@ -28,5 +28,10 @@ export const loadMutations = {
     mutationOptions({
       mutationKey: [...loadQueryKeys.all, 'accept'],
       mutationFn: (params: AcceptLoadParams) => acceptLoad(params),
+    }),
+  hide: () =>
+    mutationOptions({
+      mutationKey: [...loadQueryKeys.all, 'hide'],
+      mutationFn: (params: HideLoadParams) => hideLoad(params),
     }),
 }

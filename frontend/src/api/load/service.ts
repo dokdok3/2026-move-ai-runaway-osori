@@ -8,3 +8,5 @@ export const useSuspenseLoadListQuery = (params: GetLoadListParams) =>
   useSuspenseQuery(loadQueries.list(params))
 
 export const useAcceptLoadMutation = () => useMutation(loadMutations.accept())
+
+export const useHideLoadMutation = () => useMutation(loadMutations.hide())

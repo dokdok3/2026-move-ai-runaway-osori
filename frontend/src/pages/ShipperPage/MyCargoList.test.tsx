@@ -27,6 +27,7 @@ it('페이지 인디케이터에서 다음 페이지를 요청한다', async () 
       page={0}
       totalPages={3}
       onPageChange={onPageChange}
+      onSelect={vi.fn()}
     />,
   )
 

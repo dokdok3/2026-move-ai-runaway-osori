@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Hero } from '@/components/Hero'
+import { Button } from '@/components/Button'
 import { PageLayout } from '@/components/PageLayout'
 import { FareWarningBanner } from '@/components/FareWarningBanner'
 import {
@@ -117,8 +118,9 @@ export function ShipperPage() {
           page={myCargosQuery.data?.page ?? cargoPage}
           totalPages={myCargosQuery.data?.totalPages ?? 0}
           onPageChange={setCargoPage}
+          onSelect={setCargoId}
         />
-      ) : (
+      ) : showCreate && !cargo ? (
         <>
           <Hero
             eyebrow="✦ AI로 빠른 매칭"
@@ -140,10 +142,13 @@ export function ShipperPage() {
             error={formError}
           />
         </>
-      )}
+      ) : null}
 
       {cargo && (
         <>
+          <Button type="button" variant="ghost" onClick={() => setCargoId(undefined)}>
+            ← 목록
+          </Button>
           <CargoSummaryCard
             cargo={cargo}
             onEdit={() => {
