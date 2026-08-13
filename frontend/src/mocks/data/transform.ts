@@ -93,6 +93,8 @@ export const toLoadResponse = (freight: FreightRow): LoadResponse => {
     badge,
     regionAverageFare: fareRef?.averageFareKrw,
     belowPercent,
+    rankingMode: 'RULE_BASE',
+    matchReasons: [],
   }
 }
 

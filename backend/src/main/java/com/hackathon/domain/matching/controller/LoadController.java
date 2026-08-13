@@ -27,8 +27,9 @@ public class LoadController {
     @GetMapping
     @Operation(summary = "기사 구간 기준 매칭 점수순 화물 목록")
     public ApiResponse<List<LoadResponse>> getLoads(@LoginUser Long driverId,
-                                                     @RequestParam(required = false) String preferenceText) {
-        return ApiResponse.ok(loadService.findAvailableLoads(driverId, preferenceText));
+                                                     @RequestParam(required = false) String preferenceText,
+                                                     @RequestParam(defaultValue = "false") boolean refresh) {
+        return ApiResponse.ok(loadService.findAvailableLoads(driverId, preferenceText, refresh));
     }
 
     @PostMapping("/{cargoId}/accept")

@@ -61,10 +61,14 @@ public record LoadResponse(
     }
 
     public LoadResponse withPostgisMetrics(Long pickupDistanceM, Long destinationGapM, Double baseScore) {
+        List<String> reasons = List.of(
+                "상차지까지 " + distanceLabel(pickupDistanceM) + "km",
+                "희망 도착지와 " + distanceLabel(destinationGapM) + "km 차이"
+        );
         return new LoadResponse(cargoId, origin, destination, loadingAt, unloadingAt,
                 distanceKm, vehicleType, weightTon, bodyType, cargoType, fare, (int) Math.round(baseScore),
                 badge, regionAverageFare, belowPercent, pickupDistanceM / 1000.0, destinationGapM / 1000.0,
-                null, null, "RULE_BASE", List.of());
+                null, null, "RULE_BASE", reasons);
     }
 
     public LoadResponse withAiRanking(Integer aiScore, List<String> reasons) {
@@ -91,5 +95,9 @@ public record LoadResponse(
                 .replace("자치도", "")
                 .replace("도", "");
         return sigungu == null ? shortSido : shortSido + " " + sigungu;
+    }
+
+    private static String distanceLabel(Long distanceM) {
+        return String.format(java.util.Locale.ROOT, "%.1f", distanceM / 1000.0);
     }
 }

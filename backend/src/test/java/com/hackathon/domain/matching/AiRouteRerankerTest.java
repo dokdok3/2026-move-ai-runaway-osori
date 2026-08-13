@@ -30,7 +30,7 @@ class AiRouteRerankerTest {
                         ]}
                         """);
 
-        List<LoadResponse> result = reranker.rerank("냉장 화물 우선", List.of(load(1L, 90, 600000), load(2L, 85, 700000))).loads();
+        List<LoadResponse> result = reranker.rerank(1L, "냉장 화물 우선", List.of(load(1L, 90, 600000), load(2L, 85, 700000)), false).loads();
 
         assertThat(result).extracting(LoadResponse::cargoId).containsExactly(2L, 1L);
     }
@@ -47,7 +47,24 @@ class AiRouteRerankerTest {
 
         List<LoadResponse> original = List.of(load(1L, 90, 600000), load(2L, 85, 700000));
 
-        assertThat(reranker.rerank("냉장 화물 우선", original).loads()).isSameAs(original);
+        assertThat(reranker.rerank(1L, "냉장 화물 우선", original, false).loads()).isSameAs(original);
+    }
+
+    @Test
+    void reusesSuccessfulAiRankingForSameDriverAndCandidates() {
+        when(openAiClient.generateStructured(eq("route_ranking"), any(), any(), any()))
+                .thenReturn("""
+                        {"rankings":[
+                          {"cargoId":1,"aiScore":90,"reasons":[],"concerns":[]},
+                          {"cargoId":2,"aiScore":90,"reasons":[],"concerns":[]}
+                        ]}
+                        """);
+        List<LoadResponse> loads = List.of(load(1L, 90, 600000), load(2L, 85, 700000));
+
+        reranker.rerank(1L, "냉장 화물 우선", loads, false);
+        reranker.rerank(1L, "냉장 화물 우선", loads, false);
+
+        Mockito.verify(openAiClient, Mockito.times(1)).generateStructured(eq("route_ranking"), any(), any(), any());
     }
 
     private LoadResponse load(Long cargoId, int score, int fare) {

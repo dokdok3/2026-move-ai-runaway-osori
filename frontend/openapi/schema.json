@@ -261,6 +261,23 @@
               "type": "integer",
               "format": "int64"
             }
+          },
+          {
+            "name": "preferenceText",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {
@@ -884,6 +901,31 @@
           "belowPercent": {
             "type": "integer",
             "format": "int32"
+          },
+          "pickupDistanceKm": {
+            "type": "number",
+            "format": "double"
+          },
+          "destinationGapKm": {
+            "type": "number",
+            "format": "double"
+          },
+          "aiScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "finalScore": {
+            "type": "number",
+            "format": "double"
+          },
+          "rankingMode": {
+            "type": "string"
+          },
+          "matchReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

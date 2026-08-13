@@ -18,9 +18,11 @@ export const loadHandlers = [
       )
     }
 
+    const rankingMode = query.get('preferenceText') ? 'HYBRID' : 'RULE_BASE'
     const data = loadsForDriver(driver, freights)
       .map(toLoadResponse)
       .sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0))
+      .map((load) => ({ ...load, rankingMode }))
 
     return HttpResponse.json({ success: true, data })
   }),

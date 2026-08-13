@@ -14,9 +14,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import lombok.extern.slf4j.Slf4j;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import java.time.Duration;
 
 /** 룰 기반 상위 후보만 AI로 재평가한다. AI 응답이 조금이라도 계약을 벗어나면 기존 순위를 유지한다. */
 @Slf4j
@@ -63,10 +69,15 @@ public class AiRouteReranker {
     private final OpenAiClient openAiClient;
     private final ObjectMapper objectMapper;
     private final JsonNode schema;
+    private final Cache<String, List<LoadResponse>> rankingCache;
 
     public AiRouteReranker(OpenAiClient openAiClient, ObjectMapper objectMapper) {
         this.openAiClient = openAiClient;
         this.objectMapper = objectMapper;
+        this.rankingCache = Caffeine.newBuilder()
+                .maximumSize(1_000)
+                .expireAfterWrite(Duration.ofMinutes(5))
+                .build();
         try {
             this.schema = objectMapper.readTree(SCHEMA_JSON);
         } catch (JsonProcessingException e) {
@@ -74,13 +85,21 @@ public class AiRouteReranker {
         }
     }
 
-    public RerankResult rerank(String preferenceText, List<LoadResponse> ruleRankedLoads) {
+    public RerankResult rerank(Long driverId, String preferenceText, List<LoadResponse> ruleRankedLoads,
+                               boolean refresh) {
         if (!StringUtils.hasText(preferenceText) || ruleRankedLoads.size() <= 1) {
             return new RerankResult(ruleRankedLoads, false);
         }
 
         int candidateCount = Math.min(MAX_CANDIDATES, ruleRankedLoads.size());
         List<LoadResponse> candidates = ruleRankedLoads.subList(0, candidateCount);
+        String cacheKey = rankingKey(driverId, preferenceText, candidates);
+        if (!refresh) {
+            List<LoadResponse> cached = rankingCache.getIfPresent(cacheKey);
+            if (cached != null) {
+                return new RerankResult(appendRemaining(cached, ruleRankedLoads, candidateCount), true);
+            }
+        }
         try {
             Map<Long, AiRanking> rankings = rankings(preferenceText, candidates);
             List<LoadResponse> reranked = candidates.stream()
@@ -88,11 +107,37 @@ public class AiRouteReranker {
                             rankings.get(load.cargoId()).reasons()))
                     .sorted(finalComparator())
                     .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
-            reranked.addAll(ruleRankedLoads.subList(candidateCount, ruleRankedLoads.size()));
-            return new RerankResult(reranked, true);
+            rankingCache.put(cacheKey, List.copyOf(reranked));
+            return new RerankResult(appendRemaining(reranked, ruleRankedLoads, candidateCount), true);
         } catch (Exception e) {
             log.warn("AI 재랭킹 실패 - 룰 기반 순위를 유지합니다. candidateCount={}", candidateCount);
             return new RerankResult(ruleRankedLoads, false);
+        }
+    }
+
+    private List<LoadResponse> appendRemaining(List<LoadResponse> rerankedCandidates,
+                                                List<LoadResponse> ruleRankedLoads, int candidateCount) {
+        List<LoadResponse> result = new ArrayList<>(rerankedCandidates);
+        result.addAll(ruleRankedLoads.subList(candidateCount, ruleRankedLoads.size()));
+        return result;
+    }
+
+    private String rankingKey(Long driverId, String preferenceText, List<LoadResponse> candidates) {
+        StringBuilder value = new StringBuilder().append(driverId).append('\n').append(preferenceText);
+        for (LoadResponse candidate : candidates) {
+            value.append('\n').append(candidate.cargoId())
+                    .append('|').append(candidate.matchScore())
+                    .append('|').append(candidate.fare())
+                    .append('|').append(candidate.cargoType())
+                    .append('|').append(candidate.loadingAt())
+                    .append('|').append(candidate.pickupDistanceKm())
+                    .append('|').append(candidate.destinationGapKm());
+        }
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(value.toString().getBytes(StandardCharsets.UTF_8));
+            return java.util.HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256을 사용할 수 없습니다.", e);
         }
     }
 

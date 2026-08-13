@@ -364,6 +364,16 @@ export interface components {
       regionAverageFare?: number
       /** Format: int32 */
       belowPercent?: number
+      /** Format: double */
+      pickupDistanceKm?: number
+      /** Format: double */
+      destinationGapKm?: number
+      /** Format: int32 */
+      aiScore?: number
+      /** Format: double */
+      finalScore?: number
+      rankingMode?: string
+      matchReasons?: string[]
     }
     ApiResponseFareQuoteResponse: {
       success?: boolean
@@ -551,6 +561,8 @@ export interface operations {
     parameters: {
       query: {
         driverId: number
+        preferenceText?: string
+        refresh?: boolean
       }
       header?: never
       path?: never

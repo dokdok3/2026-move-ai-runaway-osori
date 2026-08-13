@@ -43,7 +43,7 @@ public class LoadService {
     private final PostgisCandidateRepository postgisCandidateRepository;
 
     @Transactional(readOnly = true)
-    public List<LoadResponse> findAvailableLoads(Long driverId, String preferenceText) {
+    public List<LoadResponse> findAvailableLoads(Long driverId, String preferenceText, boolean refresh) {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DRIVER_NOT_FOUND));
         List<DriverRoutePreference> preferences = preferenceRepository.findByDriverId(driverId);
@@ -54,11 +54,11 @@ public class LoadService {
             List<LoadResponse> decorated = postgisLoads.stream()
                     .map(load -> applyBelowAverageBadge(load, cargoRepository.getReferenceById(load.cargoId())))
                     .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
-            AiRouteReranker.RerankResult result = aiRouteReranker.rerank(preferenceText, decorated);
+            AiRouteReranker.RerankResult result = aiRouteReranker.rerank(driverId, preferenceText, decorated, refresh);
             if (!result.applied() && org.springframework.util.StringUtils.hasText(preferenceText)) {
                 return result.loads().stream().map(load -> load.withRankingMode("RULE_FALLBACK")).toList();
             }
-            return result.loads();
+            return applyBestMatchBadge(result.loads());
         }
 
         List<LoadResponse> loads = new ArrayList<>();
@@ -79,6 +79,15 @@ public class LoadService {
             loads.set(0, loads.get(0).withBadge("BEST_MATCH"));
         }
         return loads;
+    }
+
+    private List<LoadResponse> applyBestMatchBadge(List<LoadResponse> loads) {
+        if (loads.isEmpty() || loads.get(0).badge() != null) {
+            return loads;
+        }
+        List<LoadResponse> result = new ArrayList<>(loads);
+        result.set(0, result.get(0).withBadge("BEST_MATCH"));
+        return result;
     }
 
     private List<LoadResponse> findPostgisLoads(Long driverId) {
