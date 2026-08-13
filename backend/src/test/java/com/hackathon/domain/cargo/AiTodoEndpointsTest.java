@@ -78,10 +78,17 @@ class AiTodoEndpointsTest {
                 .andExpect(jsonPath("$.data.loadingDate").value("2026-08-14"))
                 .andExpect(jsonPath("$.data.confidence").value("HIGH"));
 
+        ArgumentCaptor<String> instructionsCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> inputCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<JsonNode> schemaCaptor = ArgumentCaptor.forClass(JsonNode.class);
-        verify(openAiClient).generateStructured(any(), inputCaptor.capture(), schemaCaptor.capture());
+        verify(openAiClient).generateStructured(
+                instructionsCaptor.capture(), inputCaptor.capture(), schemaCaptor.capture());
 
+        assertThat(instructionsCaptor.getValue())
+                .contains("명백한 오타와 띄어쓰기만")
+                .contains("상품명·상태·수량 같은 구체 정보를 유지")
+                .contains("\"내동 화물\"은 cargoType=FROZEN, cargoDescription=\"냉동 화물\"")
+                .contains("오타를 교정한 경우 warnings");
         assertThat(inputCaptor.getValue())
                 .contains("CargoType enum")
                 .contains("REFRIGERATED: 냉장 화물")

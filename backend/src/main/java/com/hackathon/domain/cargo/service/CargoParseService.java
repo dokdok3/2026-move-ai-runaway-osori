@@ -33,8 +33,11 @@ public class CargoParseService {
             3. 금액은 원화 정수로 변환한다. 예: "50만원"은 500000, "1.2백만"은 1200000이다. 금액이 불명확하면 null이다.
             4. 중량은 톤 단위 숫자로 변환한다. 예: "500kg"은 0.5, "5톤"은 5다. 중량이 불명확하면 null이다.
             5. 시/도와 시/군/구를 구분할 수 있을 때만 origin/destination에 채운다. 주소를 보완하거나 존재하지 않는 세부 주소를 만들지 않는다.
-            6. cargoType은 입력의 referenceData에 제공된 CargoType enum 중 하나로만 정규화한다. 각 enum의 한글 의미와 대표 표현을 참고하되, 근거가 없으면 null을 넣는다. cargoDescription에는 원문 화물 표현을 짧게 보존한다.
-            7. 누락 필드는 missingFields에 넣는다. confidence는 원본 정보가 충분하면 HIGH, 일부 핵심 필드가 빠졌거나 모호하면 MEDIUM 또는 LOW로 둔다. warnings에는 날짜·금액·중량 해석의 모호성만 짧게 적는다.
+            6. cargoType은 입력의 referenceData에 제공된 CargoType enum 중 하나로만 정규화한다. 각 enum의 한글 의미와 대표 표현을 참고하되, 근거가 없으면 null을 넣는다.
+            7. cargoDescription은 상품명·상태·수량 같은 구체 정보를 유지하면서 짧고 자연스러운 한국어로 정리한다. 화물 용어의 명백한 오타와 띄어쓰기만 referenceData와 문맥에 근거해 최소한으로 교정한다. 고유명사와 출발지·도착지 이름은 임의로 교정하지 않는다. 교정 후보가 여러 개면 추측하지 말고 원문을 유지한다.
+               예: "내동 화물"은 cargoType=FROZEN, cargoDescription="냉동 화물"로 교정한다. "냉짱 식품"은 cargoType=REFRIGERATED, cargoDescription="냉장 식품"으로 교정한다.
+               오타를 교정한 경우 warnings에 "'원문'을 '교정문'으로 보정했습니다." 형식으로 기록한다.
+            8. 누락 필드는 missingFields에 넣는다. confidence는 원본 정보가 충분하면 HIGH, 일부 핵심 필드가 빠졌거나 모호하면 MEDIUM 또는 LOW로 둔다. warnings에는 날짜·금액·중량 해석의 모호성과 오타 교정 내역만 짧게 적는다.
             """;
 
     private static final String SCHEMA_JSON_TEMPLATE = """
