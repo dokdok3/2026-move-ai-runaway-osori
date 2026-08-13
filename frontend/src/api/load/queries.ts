@@ -4,7 +4,14 @@ import type { AcceptLoadParams, GetLoadListParams } from './model'
 
 export const loadQueryKeys = {
   all: ['load'] as const,
-  list: (params: GetLoadListParams) => [...loadQueryKeys.all, 'list', params] as const,
+  list: (params: GetLoadListParams) =>
+    [
+      ...loadQueryKeys.all,
+      'list',
+      params.driverId,
+      params.preferenceText ?? '',
+      params.refresh ?? false,
+    ] as const,
 }
 
 export const loadQueries = {

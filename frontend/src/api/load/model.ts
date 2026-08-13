@@ -2,6 +2,8 @@ import type { components } from '@/api/schema.gen'
 
 export type GetLoadListParams = {
   driverId: number
+  preferenceText?: string
+  refresh?: boolean
 }
 export type LoadResponse = components['schemas']['LoadResponse']
 export type GetLoadListResponse = LoadResponse[]

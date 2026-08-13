@@ -33,10 +33,11 @@ class DriverControllerTest {
     }
 
     @Test
-    @DisplayName("X-User-Id 헤더가 없으면 401")
-    void rejectsMissingHeader() throws Exception {
+    @DisplayName("공개 데모에서는 헤더 없이 기본 기사 프로필을 반환한다")
+    void returnsDefaultDriverWithoutHeader() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/drivers/me"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.driverId").value(1));
     }
 
     @Test
