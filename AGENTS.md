@@ -53,6 +53,6 @@ main <- develop <- feature
 ## CI/CD
 
 - PR과 `develop`, `main` 푸시에서는 백엔드 테스트와 프론트엔드 lint/build를 수행한다.
-- `main` 푸시는 GHCR 이미지를 만든 뒤 단일 EC2에 blue/green 방식으로 배포한다.
+- `main` 푸시는 GHCR 이미지를 만든 뒤 EC2 self-hosted runner에서 blue/green 방식으로 배포한다.
 - AWS 액세스 키를 저장소나 GitHub Actions에 저장하지 않는다.
 - 배포 구성과 복구 절차는 `docs/deployment.md`를 따른다.

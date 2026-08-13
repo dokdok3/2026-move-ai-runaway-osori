@@ -7,7 +7,7 @@ main push
   -> GitHub Actions 테스트
   -> Backend/Frontend Docker 이미지 빌드
   -> GHCR에 Git SHA 태그로 발행
-  -> EC2의 비활성 색상(blue 또는 green) 기동
+  -> EC2 self-hosted 배포 러너가 비활성 색상(blue 또는 green) 기동
   -> Backend/Frontend health check
   -> Nginx 포트 전환
   -> 이전 색상 중지
@@ -40,19 +40,12 @@ HTTPS를 적용할 때 `443/tcp`를 추가한다. PostgreSQL, Redis, 애플리�
 
 ## GitHub 설정
 
-Repository settings의 Actions variables에 다음 값을 등록한다.
+EC2에 저장소 전용 GitHub Actions self-hosted runner를 `production` 라벨로 등록한다. Repository
+settings의 Actions variable `EC2_READY`는 최초 서버 설정과 러너 확인이 끝난 뒤 `true`로 둔다.
 
-- `EC2_HOST`: EC2 Elastic IP
-- `EC2_USER`: Ubuntu AMI의 경우 `ubuntu`
-- `EC2_READY`: 최초 서버 설정과 SSH 확인이 끝난 뒤 `true`
-
-Actions secrets에는 다음 값을 등록한다.
-
-- `EC2_SSH_PRIVATE_KEY`: EC2 배포 전용 개인키 전체 내용
-- `EC2_KNOWN_HOSTS`: 신뢰할 수 있는 경로에서 확인한 SSH host key
-
-AWS 액세스 키는 GitHub에 넣지 않는다. 이 구성은 EC2 SSH와 GHCR만 사용하므로 장기 AWS 키가
-필요 없다.
+배포 러너가 EC2 안에서 실행되므로 GitHub-hosted runner를 위해 SSH를 외부에 개방하거나 개인키를
+GitHub secrets에 저장하지 않는다. AWS 액세스 키도 필요 없다. 22번 포트는 관리자 IP `/32`에만
+허용한다.
 
 ## 블루·그린 포트
 

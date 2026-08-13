@@ -80,47 +80,20 @@ jobs:
     name: Blue-green deploy
     needs: build-and-push
     if: vars.EC2_READY == 'true'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, production]
     environment: production
     steps:
       - uses: actions/checkout@v4
-      - name: Configure SSH
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+      - name: Install deployment files
         run: |
-          test -n "${{ vars.EC2_HOST }}"
-          test -n "${{ vars.EC2_USER }}"
-          test -n "$SSH_PRIVATE_KEY"
-          test -n "$SSH_KNOWN_HOSTS"
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/ec2_deploy
-          chmod 600 ~/.ssh/ec2_deploy
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-      - name: Upload deployment files
-        env:
-          EC2_HOST: ${{ vars.EC2_HOST }}
-          EC2_USER: ${{ vars.EC2_USER }}
-        run: |
-          SSH="ssh -i $HOME/.ssh/ec2_deploy"
-          SCP="scp -i $HOME/.ssh/ec2_deploy"
-          $SSH "$EC2_USER@$EC2_HOST" "mkdir -p ~/hackathon-deploy/scripts ~/hackathon-deploy/deploy/nginx"
-          $SCP compose.prod.yaml "$EC2_USER@$EC2_HOST:~/hackathon-deploy/compose.prod.yaml"
-          $SCP scripts/deploy-blue-green.sh "$EC2_USER@$EC2_HOST:~/hackathon-deploy/scripts/deploy-blue-green.sh"
-          $SCP deploy/nginx/hackathon.conf.template "$EC2_USER@$EC2_HOST:~/hackathon-deploy/deploy/nginx/hackathon.conf.template"
-      - name: Authenticate EC2 to GHCR
-        env:
-          EC2_HOST: ${{ vars.EC2_HOST }}
-          EC2_USER: ${{ vars.EC2_USER }}
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          printf '%s' "$GHCR_TOKEN" | ssh -i ~/.ssh/ec2_deploy "$EC2_USER@$EC2_HOST" \
-            "docker login ghcr.io --username '${{ github.actor }}' --password-stdin"
+          install -d "$HOME/hackathon-deploy/scripts" "$HOME/hackathon-deploy/deploy/nginx"
+          install -m 644 compose.prod.yaml "$HOME/hackathon-deploy/compose.prod.yaml"
+          install -m 755 scripts/deploy-blue-green.sh "$HOME/hackathon-deploy/scripts/deploy-blue-green.sh"
+          install -m 644 deploy/nginx/hackathon.conf.template "$HOME/hackathon-deploy/deploy/nginx/hackathon.conf.template"
+      - name: Authenticate to GHCR
+        run: printf '%s' '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io --username '${{ github.actor }}' --password-stdin
       - name: Switch blue-green deployment
-        env:
-          EC2_HOST: ${{ vars.EC2_HOST }}
-          EC2_USER: ${{ vars.EC2_USER }}
         run: |
-          ssh -i ~/.ssh/ec2_deploy "$EC2_USER@$EC2_HOST" \
-            "cd ~/hackathon-deploy && chmod +x scripts/deploy-blue-green.sh && BACKEND_IMAGE='$BACKEND_IMAGE' FRONTEND_IMAGE='$FRONTEND_IMAGE' scripts/deploy-blue-green.sh '${{ needs.build-and-push.outputs.image-tag }}'"
+          cd "$HOME/hackathon-deploy"
+          BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" \
+            scripts/deploy-blue-green.sh '${{ needs.build-and-push.outputs.image-tag }}'
