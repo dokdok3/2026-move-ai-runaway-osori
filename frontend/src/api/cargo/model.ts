@@ -11,9 +11,10 @@ export type GetCargoDetailResponse = CargoDetailResponse
 
 export type GetMyCargosParams = {
   shipperId: number
+  pageable: components['schemas']['Pageable']
 }
 export type ShipperCargoResponse = components['schemas']['ShipperCargoResponse']
-export type GetMyCargosResponse = ShipperCargoResponse[]
+export type GetMyCargosResponse = components['schemas']['PageResponseShipperCargoResponse']
 
 export type UpdateCargoParams = {
   cargoId: number

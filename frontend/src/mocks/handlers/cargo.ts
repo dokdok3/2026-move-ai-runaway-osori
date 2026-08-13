@@ -12,7 +12,7 @@ import { parseFreeText, toFareQuoteResponse } from '../data/transform'
 const http = createOpenApiHttp<paths>()
 
 export const cargoHandlers = [
-  http.get('/api/v1/cargos/me', ({ query }) => {
+  http.get('/api/v1/cargos/me', ({ query, request }) => {
     const shipperId = Number(query.get('shipperId'))
     if (!shipperId) {
       return HttpResponse.json(
@@ -21,7 +21,25 @@ export const cargoHandlers = [
       )
     }
 
-    return HttpResponse.json({ success: true, data: getCreatedCargoDetails() })
+    const searchParams = new URL(request.url).searchParams
+    const page = Number(searchParams.get('pageable[page]') ?? searchParams.get('page') ?? 0)
+    const size = Number(searchParams.get('pageable[size]') ?? searchParams.get('size') ?? 10)
+    const cargos = getCreatedCargoDetails()
+    const content = cargos.slice(page * size, (page + 1) * size)
+    const totalPages = Math.ceil(cargos.length / size)
+
+    return HttpResponse.json({
+      success: true,
+      data: {
+        content,
+        page,
+        size,
+        totalElements: cargos.length,
+        totalPages,
+        first: page === 0,
+        last: totalPages === 0 || page >= totalPages - 1,
+      },
+    })
   }),
 
   http.get('/api/v1/cargos/{cargoId}', ({ params }) => {

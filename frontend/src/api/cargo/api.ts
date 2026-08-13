@@ -23,7 +23,20 @@ export const getMyCargos = async (params: GetMyCargosParams): Promise<GetMyCargo
     )
   }
 
-  return result.data.data ?? []
+  const data = result.data.data
+  if (Array.isArray(data)) {
+    return {
+      content: data,
+      page: 0,
+      size: data.length,
+      totalElements: data.length,
+      totalPages: data.length > 0 ? 1 : 0,
+      first: true,
+      last: true,
+    }
+  }
+
+  return data ?? { content: [], page: 0, size: 10, totalElements: 0, totalPages: 0 }
 }
 
 export const createCargo = async (

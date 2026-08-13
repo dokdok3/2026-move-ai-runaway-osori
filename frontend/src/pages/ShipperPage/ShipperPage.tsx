@@ -28,11 +28,15 @@ export function ShipperPage() {
   const [cargoId, setCargoId] = useState<number | undefined>(undefined)
   const [formError, setFormError] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
+  const [cargoPage, setCargoPage] = useState(0)
 
   const parseMutation = useCargoParseMutation()
   const createMutation = useCargoCreateMutation()
   const cargoDetailQuery = useCargoDetailQuery(cargoId)
-  const myCargosQuery = useMyCargosQuery({ shipperId: DEMO_SHIPPER_ID })
+  const myCargosQuery = useMyCargosQuery({
+    shipperId: DEMO_SHIPPER_ID,
+    pageable: { page: cargoPage, size: 10 },
+  })
 
   const isSubmitting = parseMutation.isPending || createMutation.isPending
 
@@ -106,10 +110,13 @@ export function ShipperPage() {
     <PageLayout>
       {!showCreate && !cargo ? (
         <MyCargoList
-          cargos={myCargosQuery.data ?? []}
+          cargos={myCargosQuery.data?.content ?? []}
           loading={myCargosQuery.isLoading}
           error={myCargosQuery.isError}
           onCreate={() => setShowCreate(true)}
+          page={myCargosQuery.data?.page ?? cargoPage}
+          totalPages={myCargosQuery.data?.totalPages ?? 0}
+          onPageChange={setCargoPage}
         />
       ) : (
         <>

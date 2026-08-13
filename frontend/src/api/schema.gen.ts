@@ -22,6 +22,24 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/v1/drivers/me': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** 내 기사 프로필 조회 */
+    get: operations['getMe_1']
+    /** 내 기사 프로필 수정 */
+    put: operations['updateMe_1']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/drivers/me/route-preferences': {
     parameters: {
       query?: never
@@ -33,6 +51,23 @@ export interface paths {
     /** 다니는 구간 전체 교체 저장 */
     put: operations['updateRoutePreferences']
     post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/loads/{cargoId}/complete': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** 수락한 화물 운송 완료 */
+    post: operations['complete']
     delete?: never
     options?: never
     head?: never
@@ -143,6 +178,23 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/v1/loads/completed': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** 기사가 완료한 화물 목록 */
+    get: operations['getCompletedLoads']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/fares/quote': {
     parameters: {
       query?: never
@@ -152,23 +204,6 @@ export interface paths {
     }
     /** 구간 운임 시세 조회 (DB 캐시 우선, miss 시 AI 추정) */
     get: operations['quote']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/drivers/me': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** 내 기사 프로필 조회 */
-    get: operations['getMe_1']
     put?: never
     post?: never
     delete?: never
@@ -236,13 +271,18 @@ export interface components {
       businessNumber?: string
       address?: string
     }
-    RegionPoint: {
-      sido?: string
-      sigungu?: string
-    }
-    RoutePreferenceRequest: {
-      origins: components['schemas']['RegionPoint'][]
-      destinations: components['schemas']['RegionPoint'][]
+    DriverProfileRequest: {
+      name: string
+      phoneNumber: string
+      plateNumber: string
+      vehicleType: string
+      capacityTon: number
+      bodyType: string
+      vehicleCargoTypes: string[]
+      /** Format: int32 */
+      minAcceptFare: number
+      contactableFrom: string
+      contactableTo: string
     }
     ApiResponseDriverResponse: {
       success?: boolean
@@ -253,10 +293,12 @@ export interface components {
       /** Format: int64 */
       driverId?: number
       name?: string
+      phoneNumber?: string
       plateNumber?: string
       vehicleType?: string
       capacityTon?: number
       bodyType?: string
+      vehicleCargoTypes?: string[]
       rating?: number
       /** Format: int32 */
       totalTrips?: number
@@ -264,11 +306,36 @@ export interface components {
       completionRate?: number
       /** Format: int32 */
       minAcceptFare?: number
+      contactableFrom?: string
+      contactableTo?: string
+      recentTripSummary?: string
       routePreferences?: components['schemas']['RoutePreferences']
+    }
+    RegionPoint: {
+      sido?: string
+      sigungu?: string
     }
     RoutePreferences: {
       origins?: components['schemas']['RegionPoint'][]
       destinations?: components['schemas']['RegionPoint'][]
+    }
+    RoutePreferenceRequest: {
+      origins: components['schemas']['RegionPoint'][]
+      destinations: components['schemas']['RegionPoint'][]
+    }
+    ApiResponseCompleteResponse: {
+      success?: boolean
+      data?: components['schemas']['CompleteResponse']
+      message?: string
+    }
+    CompleteResponse: {
+      /** Format: int64 */
+      assignmentId?: number
+      /** Format: int64 */
+      cargoId?: number
+      status?: string
+      /** Format: date-time */
+      completedAt?: string
     }
     AcceptResponse: {
       /** Format: int64 */
@@ -449,15 +516,65 @@ export interface components {
       rankingMode?: string
       matchReasons?: string[]
     }
+    ApiResponseListCompletedLoadResponse: {
+      success?: boolean
+      data?: components['schemas']['CompletedLoadResponse'][]
+      message?: string
+    }
+    CompletedLoadResponse: {
+      /** Format: int64 */
+      assignmentId?: number
+      /** Format: int64 */
+      cargoId?: number
+      origin?: string
+      destination?: string
+      /** Format: date-time */
+      loadingAt?: string
+      /** Format: date-time */
+      unloadingAt?: string
+      /** Format: int32 */
+      distanceKm?: number
+      vehicleType?: string
+      weightTon?: number
+      bodyType?: string
+      cargoType?: string
+      /** Format: int32 */
+      fare?: number
+      status?: string
+      /** Format: date-time */
+      acceptedAt?: string
+      /** Format: date-time */
+      completedAt?: string
+    }
     ApiResponseFareQuoteResponse: {
       success?: boolean
       data?: components['schemas']['FareQuoteResponse']
       message?: string
     }
-    ApiResponseListShipperCargoResponse: {
+    Pageable: {
+      /** Format: int32 */
+      page?: number
+      /** Format: int32 */
+      size?: number
+      sort?: string[]
+    }
+    ApiResponsePageResponseShipperCargoResponse: {
       success?: boolean
-      data?: components['schemas']['ShipperCargoResponse'][]
+      data?: components['schemas']['PageResponseShipperCargoResponse']
       message?: string
+    }
+    PageResponseShipperCargoResponse: {
+      content?: components['schemas']['ShipperCargoResponse'][]
+      /** Format: int32 */
+      page?: number
+      /** Format: int32 */
+      size?: number
+      /** Format: int64 */
+      totalElements?: number
+      /** Format: int32 */
+      totalPages?: number
+      first?: boolean
+      last?: boolean
     }
     ShipperCargoResponse: {
       /** Format: int64 */
@@ -534,6 +651,54 @@ export interface operations {
       }
     }
   }
+  getMe_1: {
+    parameters: {
+      query: {
+        driverId: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseDriverResponse']
+        }
+      }
+    }
+  }
+  updateMe_1: {
+    parameters: {
+      query: {
+        driverId: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DriverProfileRequest']
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseDriverResponse']
+        }
+      }
+    }
+  }
   updateRoutePreferences: {
     parameters: {
       query: {
@@ -556,6 +721,30 @@ export interface operations {
         }
         content: {
           '*/*': components['schemas']['ApiResponseDriverResponse']
+        }
+      }
+    }
+  }
+  complete: {
+    parameters: {
+      query: {
+        driverId: number
+      }
+      header?: never
+      path: {
+        cargoId: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseCompleteResponse']
         }
       }
     }
@@ -752,6 +941,28 @@ export interface operations {
       }
     }
   }
+  getCompletedLoads: {
+    parameters: {
+      query: {
+        driverId: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseListCompletedLoadResponse']
+        }
+      }
+    }
+  }
   quote: {
     parameters: {
       query: {
@@ -778,32 +989,11 @@ export interface operations {
       }
     }
   }
-  getMe_1: {
-    parameters: {
-      query: {
-        driverId: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['ApiResponseDriverResponse']
-        }
-      }
-    }
-  }
   getMyCargos: {
     parameters: {
       query: {
         shipperId: number
+        pageable: components['schemas']['Pageable']
       }
       header?: never
       path?: never
@@ -817,7 +1007,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          '*/*': components['schemas']['ApiResponseListShipperCargoResponse']
+          '*/*': components['schemas']['ApiResponsePageResponseShipperCargoResponse']
         }
       }
     }

@@ -12,6 +12,9 @@ export interface MyCargoListProps {
   loading: boolean
   error: boolean
   onCreate: () => void
+  page: number
+  totalPages: number
+  onPageChange: (page: number) => void
 }
 
 type CargoFilter = 'ALL' | 'ACTIVE' | 'DONE'
@@ -140,6 +143,37 @@ const Message = styled.p`
   text-align: center;
 `
 
+const Pagination = styled.nav`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+`
+
+const PageButton = styled.button<{ active?: boolean }>`
+  min-width: 48px;
+  min-height: 48px;
+  padding: 8px;
+  border: 2px solid
+    ${(props) => (props.active ? props.theme.color.navy700 : props.theme.color.borderStrong)};
+  border-radius: ${(props) => props.theme.radius.md};
+  background: ${(props) => (props.active ? props.theme.color.navy700 : props.theme.color.surface)};
+  color: ${(props) => (props.active ? props.theme.color.white : props.theme.color.navy700)};
+  font-size: 16px;
+  font-weight: 750;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 3px solid ${(props) => props.theme.color.focus};
+    outline-offset: 2px;
+  }
+`
+
 function placeName(point: ShipperCargoResponse['origin']): string {
   if (!point?.sido) return '-'
   return point.sigungu && point.sigungu !== '전체' ? `${point.sido} ${point.sigungu}` : point.sido
@@ -161,7 +195,15 @@ function registeredDate(createdAt: string | undefined): string {
   return `${formatShortDateTime(createdAt).slice(0, 5)} 등록`
 }
 
-export function MyCargoList({ cargos, loading, error, onCreate }: MyCargoListProps) {
+export function MyCargoList({
+  cargos,
+  loading,
+  error,
+  onCreate,
+  page,
+  totalPages,
+  onPageChange,
+}: MyCargoListProps) {
   const [filter, setFilter] = useState<CargoFilter>('ALL')
   const doneCount = cargos.filter((cargo) => isDone(cargo.status)).length
   const activeCount = cargos.length - doneCount
@@ -199,29 +241,61 @@ export function MyCargoList({ cargos, loading, error, onCreate }: MyCargoListPro
       ) : visibleCargos.length === 0 ? (
         <Message>{filter === 'ALL' ? '등록한 화물이 아직 없어요.' : '해당 화물이 없어요.'}</Message>
       ) : (
-        <List>
-          {visibleCargos.map((cargo) => (
-            <Item key={cargo.cargoId}>
-              <ItemHead>
-                <Badge tone={cargo.status === 'MATCHED' ? 'ok' : 'neutral'}>
-                  {statusLabel(cargo.status)}
-                </Badge>
-                <DateText>{registeredDate(cargo.createdAt)}</DateText>
-              </ItemHead>
-              <Route>
-                {placeName(cargo.origin)} <span aria-hidden="true">→</span>{' '}
-                {placeName(cargo.destination)}
-              </Route>
-              <Bottom>
-                <Meta>
-                  {formatShortDateTime(cargo.loadingAt)} 상차 · {getCargoTypeLabel(cargo.cargoType)}{' '}
-                  {cargo.weightTon ?? '-'}톤
-                </Meta>
-                <Fare>{formatFare(cargo.desiredFare)}</Fare>
-              </Bottom>
-            </Item>
-          ))}
-        </List>
+        <>
+          <List>
+            {visibleCargos.map((cargo) => (
+              <Item key={cargo.cargoId}>
+                <ItemHead>
+                  <Badge tone={cargo.status === 'MATCHED' ? 'ok' : 'neutral'}>
+                    {statusLabel(cargo.status)}
+                  </Badge>
+                  <DateText>{registeredDate(cargo.createdAt)}</DateText>
+                </ItemHead>
+                <Route>
+                  {placeName(cargo.origin)} <span aria-hidden="true">→</span>{' '}
+                  {placeName(cargo.destination)}
+                </Route>
+                <Bottom>
+                  <Meta>
+                    {formatShortDateTime(cargo.loadingAt)} 상차 ·{' '}
+                    {getCargoTypeLabel(cargo.cargoType)} {cargo.weightTon ?? '-'}톤
+                  </Meta>
+                  <Fare>{formatFare(cargo.desiredFare)}</Fare>
+                </Bottom>
+              </Item>
+            ))}
+          </List>
+          {totalPages > 1 && (
+            <Pagination aria-label="내 화물 페이지">
+              <PageButton
+                type="button"
+                disabled={page === 0}
+                onClick={() => onPageChange(page - 1)}
+              >
+                이전
+              </PageButton>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <PageButton
+                  key={index}
+                  type="button"
+                  active={page === index}
+                  aria-current={page === index ? 'page' : undefined}
+                  aria-label={`${index + 1}페이지`}
+                  onClick={() => onPageChange(index)}
+                >
+                  {index + 1}
+                </PageButton>
+              ))}
+              <PageButton
+                type="button"
+                disabled={page >= totalPages - 1}
+                onClick={() => onPageChange(page + 1)}
+              >
+                다음
+              </PageButton>
+            </Pagination>
+          )}
+        </>
       )}
     </>
   )
