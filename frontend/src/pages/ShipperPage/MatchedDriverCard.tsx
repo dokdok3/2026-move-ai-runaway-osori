@@ -163,7 +163,15 @@ export function MatchedDriverCard({ driver, fareVerdict, cargoStatus }: MatchedD
       </DataGrid>
 
       <CallButtonWrapper>
-        <Button type="button" fullWidth disabled title="데모 데이터에 연락처 정보가 없어요">
+        <Button
+          type="button"
+          fullWidth
+          disabled={!driver.phoneNumber}
+          title={driver.phoneNumber ? '' : '데모 데이터에 연락처 정보가 없어요'}
+          onClick={() => {
+            window.location.href = `tel:${driver.phoneNumber}`
+          }}
+        >
           전화하기
         </Button>
       </CallButtonWrapper>
