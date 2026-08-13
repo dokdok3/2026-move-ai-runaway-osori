@@ -192,6 +192,13 @@ export function DriverPage() {
     }
   }
 
+  const handleAcceptRecommendation = async () => {
+    const cargoId = nextRecommendation?.cargoId
+    if (cargoId === undefined) return
+    const accepted = await handleAccept(cargoId)
+    if (accepted) setNextRecommendation(null)
+  }
+
   const handleCancelAcceptance = async (cargoId: number) => {
     setAcceptError(null)
     setCancelingCargoId(cargoId)
@@ -313,8 +320,11 @@ export function DriverPage() {
               )}
             </Recommendation>
           }
-          confirmLabel="확인"
-          onConfirm={() => setNextRecommendation(null)}
+          confirmLabel="수락"
+          cancelLabel="닫기"
+          onConfirm={handleAcceptRecommendation}
+          onCancel={() => setNextRecommendation(null)}
+          busy={acceptingCargoId === nextRecommendation.cargoId}
         />
       )}
     </PageLayout>
