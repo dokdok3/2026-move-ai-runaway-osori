@@ -74,6 +74,28 @@ class LoadControllerTest {
     }
 
     @Test
+    @DisplayName("시군구 전체를 선택하면 같은 시도의 모든 시군구 화물이 조회된다")
+    void returnsLoadsForWholeSidoPreferences() throws Exception {
+        String body = """
+                {
+                  "origins": [{"sido": "경기도", "sigungu": null}],
+                  "destinations": [{"sido": "부산광역시", "sigungu": null}]
+                }
+                """;
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/drivers/me/route-preferences")
+                .header("X-User-Id", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
+                        .header("X-User-Id", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isNotEmpty())
+                .andExpect(jsonPath("$.data.content[0].origin").value("경기 수원시"))
+                .andExpect(jsonPath("$.data.content[0].destination").value("부산 강서구"));
+    }
+
+    @Test
     @DisplayName("프론트 필터 HIDDEN으로 숨긴 화물 목록을 조회한다")
     void returnsHiddenLoadsWithHiddenFilter() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
