@@ -40,10 +40,6 @@ const Top = styled.div`
   align-items: center;
   gap: 10px;
   margin-bottom: 18px;
-
-  > span:last-child {
-    margin-left: auto;
-  }
 `
 
 const Route = styled.div`
@@ -250,7 +246,7 @@ export function LoadOfferCard({
             <>
               {load.origin}에서 {load.destination}까지 운송한 화물이에요.
               <br />
-              완료 후에는 수락 목록에서 사라집니다.
+              완료 후에는 하차 완료 상태로 변경됩니다.
             </>
           }
           confirmLabel="하차 완료하기"
