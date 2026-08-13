@@ -64,15 +64,20 @@ export function DriverPage() {
 
   const saveRoute = (next: RouteDraft) => {
     setRoute(next)
-    updateRoutePreferencesMutation.mutate({
-      params: { driverId: DEMO_DRIVER_ID },
-      body: {
-        origins: [{ sido: next.originSido || undefined, sigungu: next.originSigungu || undefined }],
-        destinations: [
-          { sido: next.destSido || undefined, sigungu: next.destSigungu || undefined },
-        ],
+    updateRoutePreferencesMutation.mutate(
+      {
+        params: { driverId: DEMO_DRIVER_ID },
+        body: {
+          origins: [
+            { sido: next.originSido || undefined, sigungu: next.originSigungu || undefined },
+          ],
+          destinations: [
+            { sido: next.destSido || undefined, sigungu: next.destSigungu || undefined },
+          ],
+        },
       },
-    })
+      { onSuccess: () => loadListQuery.refetch() },
+    )
   }
 
   const handleAccept = async (cargoId: number) => {
