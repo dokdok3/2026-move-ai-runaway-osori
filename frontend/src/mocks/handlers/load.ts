@@ -58,6 +58,24 @@ export const loadHandlers = [
     return HttpResponse.json({ success: true })
   }),
 
+  http.post('/api/v1/loads/{cargoId}/complete', ({ params, query }) => {
+    const cargoId = Number(params.cargoId)
+    const driverId = Number(query.get('driverId'))
+    if (!driverId || !acceptedCargoIds.has(cargoId)) {
+      return HttpResponse.json(
+        { success: false, message: '수락한 화물을 찾을 수 없습니다.' },
+        { status: 404 },
+      )
+    }
+
+    acceptedCargoIds.delete(cargoId)
+    updateCargoDetail(cargoId, { status: 'COMPLETED' })
+    return HttpResponse.json({
+      success: true,
+      data: { cargoId, status: 'COMPLETED', completedAt: new Date().toISOString() },
+    })
+  }),
+
   http.post('/api/v1/loads/{cargoId}/accept', ({ params, query }) => {
     const cargoId = Number(params.cargoId)
     const driverId = Number(query.get('driverId'))

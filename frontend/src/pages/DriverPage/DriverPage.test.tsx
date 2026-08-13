@@ -68,6 +68,26 @@ describe('DriverPage', () => {
     expect(firstAcceptButton).not.toBeDisabled()
   })
 
+  it('수락한 화물은 숨길 수 없고 하차 완료 처리할 수 있다', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<DriverPage />)
+
+    const [acceptButton] = await waitForActionButtons('수락')
+    await user.click(acceptButton)
+    await user.click(screen.getByRole('button', { name: '수락하기' }))
+    await screen.findByRole('alertdialog', { name: '화물을 수락했어요' })
+    await user.click(screen.getByRole('button', { name: '확인' }))
+    await user.click(screen.getByRole('button', { name: '수락', pressed: false }))
+    const [completeButton] = await screen.findAllByRole('button', { name: '하차 완료' })
+    const disabledHideButtons = actionButtons('숨기기')
+
+    disabledHideButtons.forEach((button) => expect(button).toBeDisabled())
+    await user.click(completeButton)
+    expect(
+      await screen.findByRole('alertdialog', { name: '운송을 완료했어요' }),
+    ).toBeInTheDocument()
+  })
+
   it('필터 배지를 누르면 쿼리 파라미터를 변경하고 해당 목록을 보여준다', async () => {
     const user = userEvent.setup()
     renderWithProviders(<DriverPage />)

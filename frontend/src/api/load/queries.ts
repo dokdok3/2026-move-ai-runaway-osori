@@ -1,6 +1,11 @@
 import { infiniteQueryOptions, mutationOptions } from '@tanstack/react-query'
-import { acceptLoad, getLoadList, hideLoad } from './api'
-import type { AcceptLoadParams, GetLoadListParams, HideLoadParams } from './model'
+import { acceptLoad, completeLoad, getLoadList, hideLoad } from './api'
+import type {
+  AcceptLoadParams,
+  CompleteLoadParams,
+  GetLoadListParams,
+  HideLoadParams,
+} from './model'
 
 export const loadQueryKeys = {
   all: ['load'] as const,
@@ -36,5 +41,10 @@ export const loadMutations = {
     mutationOptions({
       mutationKey: [...loadQueryKeys.all, 'hide'],
       mutationFn: (params: HideLoadParams) => hideLoad(params),
+    }),
+  complete: () =>
+    mutationOptions({
+      mutationKey: [...loadQueryKeys.all, 'complete'],
+      mutationFn: (params: CompleteLoadParams) => completeLoad(params),
     }),
 }

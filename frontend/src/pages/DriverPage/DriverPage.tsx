@@ -6,7 +6,12 @@ import { Hero } from '@/components/Hero'
 import { PageLayout } from '@/components/PageLayout'
 import { useDriverProfileQuery, useUpdateRoutePreferencesMutation } from '@/api/driver/service'
 import { useRegionListQuery } from '@/api/region/service'
-import { useAcceptLoadMutation, useHideLoadMutation, useLoadListQuery } from '@/api/load/service'
+import {
+  useAcceptLoadMutation,
+  useCompleteLoadMutation,
+  useHideLoadMutation,
+  useLoadListQuery,
+} from '@/api/load/service'
 import type { LoadFilter } from '@/api/load/model'
 import { RouteFilterCard } from './RouteFilterCard'
 import { LoadOfferList } from './LoadOfferList'
@@ -47,6 +52,8 @@ export function DriverPage() {
   const [acceptingCargoId, setAcceptingCargoId] = useState<number | undefined>(undefined)
   const [acceptError, setAcceptError] = useState<string | null>(null)
   const [acceptComplete, setAcceptComplete] = useState(false)
+  const [deliveryComplete, setDeliveryComplete] = useState(false)
+  const [completingCargoId, setCompletingCargoId] = useState<number | undefined>(undefined)
   const seededRef = useRef(false)
   const loadMoreObserverRef = useRef<IntersectionObserver | null>(null)
 
@@ -57,6 +64,7 @@ export function DriverPage() {
   const loadListQuery = useLoadListQuery({ driverId: DEMO_DRIVER_ID, filter })
   const acceptLoadMutation = useAcceptLoadMutation()
   const hideLoadMutation = useHideLoadMutation()
+  const completeLoadMutation = useCompleteLoadMutation()
 
   useEffect(() => {
     if (seededRef.current) return
@@ -115,6 +123,20 @@ export function DriverPage() {
       await loadListQuery.refetch()
     } catch (error) {
       setAcceptError(error instanceof Error ? error.message : '화물을 숨기지 못했어요.')
+    }
+  }
+
+  const handleComplete = async (cargoId: number) => {
+    setAcceptError(null)
+    setCompletingCargoId(cargoId)
+    try {
+      await completeLoadMutation.mutateAsync({ cargoId, driverId: DEMO_DRIVER_ID })
+      setDeliveryComplete(true)
+      await loadListQuery.refetch()
+    } catch (error) {
+      setAcceptError(error instanceof Error ? error.message : '하차 완료 처리에 실패했어요.')
+    } finally {
+      setCompletingCargoId(undefined)
     }
   }
 
@@ -179,6 +201,8 @@ export function DriverPage() {
         hasNextPage={loadListQuery.hasNextPage}
         loadingMore={loadListQuery.isFetchingNextPage}
         loadMoreRef={setLoadMoreRef}
+        onComplete={handleComplete}
+        completingCargoId={completingCargoId}
       />
 
       {acceptComplete && (
@@ -187,6 +211,15 @@ export function DriverPage() {
           description="수락한 화물은 수락 필터에서 다시 확인할 수 있어요."
           confirmLabel="확인"
           onConfirm={() => setAcceptComplete(false)}
+        />
+      )}
+
+      {deliveryComplete && (
+        <AlertDialog
+          title="운송을 완료했어요"
+          description="하차 완료된 화물은 운송 완료 목록에 반영됩니다."
+          confirmLabel="확인"
+          onConfirm={() => setDeliveryComplete(false)}
         />
       )}
     </PageLayout>

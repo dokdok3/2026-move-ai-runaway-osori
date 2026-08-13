@@ -23,3 +23,9 @@ export type HideLoadParams = {
   cargoId: number
   driverId: number
 }
+
+export type CompleteLoadParams = {
+  cargoId: number
+  driverId: number
+}
+export type CompleteLoadResponse = components['schemas']['CompleteResponse']

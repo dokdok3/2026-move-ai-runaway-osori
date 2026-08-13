@@ -7,6 +7,7 @@ import { FareWarningBanner } from '@/components/FareWarningBanner'
 import { getCargoTypeLabel } from '@/utils/cargoType'
 import { formatFare, formatShortDateTime } from '@/utils/format'
 import type { LoadResponse } from '@/api/load/model'
+import type { LoadFilter } from '@/api/load/model'
 
 export interface LoadOfferCardProps {
   load: LoadResponse
@@ -14,6 +15,9 @@ export interface LoadOfferCardProps {
   onAccept: () => Promise<boolean>
   onHide: () => void
   accepting: boolean
+  filter: LoadFilter
+  onComplete: () => void
+  completing: boolean
 }
 
 const Wrapper = styled.div<{ isBest: boolean }>`
@@ -28,18 +32,6 @@ const Wrapper = styled.div<{ isBest: boolean }>`
   @media (max-width: 380px) {
     padding: 16px;
   }
-`
-
-const BestLabel = styled.div`
-  display: inline-flex;
-  align-items: center;
-  margin: 0;
-  padding: 7px 9px;
-  border-radius: ${(props) => props.theme.radius.sm};
-  background: ${(props) => props.theme.color.navy700};
-  color: ${(props) => props.theme.color.white};
-  font-size: 14px;
-  font-weight: 700;
 `
 
 const Top = styled.div`
@@ -151,7 +143,16 @@ const Actions = styled.div`
   }
 `
 
-export function LoadOfferCard({ load, isBest, onAccept, onHide, accepting }: LoadOfferCardProps) {
+export function LoadOfferCard({
+  load,
+  isBest,
+  onAccept,
+  onHide,
+  accepting,
+  filter,
+  onComplete,
+  completing,
+}: LoadOfferCardProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const isLow = load.badge === 'LOW'
   const badgeLabel = isLow
@@ -168,7 +169,6 @@ export function LoadOfferCard({ load, isBest, onAccept, onHide, accepting }: Loa
   return (
     <Wrapper isBest={isBest}>
       <Top>
-        {isBest && <BestLabel>✦ 최적 매칭</BestLabel>}
         <Badge tone={isLow ? 'warn' : load.badge === 'FAIR' ? 'ok' : 'neutral'}>{badgeLabel}</Badge>
       </Top>
 
@@ -200,12 +200,23 @@ export function LoadOfferCard({ load, isBest, onAccept, onHide, accepting }: Loa
       )}
 
       <Actions>
-        <Button type="button" variant="ghost" onClick={onHide} disabled={accepting}>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onHide}
+          disabled={accepting || completing || filter === 'ACCEPTED'}
+        >
           숨기기
         </Button>
-        <Button type="button" onClick={() => setConfirmOpen(true)} disabled={accepting}>
-          {accepting ? '수락 중...' : '수락'}
-        </Button>
+        {filter === 'ACCEPTED' ? (
+          <Button type="button" onClick={onComplete} disabled={completing}>
+            {completing ? '처리 중...' : '하차 완료'}
+          </Button>
+        ) : (
+          <Button type="button" onClick={() => setConfirmOpen(true)} disabled={accepting}>
+            {accepting ? '수락 중...' : '수락'}
+          </Button>
+        )}
       </Actions>
 
       {confirmOpen && (
