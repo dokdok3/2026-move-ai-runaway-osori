@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
         log.warn("validation failed", e);
         String message = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()
-                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .map(fe -> fe.getDefaultMessage())
                 .orElse("잘못된 요청입니다.");
         return ResponseEntity.badRequest().body(ApiResponse.fail(message));
     }

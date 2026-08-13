@@ -77,9 +77,10 @@ class CargoCreateTest {
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos")
                         .header("X-User-Id", "100")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalid))
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalid))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("희망 운임을 입력해주세요."));
     }
 
     @Test
@@ -89,9 +90,10 @@ class CargoCreateTest {
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos")
                         .header("X-User-Id", "100")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalid))
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalid))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("하차 일시를 입력해주세요."));
     }
 
     @Test
@@ -101,8 +103,9 @@ class CargoCreateTest {
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos")
                         .header("X-User-Id", "100")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalid))
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalid))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("시군구를 입력해주세요."));
     }
 }
