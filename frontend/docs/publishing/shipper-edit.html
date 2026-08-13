@@ -53,8 +53,23 @@
 
     <div class="card">
       <div class="card-title-row">
-        <div class="card-title">비어 있는 항목</div>
-        <span class="badge warn">2개</span>
+        <div class="card-title">화물 정보 수정</div>
+        <span class="badge warn">2개 입력 필요</span>
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="from">출발지</label>
+        <input class="field" id="from" type="text" value="서울">
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="depart-at">출발 일시</label>
+        <input class="field" id="depart-at" type="datetime-local" value="2026-08-11T14:00">
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="to">도착지</label>
+        <input class="field" id="to" type="text" value="부산">
       </div>
 
       <div class="form-row">
@@ -62,29 +77,6 @@
         <input class="field field-need" id="arrive-at" type="datetime-local" value="2026-08-11T18:00">
       </div>
 
-      <div class="form-row">
-        <label class="area-label" for="fare">운임</label>
-        <input class="field field-need" id="fare" type="number" inputmode="numeric"
-               placeholder="예: 500000" step="10000">
-        <p class="form-hint">이 구간 평균 운임은 <strong>720,000원</strong>이에요.</p>
-      </div>
-    </div>
-
-    <details class="card more-fields">
-      <summary>AI가 채운 항목도 수정하기</summary>
-
-      <div class="form-row">
-        <label class="area-label" for="from">출발지</label>
-        <input class="field" id="from" type="text" value="서울">
-      </div>
-      <div class="form-row">
-        <label class="area-label" for="depart-at">출발 일시</label>
-        <input class="field" id="depart-at" type="datetime-local" value="2026-08-11T14:00">
-      </div>
-      <div class="form-row">
-        <label class="area-label" for="to">도착지</label>
-        <input class="field" id="to" type="text" value="부산">
-      </div>
       <div class="form-row">
         <label class="area-label" for="cargo-type">화물 종류</label>
         <select class="field" id="cargo-type">
@@ -94,6 +86,7 @@
           <option>위험물</option>
         </select>
       </div>
+
       <div class="form-row">
         <label class="area-label" for="weight">중량</label>
         <select class="field" id="weight">
@@ -104,11 +97,18 @@
           <option>22톤</option>
         </select>
       </div>
-    </details>
+
+      <div class="form-row">
+        <label class="area-label" for="fare">운임</label>
+        <input class="field field-need" id="fare" type="number" inputmode="numeric"
+               placeholder="예: 500000" step="10000">
+        <p class="form-hint">이 구간 평균 운임은 <strong>720,000원</strong>이에요.</p>
+      </div>
+    </div>
 
     <div class="sticky-cta">
-      <button class="btn ghost" type="button">다시 입력</button>
-      <button class="btn primary" type="button">매칭 시작하기 (2개 남음)</button>
+      <a class="btn ghost" href="shipper.html">다시 입력</a>
+      <a class="btn primary" href="shipper-list.html">등록하기</a>
     </div>
 
   </section>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>화물 정보 직접 입력 · 집나간 벌꿀오소리</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="brand">
+  <img src="logo.png" alt="집나간 벌꿀오소리 로고">
+  <div>
+    <div class="name">집나간 벌꿀오소리</div>
+    <div class="tag">카카오모빌리티 물류 해커톤</div>
+  </div>
+</header>
+
+<main>
+
+  <section class="screen active">
+    <div class="hero">
+      <div class="eyebrow">화물 직접 등록</div>
+      <h1>화물 정보 입력</h1>
+      <p>배차에 필요한 정보를 항목별로 입력해주세요.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title">화물 정보</div>
+        <span class="badge info">필수 입력</span>
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="from">출발지</label>
+        <input class="field" id="from" type="text" placeholder="예: 서울">
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="depart-at">출발 일시</label>
+        <input class="field" id="depart-at" type="datetime-local">
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="to">도착지</label>
+        <input class="field" id="to" type="text" placeholder="예: 부산">
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="arrive-at">도착 일시</label>
+        <input class="field" id="arrive-at" type="datetime-local">
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="cargo-type">화물 종류</label>
+        <select class="field" id="cargo-type">
+          <option value="" selected disabled>화물 종류 선택</option>
+          <option>냉장</option>
+          <option>일반화물</option>
+          <option>냉동</option>
+          <option>위험물</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="weight">중량</label>
+        <select class="field" id="weight">
+          <option value="" selected disabled>중량 선택</option>
+          <option>1톤</option>
+          <option>2.5톤</option>
+          <option>5톤</option>
+          <option>11톤</option>
+          <option>22톤</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="area-label" for="fare">운임</label>
+        <input class="field" id="fare" type="number" inputmode="numeric"
+               placeholder="예: 500000" step="10000">
+        <p class="form-hint">출발지와 도착지를 입력하면 구간 평균 운임을 확인할 수 있어요.</p>
+      </div>
+    </div>
+
+    <div class="sticky-cta">
+      <a class="btn ghost" href="shipper.html">취소</a>
+      <a class="btn primary" href="shipper-list.html">등록하기</a>
+    </div>
+  </section>
+
+</main>
+
+</body>
+</html>

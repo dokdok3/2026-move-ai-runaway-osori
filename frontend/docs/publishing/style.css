@@ -491,6 +491,7 @@
   .cargo-summary__fare strong{color:#17205d;font-size:24px;font-weight:850;line-height:1.2;white-space:nowrap;}
   .cargo-summary__actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:16px;border-top:1px solid #dfe4ec;}
   .cargo-summary__actions .btn{width:100%;}
+  .cargo-summary__actions .btn:only-child{grid-column:1 / -1;}
   /* 인트로 · 역할 선택 */
   .pick{display:flex;flex-direction:column;gap:12px;}
   .pick-btn{display:flex;align-items:center;gap:16px;width:100%;min-height:124px;
@@ -551,9 +552,30 @@
   input.field:focus,select.field:focus{border-color:#2855d9;}
   .form-row{margin-bottom:18px;}
   .form-row:last-child{margin-bottom:0;}
+  .form-row .area-label{display:block;margin-bottom:8px;}
   .form-row .field{margin-bottom:0;}
   .field-need{border-color:#e0a45f;background:#fffaf3;}
   .form-hint{margin:8px 0 0;font-size:14px;line-height:1.5;color:#586474;}
+  .input-divider{display:flex;align-items:center;gap:12px;margin:2px 0 12px;color:#77839a;
+    font-size:14px;font-weight:650;}
+  .input-divider:before,.input-divider:after{content:"";height:1px;flex:1;background:#d5dae1;}
+  .manual-entry-link{display:flex;align-items:center;justify-content:space-between;gap:16px;
+    min-height:82px;margin-bottom:14px;padding:16px 18px;border:2px solid #c8ced8;border-radius:14px;
+    background:#fff;color:#17202b;text-decoration:none;touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;transition:border-color .18s ease,transform .18s ease;}
+  .manual-entry-link strong{display:block;font-size:17px;font-weight:800;line-height:1.35;}
+  .manual-entry-link small{display:block;margin-top:3px;color:#667286;font-size:14px;line-height:1.4;}
+  .manual-entry-link__arrow{flex:none;color:#2855d9;font-size:25px;font-weight:750;}
+  .manual-entry-link:active{transform:translateY(1px);}
+  .manual-entry-link:focus-visible{outline:3px solid #ffbf47;outline-offset:2px;}
+  @media (hover:hover){.manual-entry-link:hover{border-color:#2855d9;}}
+  .matching-state{display:flex;flex-direction:column;align-items:center;padding:22px 12px 10px;
+    text-align:center;}
+  .matching-state__icon{display:grid;place-items:center;width:64px;height:64px;margin-bottom:16px;
+    border-radius:50%;background:#e8eeff;}
+  .matching-state__truck{display:block;width:40px;height:40px;}
+  .matching-state strong{color:#17202b;font-size:19px;font-weight:800;line-height:1.4;}
+  .matching-state p{max-width:300px;margin:7px 0 0;color:#667286;font-size:14px;line-height:1.55;}
   .cargo-summary__place .badge{display:inline-block;margin-top:7px;}
   .more-fields > summary{list-style:none;display:flex;align-items:center;justify-content:space-between;
     min-height:52px;font-size:17px;font-weight:750;color:#2149bd;cursor:pointer;
@@ -569,6 +591,13 @@
     input.field,select.field{color:#eef2f7}
     .field-need{border-color:#8a6534;background:#241d13}
     .form-hint{color:#c3ccd7}
+    .input-divider{color:#9aa8b8}
+    .input-divider:before,.input-divider:after{background:#435063}
+    .manual-entry-link{background:#17212e;border-color:#435063;color:#eef2f7}
+    .manual-entry-link small{color:#c3ccd7}
+    .matching-state__icon{background:#26385f}
+    .matching-state strong{color:#eef2f7}
+    .matching-state p{color:#c3ccd7}
     .more-fields > summary{color:#b8c8ff}
     .more-fields[open] > summary{border-color:#435063}
     .sticky-cta{background:#0f1722;border-color:#435063}

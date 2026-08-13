@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기사 찾는 중 상세 · 집나간 벌꿀오소리</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="brand">
+  <img src="logo.png" alt="집나간 벌꿀오소리 로고">
+  <div>
+    <div class="name">집나간 벌꿀오소리</div>
+    <div class="tag">카카오모빌리티 물류 해커톤</div>
+  </div>
+</header>
+
+<main>
+
+  <section class="screen active">
+    <div class="list-head">
+      <h1 class="list-title">화물 상세</h1>
+      <a class="btn subtle" href="shipper-list.html">← 목록</a>
+    </div>
+
+    <div class="card cargo-summary">
+      <div class="cargo-summary__head">
+        <h2 class="card-title">화물 정보</h2>
+        <span class="badge info">기사 찾는 중</span>
+      </div>
+      <div class="cargo-summary__route">
+        <div class="cargo-summary__place">
+          <span class="cargo-summary__label">출발지</span>
+          <strong class="cargo-summary__city" id="origin-city">대전</strong>
+          <time class="cargo-summary__time" id="loading-at" datetime="2026-08-13T08:00">08/13 08:00</time>
+        </div>
+        <div class="cargo-summary__arrow" aria-hidden="true">→</div>
+        <div class="cargo-summary__place">
+          <span class="cargo-summary__label">도착지</span>
+          <strong class="cargo-summary__city" id="destination-city">광주</strong>
+          <time class="cargo-summary__time" id="unloading-at" datetime="2026-08-13T11:00">08/13 11:00</time>
+        </div>
+      </div>
+      <div class="cargo-summary__meta">
+        <span class="cargo-summary__type" id="cargo-meta">일반 · 3톤</span>
+        <span class="cargo-summary__sep" aria-hidden="true"></span>
+        <span class="cargo-summary__fare">운임 <strong id="cargo-fare">320,000원</strong></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <h2 class="card-title">기사님 정보</h2>
+        <span class="badge info">매칭 중</span>
+      </div>
+      <div class="matching-state" role="status" aria-live="polite">
+        <span class="matching-state__icon" aria-hidden="true">
+          <img class="matching-state__truck" src="truck-icon.svg" alt="">
+        </span>
+        <strong>조건에 맞는 기사님을 찾고 있어요</strong>
+        <p id="matching-message">2시간째 지원한 기사가 없어요. 배차가 확정되면 기사님 정보가 여기에 표시됩니다.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const cargoDetails = {
+    'seoul-wonju': {
+      origin: '서울',
+      destination: '원주',
+      loadingAt: '08/14 06:00',
+      loadingDateTime: '2026-08-14T06:00',
+      unloadingAt: '08/14 08:00',
+      unloadingDateTime: '2026-08-14T08:00',
+      meta: '냉동 · 1톤',
+      fare: '180,000원',
+      message: '기사 3명이 확인했어요. 배차가 확정되면 기사님 정보가 여기에 표시됩니다.',
+    },
+  }
+
+  const cargo = new URLSearchParams(window.location.search).get('cargo')
+  const detail = cargoDetails[cargo]
+
+  if (detail) {
+    document.querySelector('#origin-city').textContent = detail.origin
+    document.querySelector('#destination-city').textContent = detail.destination
+    document.querySelector('#loading-at').textContent = detail.loadingAt
+    document.querySelector('#loading-at').dateTime = detail.loadingDateTime
+    document.querySelector('#unloading-at').textContent = detail.unloadingAt
+    document.querySelector('#unloading-at').dateTime = detail.unloadingDateTime
+    document.querySelector('#cargo-meta').textContent = detail.meta
+    document.querySelector('#cargo-fare').textContent = detail.fare
+    document.querySelector('#matching-message').textContent = detail.message
+  }
+</script>
+
+</body>
+</html>
