@@ -83,9 +83,9 @@ describe('DriverPage', () => {
 
     disabledHideButtons.forEach((button) => expect(button).toBeDisabled())
     await user.click(completeButton)
-    expect(
-      await screen.findByRole('alertdialog', { name: '운송을 완료했어요' }),
-    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '하차 완료하기' }))
+    await waitFor(() => expect(completeButton).not.toBeInTheDocument())
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   })
 
   it('필터 배지를 누르면 쿼리 파라미터를 변경하고 해당 목록을 보여준다', async () => {

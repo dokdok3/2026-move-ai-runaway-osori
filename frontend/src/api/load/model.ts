@@ -9,7 +9,10 @@ export type GetLoadListParams = {
   filter?: LoadFilter
   cursor?: string
 }
-export type LoadResponse = components['schemas']['LoadResponse']
+export type LoadResponse = components['schemas']['LoadResponse'] & {
+  status?: string
+  completedAt?: string
+}
 export type GetLoadListResponse = components['schemas']['CursorPageResponseLoadResponse']
 
 export type AcceptLoadParams = {
@@ -29,3 +32,4 @@ export type CompleteLoadParams = {
   driverId: number
 }
 export type CompleteLoadResponse = components['schemas']['CompleteResponse']
+export type NextLoadRecommendationResponse = components['schemas']['NextLoadRecommendationResponse']

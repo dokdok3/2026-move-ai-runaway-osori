@@ -154,6 +154,8 @@ export function LoadOfferCard({
   completing,
 }: LoadOfferCardProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false)
+  const isCompleted = load.status === 'COMPLETED' || Boolean(load.completedAt)
   const isLow = load.badge === 'LOW'
   const badgeLabel = isLow
     ? `운임 ${load.belowPercent ?? 0}% 낮음`
@@ -164,6 +166,12 @@ export function LoadOfferCard({
   const handleAccept = async () => {
     const accepted = await onAccept()
     if (accepted) setConfirmOpen(false)
+  }
+
+  const handleComplete = () => {
+    if (isCompleted) return
+    setCompleteConfirmOpen(false)
+    onComplete()
   }
 
   return (
@@ -209,7 +217,11 @@ export function LoadOfferCard({
           숨기기
         </Button>
         {filter === 'ACCEPTED' ? (
-          <Button type="button" onClick={onComplete} disabled={completing}>
+          <Button
+            type="button"
+            onClick={() => !isCompleted && setCompleteConfirmOpen(true)}
+            disabled={completing || isCompleted}
+          >
             {completing ? '처리 중...' : '하차 완료'}
           </Button>
         ) : (
@@ -231,6 +243,23 @@ export function LoadOfferCard({
           onConfirm={handleAccept}
           onCancel={() => setConfirmOpen(false)}
           busy={accepting}
+        />
+      )}
+
+      {completeConfirmOpen && !isCompleted && (
+        <AlertDialog
+          title="하차를 완료할까요?"
+          description={
+            <>
+              {load.origin}에서 {load.destination}까지 운송한 화물이에요.
+              <br />
+              완료 후에는 수락 목록에서 사라집니다.
+            </>
+          }
+          confirmLabel="하차 완료하기"
+          onConfirm={handleComplete}
+          onCancel={() => setCompleteConfirmOpen(false)}
+          busy={completing}
         />
       )}
     </Wrapper>

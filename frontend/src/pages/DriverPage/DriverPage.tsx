@@ -12,7 +12,9 @@ import {
   useHideLoadMutation,
   useLoadListQuery,
 } from '@/api/load/service'
-import type { LoadFilter } from '@/api/load/model'
+import type { LoadFilter, NextLoadRecommendationResponse } from '@/api/load/model'
+import { getCargoTypeLabel } from '@/utils/cargoType'
+import { formatFare, formatShortDateTime } from '@/utils/format'
 import { RouteFilterCard } from './RouteFilterCard'
 import { LoadOfferList } from './LoadOfferList'
 import { DriverProfileSummary } from './DriverProfileSummary'
@@ -47,6 +49,27 @@ const ErrorText = styled.p`
   line-height: 1.5;
 `
 
+const Recommendation = styled.div`
+  display: grid;
+  gap: 10px;
+  text-align: left;
+
+  strong {
+    color: ${(props) => props.theme.color.text};
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+`
+
 const ProfileLink = styled(Link)`
   display: inline-flex;
   align-items: center;
@@ -74,7 +97,8 @@ export function DriverPage() {
   const [acceptingCargoId, setAcceptingCargoId] = useState<number | undefined>(undefined)
   const [acceptError, setAcceptError] = useState<string | null>(null)
   const [acceptComplete, setAcceptComplete] = useState(false)
-  const [deliveryComplete, setDeliveryComplete] = useState(false)
+  const [nextRecommendation, setNextRecommendation] =
+    useState<NextLoadRecommendationResponse | null>(null)
   const [completingCargoId, setCompletingCargoId] = useState<number | undefined>(undefined)
   const seededRef = useRef(false)
   const loadMoreObserverRef = useRef<IntersectionObserver | null>(null)
@@ -152,8 +176,11 @@ export function DriverPage() {
     setAcceptError(null)
     setCompletingCargoId(cargoId)
     try {
-      await completeLoadMutation.mutateAsync({ cargoId, driverId: DEMO_DRIVER_ID })
-      setDeliveryComplete(true)
+      const response = await completeLoadMutation.mutateAsync({
+        cargoId,
+        driverId: DEMO_DRIVER_ID,
+      })
+      setNextRecommendation(response.nextLoadRecommendation ?? null)
       await loadListQuery.refetch()
     } catch (error) {
       setAcceptError(error instanceof Error ? error.message : '하차 완료 처리에 실패했어요.')
@@ -238,12 +265,36 @@ export function DriverPage() {
         />
       )}
 
-      {deliveryComplete && (
+      {nextRecommendation && (
         <AlertDialog
-          title="운송을 완료했어요"
-          description="하차 완료된 화물은 운송 완료 목록에 반영됩니다."
+          title="다음 추천 화물이 있어요"
+          description={
+            <Recommendation>
+              <strong>
+                {nextRecommendation.origin ?? '-'} → {nextRecommendation.destination ?? '-'}
+              </strong>
+              <p>
+                {formatShortDateTime(nextRecommendation.loadingAt)} 출발 ·{' '}
+                {formatShortDateTime(nextRecommendation.unloadingAt)} 도착
+              </p>
+              <p>
+                {getCargoTypeLabel(nextRecommendation.cargoType)} ·{' '}
+                {nextRecommendation.weightTon ?? '-'}톤 · {formatFare(nextRecommendation.fare)}
+              </p>
+              {nextRecommendation.recommendationSummary && (
+                <p>{nextRecommendation.recommendationSummary}</p>
+              )}
+              {(nextRecommendation.recommendationReasons?.length ?? 0) > 0 && (
+                <ul>
+                  {nextRecommendation.recommendationReasons?.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              )}
+            </Recommendation>
+          }
           confirmLabel="확인"
-          onConfirm={() => setDeliveryComplete(false)}
+          onConfirm={() => setNextRecommendation(null)}
         />
       )}
     </PageLayout>
