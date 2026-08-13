@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Hero } from '@/components/Hero'
 import { HeaderBackLink } from '@/components/AppHeader'
@@ -6,6 +7,7 @@ import { PageLayout } from '@/components/PageLayout'
 import { useDriverProfileQuery, useUpdateRoutePreferencesMutation } from '@/api/driver/service'
 import { useRegionListQuery } from '@/api/region/service'
 import { useAcceptLoadMutation, useLoadListQuery } from '@/api/load/service'
+import type { LoadFilter, LoadResponse } from '@/api/load/model'
 import { RouteFilterCard } from './RouteFilterCard'
 import { LoadOfferList } from './LoadOfferList'
 
@@ -26,6 +28,12 @@ const EMPTY_ROUTE: RouteDraft = {
   destSigungu: '',
 }
 
+const LOAD_FILTERS: LoadFilter[] = ['ALL', 'ACCEPTED', 'HIDDEN']
+
+function toLoadFilter(value: string | null): LoadFilter {
+  return LOAD_FILTERS.includes(value as LoadFilter) ? (value as LoadFilter) : 'ALL'
+}
+
 const ErrorText = styled.p`
   margin: 0 0 14px;
   color: #b3261e;
@@ -34,8 +42,11 @@ const ErrorText = styled.p`
 `
 
 export function DriverPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [route, setRoute] = useState<RouteDraft>(EMPTY_ROUTE)
   const [hiddenCargoIds, setHiddenCargoIds] = useState<Set<number>>(new Set())
+  const [acceptedCargoIds, setAcceptedCargoIds] = useState<Set<number>>(new Set())
+  const [actionedLoads, setActionedLoads] = useState<Map<number, LoadResponse>>(new Map())
   const [acceptingCargoId, setAcceptingCargoId] = useState<number | undefined>(undefined)
   const [acceptError, setAcceptError] = useState<string | null>(null)
   const seededRef = useRef(false)
@@ -43,7 +54,8 @@ export function DriverPage() {
   const driverProfileQuery = useDriverProfileQuery({ driverId: DEMO_DRIVER_ID })
   const regionListQuery = useRegionListQuery()
   const updateRoutePreferencesMutation = useUpdateRoutePreferencesMutation()
-  const loadListQuery = useLoadListQuery({ driverId: DEMO_DRIVER_ID })
+  const filter = toLoadFilter(searchParams.get('filter'))
+  const loadListQuery = useLoadListQuery({ driverId: DEMO_DRIVER_ID, filter })
   const acceptLoadMutation = useAcceptLoadMutation()
 
   useEffect(() => {
@@ -83,8 +95,11 @@ export function DriverPage() {
   const handleAccept = async (cargoId: number) => {
     setAcceptError(null)
     setAcceptingCargoId(cargoId)
+    const targetLoad = (loadListQuery.data ?? []).find((load) => load.cargoId === cargoId)
     try {
       await acceptLoadMutation.mutateAsync({ cargoId, driverId: DEMO_DRIVER_ID })
+      setAcceptedCargoIds((prev) => new Set(prev).add(cargoId))
+      if (targetLoad) setActionedLoads((prev) => new Map(prev).set(cargoId, targetLoad))
       await loadListQuery.refetch()
     } catch (error) {
       setAcceptError(error instanceof Error ? error.message : '화물을 수락하지 못했어요.')
@@ -94,12 +109,30 @@ export function DriverPage() {
   }
 
   const handleHide = (cargoId: number) => {
+    const targetLoad = (loadListQuery.data ?? []).find((load) => load.cargoId === cargoId)
     setHiddenCargoIds((prev) => new Set(prev).add(cargoId))
+    if (targetLoad) setActionedLoads((prev) => new Map(prev).set(cargoId, targetLoad))
   }
 
-  const visibleLoads = (loadListQuery.data ?? []).filter(
-    (load) => load.cargoId !== undefined && !hiddenCargoIds.has(load.cargoId),
-  )
+  const mergedLoads = [...(loadListQuery.data ?? [])]
+  actionedLoads.forEach((load, cargoId) => {
+    if (!mergedLoads.some((item) => item.cargoId === cargoId)) mergedLoads.push(load)
+  })
+
+  const visibleLoads = mergedLoads.filter((load) => {
+    if (load.cargoId === undefined) return false
+    if (filter === 'ACCEPTED') {
+      return acceptedCargoIds.size === 0 || acceptedCargoIds.has(load.cargoId)
+    }
+    if (filter === 'HIDDEN') return hiddenCargoIds.size === 0 || hiddenCargoIds.has(load.cargoId)
+    return !hiddenCargoIds.has(load.cargoId)
+  })
+
+  const handleFilterChange = (nextFilter: LoadFilter) => {
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('filter', nextFilter)
+    setSearchParams(nextParams)
+  }
 
   return (
     <PageLayout headerRight={<HeaderBackLink />}>
@@ -135,6 +168,8 @@ export function DriverPage() {
         onAccept={handleAccept}
         onHide={handleHide}
         acceptingCargoId={acceptingCargoId}
+        filter={filter}
+        onFilterChange={handleFilterChange}
       />
     </PageLayout>
   )

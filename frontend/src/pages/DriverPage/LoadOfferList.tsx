@@ -1,6 +1,6 @@
 import styled from '@emotion/styled'
 import { Card } from '@/components/Card'
-import type { LoadResponse } from '@/api/load/model'
+import type { LoadFilter, LoadResponse } from '@/api/load/model'
 import { LoadOfferCard } from './LoadOfferCard'
 
 export interface LoadOfferListProps {
@@ -9,6 +9,8 @@ export interface LoadOfferListProps {
   onAccept: (cargoId: number) => void
   onHide: (cargoId: number) => void
   acceptingCargoId: number | undefined
+  filter: LoadFilter
+  onFilterChange: (filter: LoadFilter) => void
 }
 
 const TitleRow = styled.div`
@@ -22,6 +24,37 @@ const Title = styled.div`
   font-size: 19px;
   font-weight: 800;
   color: ${(props) => props.theme.color.navy900};
+`
+
+const FilterList = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+`
+
+const FilterBadge = styled.button<{ active: boolean }>`
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 2px solid
+    ${(props) => (props.active ? props.theme.color.navy700 : props.theme.color.borderStrong)};
+  border-radius: 999px;
+  background: ${(props) => (props.active ? props.theme.color.navy700 : props.theme.color.surface)};
+  color: ${(props) => (props.active ? props.theme.color.white : props.theme.color.muted)};
+  font-size: 15px;
+  font-weight: 750;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:focus-visible {
+    outline: 3px solid ${(props) => props.theme.color.focus};
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      border-color: ${(props) => props.theme.color.navy700};
+    }
+  }
 `
 
 const RefreshButton = styled.button`
@@ -68,7 +101,15 @@ export function LoadOfferList({
   onAccept,
   onHide,
   acceptingCargoId,
+  filter,
+  onFilterChange,
 }: LoadOfferListProps) {
+  const filters: Array<{ value: LoadFilter; label: string }> = [
+    { value: 'ALL', label: '전체' },
+    { value: 'ACCEPTED', label: '수락' },
+    { value: 'HIDDEN', label: '숨기기' },
+  ]
+
   return (
     <Card>
       <TitleRow>
@@ -90,8 +131,28 @@ export function LoadOfferList({
         </RefreshButton>
       </TitleRow>
 
+      <FilterList aria-label="추천 화물 필터">
+        {filters.map(({ value, label }) => (
+          <FilterBadge
+            key={value}
+            type="button"
+            active={filter === value}
+            aria-pressed={filter === value}
+            onClick={() => onFilterChange(value)}
+          >
+            {label}
+          </FilterBadge>
+        ))}
+      </FilterList>
+
       {loads.length === 0 ? (
-        <EmptyState>조건에 맞는 화물이 아직 없어요. 활동 지역을 조정해 보세요.</EmptyState>
+        <EmptyState>
+          {filter === 'ALL'
+            ? '조건에 맞는 화물이 아직 없어요. 활동 지역을 조정해 보세요.'
+            : filter === 'ACCEPTED'
+              ? '수락한 화물이 아직 없어요.'
+              : '숨긴 화물이 아직 없어요.'}
+        </EmptyState>
       ) : (
         loads.map((load, index) => (
           <LoadOfferCard

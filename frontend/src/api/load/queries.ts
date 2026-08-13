@@ -11,6 +11,7 @@ export const loadQueryKeys = {
       params.driverId,
       params.preferenceText ?? '',
       params.refresh ?? false,
+      params.filter ?? 'ALL',
     ] as const,
 }
 
