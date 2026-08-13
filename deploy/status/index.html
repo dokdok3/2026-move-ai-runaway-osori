@@ -42,6 +42,7 @@
       dl { display: grid; grid-template-columns: 130px 1fr; gap: 14px 20px; margin: 0; }
       dt { color: #8b949e; }
       dd { margin: 0; overflow-wrap: anywhere; }
+      .changes { white-space: pre-wrap; line-height: 1.55; }
       .colors { display: flex; align-items: center; gap: 10px; }
       .badge { padding: 3px 9px; border: 1px solid #484f58; border-radius: 999px; text-transform: uppercase; font-size: 13px; }
       .arrow { color: #8b949e; }
@@ -61,6 +62,8 @@
         <dt>현재 단계</dt><dd id="stage">-</dd>
         <dt>Blue / Green</dt><dd class="colors"><span id="active" class="badge">-</span><span class="arrow">→</span><span id="target" class="badge">-</span></dd>
         <dt>버전</dt><dd id="version">-</dd>
+        <dt>배포 실행자</dt><dd id="deployer">-</dd>
+        <dt>변경 커밋</dt><dd id="changes" class="changes">-</dd>
         <dt>시작 시각</dt><dd id="started">-</dd>
         <dt>경과 시간</dt><dd id="elapsed">-</dd>
         <dt>마지막 갱신</dt><dd id="updated">-</dd>
@@ -103,6 +106,8 @@
         document.querySelector("#active").textContent = data.activeColor;
         document.querySelector("#target").textContent = data.targetColor;
         document.querySelector("#version").textContent = data.imageTag === "unknown" ? "확정 전" : data.imageTag.slice(0, 12);
+        document.querySelector("#deployer").textContent = data.deployedBy || "-";
+        document.querySelector("#changes").textContent = data.changes || "-";
         document.querySelector("#started").textContent = formatDate(data.startedAt);
         document.querySelector("#elapsed").textContent = formatElapsed(data.startedAt, data.completedAt);
         document.querySelector("#updated").textContent = formatDate(data.updatedAt);
@@ -123,4 +128,3 @@
     </script>
   </body>
 </html>
-
