@@ -9,6 +9,7 @@ on:
       - "compose.prod.yaml"
       - "deploy/**"
       - "scripts/deploy-blue-green.sh"
+      - "scripts/generate-apm-report.sh"
       - "scripts/write-deploy-status.sh"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
@@ -208,13 +209,25 @@ jobs:
               '${{ steps.deployment.outputs.started-at }}'
       - name: Install deployment files
         run: |
-          install -d "$HOME/hackathon-deploy/scripts" "$HOME/hackathon-deploy/deploy/nginx"
+          install -d "$HOME/hackathon-deploy/scripts" "$HOME/hackathon-deploy/deploy/nginx" "$HOME/hackathon-deploy/deploy/apm"
           install -m 644 compose.prod.yaml "$HOME/hackathon-deploy/compose.prod.yaml"
           install -m 755 scripts/deploy-blue-green.sh "$HOME/hackathon-deploy/scripts/deploy-blue-green.sh"
           install -m 755 scripts/write-deploy-status.sh "$HOME/hackathon-deploy/scripts/write-deploy-status.sh"
+          install -m 755 scripts/generate-apm-report.sh "$HOME/hackathon-deploy/scripts/generate-apm-report.sh"
           install -m 644 deploy/nginx/hackathon.conf.template "$HOME/hackathon-deploy/deploy/nginx/hackathon.conf.template"
+          install -m 644 deploy/apm/index.html "$HOME/hackathon-deploy/deploy/apm/index.html"
+          install -m 644 deploy/apm/hackathon-apm.service "$HOME/hackathon-deploy/deploy/apm/hackathon-apm.service"
+          install -m 644 deploy/apm/hackathon-apm.timer "$HOME/hackathon-deploy/deploy/apm/hackathon-apm.timer"
           sudo install -d -o "$USER" -g "$USER" -m 755 /var/www/hackathon-deploy
           install -m 644 deploy/status/index.html /var/www/hackathon-deploy/index.html
+          sudo install -d -o "$USER" -g "$USER" -m 755 /var/www/hackathon-apm
+          install -m 644 deploy/apm/index.html /var/www/hackathon-apm/index.html
+          sudo install -m 755 "$HOME/hackathon-deploy/scripts/generate-apm-report.sh" /usr/local/bin/hackathon-generate-apm
+          sudo install -m 644 "$HOME/hackathon-deploy/deploy/apm/hackathon-apm.service" /etc/systemd/system/hackathon-apm.service
+          sudo install -m 644 "$HOME/hackathon-deploy/deploy/apm/hackathon-apm.timer" /etc/systemd/system/hackathon-apm.timer
+          sudo systemctl daemon-reload
+          sudo systemctl enable --now hackathon-apm.timer
+          sudo systemctl start hackathon-apm.service
       - name: Switch blue-green deployment
         env:
           DEPLOY_ACTOR: ${{ github.actor }}

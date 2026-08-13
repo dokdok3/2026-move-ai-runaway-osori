@@ -1,5 +1,10 @@
 x-backend-common: &backend-common
   restart: unless-stopped
+  logging:
+    driver: local
+    options:
+      max-size: "10m"
+      max-file: "5"
   environment:
     DATABASE_URL: jdbc:postgresql://postgres:5432/hackathon
     DATABASE_USERNAME: hackathon

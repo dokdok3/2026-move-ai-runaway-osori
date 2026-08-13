@@ -55,6 +55,10 @@ springdoc:
 server:
   shutdown: graceful
 
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%X{requestId:-no-request}] [%X{httpMethod:-} %X{requestPath:-}] %logger{36} - %msg%n"
+
 openai:
   api-key: ${OPENAI_API_KEY:}
   base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}

@@ -1,0 +1,6 @@
+[Unit]
+Description=Generate Hackathon Nginx APM report
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/hackathon-generate-apm
