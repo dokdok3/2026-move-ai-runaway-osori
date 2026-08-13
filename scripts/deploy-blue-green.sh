@@ -8,6 +8,20 @@ DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="$DEPLOY_DIR/compose.prod.yaml"
 ACTIVE_COLOR_FILE="$DEPLOY_DIR/.active-color"
 NGINX_TEMPLATE="$DEPLOY_DIR/deploy/nginx/hackathon.conf.template"
+DEPLOY_STARTED_AT="${DEPLOY_STARTED_AT:-$(date +%s)}"
+DEPLOY_STATUS_DIR="${DEPLOY_STATUS_DIR:-/var/www/hackathon-deploy}"
+STATUS_WRITER="$DEPLOY_DIR/scripts/write-deploy-status.sh"
+
+write_status() {
+  DEPLOY_STATUS_DIR="$DEPLOY_STATUS_DIR" \
+    "$STATUS_WRITER" "$1" "$2" "$IMAGE_TAG" "${active_color:-none}" "${target_color:-none}" "$DEPLOY_STARTED_AT"
+}
+
+deployment_failed() {
+  write_status failed failed || true
+}
+
+trap deployment_failed ERR
 
 if [[ ! "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]]; then
   echo "IMAGE_TAG must be a full Git commit SHA" >&2
@@ -23,6 +37,7 @@ active_color="green"
 if [[ -f "$ACTIVE_COLOR_FILE" ]]; then
   active_color="$(<"$ACTIVE_COLOR_FILE")"
 fi
+previous_color="$active_color"
 
 case "$active_color" in
   blue)
@@ -47,10 +62,13 @@ target_services=("backend-$target_color" "frontend-$target_color")
 
 echo "Deploying $IMAGE_TAG to $target_color"
 "${compose[@]}" up -d postgres redis
+write_status deploying pull-images
 "${compose[@]}" pull "${target_services[@]}"
+write_status deploying start-candidate
 "${compose[@]}" up -d --no-deps --force-recreate "${target_services[@]}"
 
 healthy=false
+write_status deploying health-check
 for _ in {1..60}; do
   if curl --fail --silent "http://127.0.0.1:$backend_port/actuator/health" | grep -q '"status":"UP"' \
     && curl --fail --silent "http://127.0.0.1:$frontend_port/health" | grep -q "UP"; then
@@ -93,6 +111,7 @@ if ! sudo nginx -t; then
   exit 1
 fi
 
+write_status deploying switch-traffic
 sudo systemctl reload nginx
 printf '%s\n' "$target_color" > "$ACTIVE_COLOR_FILE"
 
@@ -100,4 +119,7 @@ if [[ -f "$ACTIVE_COLOR_FILE" && "$active_color" != "$target_color" ]]; then
   "${compose[@]}" stop "backend-$active_color" "frontend-$active_color" || true
 fi
 
-echo "Blue-green switch complete: $active_color -> $target_color"
+active_color="$target_color"
+write_status success complete
+trap - ERR
+echo "Blue-green switch complete: $previous_color -> $target_color"
