@@ -157,6 +157,14 @@ export function LoadOfferCard({ load, isBest, onAccept, onHide, accepting }: Loa
       ? '적정 운임'
       : '시세 정보 없음'
 
+  const handleAccept = () => {
+    const confirmed = window.confirm(
+      `${load.origin}에서 ${load.destination}까지 운행하는 화물을 수락하시겠어요?`,
+    )
+
+    if (confirmed) onAccept()
+  }
+
   return (
     <Wrapper isBest={isBest}>
       <Top>
@@ -195,7 +203,7 @@ export function LoadOfferCard({ load, isBest, onAccept, onHide, accepting }: Loa
         <Button type="button" variant="ghost" onClick={onHide} disabled={accepting}>
           숨기기
         </Button>
-        <Button type="button" onClick={onAccept} disabled={accepting}>
+        <Button type="button" onClick={handleAccept} disabled={accepting}>
           {accepting ? '수락 중...' : '수락'}
         </Button>
       </Actions>
