@@ -42,7 +42,7 @@ export function RoleSelectPage() {
             오셨나요?
           </>
         }
-        description="역할을 고르면 바로 그 화면으로 갑니다. 각 화면에서 언제든 처음으로 돌아올 수 있어요."
+        description="역할을 고르면 바로 그 화면으로 갑니다."
       />
 
       <PickList>
