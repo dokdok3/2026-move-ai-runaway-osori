@@ -33,6 +33,10 @@ public class PostgisCandidateRepository {
                   AND c.loading_at BETWEEN d.available_from AND d.available_until
                   AND ST_DWithin(c.origin_location, d.current_location, d.pickup_radius_m)
                   AND ST_DWithin(c.destination_location, d.preferred_destination, d.destination_radius_m)
+                  AND ST_Distance(c.origin_location, d.current_location)
+                      <= ST_Distance(c.origin_location, d.preferred_destination)
+                  AND ST_Distance(c.destination_location, d.preferred_destination)
+                      <= ST_Distance(c.destination_location, d.current_location)
                   AND NOT EXISTS (
                       SELECT 1 FROM driver_hidden_cargo h
                       WHERE h.driver_id = d.id AND h.cargo_id = c.id
