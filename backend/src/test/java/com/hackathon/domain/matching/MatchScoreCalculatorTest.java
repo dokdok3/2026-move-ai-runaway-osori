@@ -64,6 +64,20 @@ class MatchScoreCalculatorTest {
     }
 
     @Test
+    @DisplayName("출발지 전체 선택은 같은 시도의 모든 시군구에 동일한 경로 점수를 준다")
+    void wholeOriginGivesSameRouteScoreToEverySigungu() {
+        Cargo gangnam = cargo("서울특별시", "강남구", "서울특별시", "송파구",
+                "5.0", 150_000, now.plusHours(24));
+        Cargo jung = cargo("서울특별시", "중구", "서울특별시", "송파구",
+                "5.0", 150_000, now.plusHours(24));
+
+        int gangnamScore = calculator.calculateScore(gangnam, driver(), preferences(), now);
+        int jungScore = calculator.calculateScore(jung, driver(), preferences(), now);
+
+        assertThat(gangnamScore).isEqualTo(jungScore);
+    }
+
+    @Test
     @DisplayName("시도만 일치하면 방향당 12점")
     void sidoOnlyMatch() {
         Cargo cargo = cargo("경기도", "평택시", "부산광역시", "강서구",
