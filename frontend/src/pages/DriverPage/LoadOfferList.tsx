@@ -16,6 +16,8 @@ export interface LoadOfferListProps {
   loadMoreRef: (node: HTMLDivElement | null) => void
   onComplete: (cargoId: number) => void
   completingCargoId: number | undefined
+  onCancelAcceptance: (cargoId: number) => Promise<boolean>
+  cancelingCargoId: number | undefined
 }
 
 const TitleRow = styled.div`
@@ -120,6 +122,8 @@ export function LoadOfferList({
   loadMoreRef,
   onComplete,
   completingCargoId,
+  onCancelAcceptance,
+  cancelingCargoId,
 }: LoadOfferListProps) {
   const filters: Array<{ value: LoadFilter; label: string }> = [
     { value: 'ALL', label: '전체' },
@@ -191,6 +195,12 @@ export function LoadOfferList({
               filter={filter}
               onComplete={() => load.cargoId !== undefined && onComplete(load.cargoId)}
               completing={completingCargoId === load.cargoId}
+              onCancelAcceptance={() =>
+                load.cargoId !== undefined
+                  ? onCancelAcceptance(load.cargoId)
+                  : Promise.resolve(false)
+              }
+              canceling={cancelingCargoId === load.cargoId}
             />
           ))}
           <LoadMoreStatus ref={loadMoreRef} aria-live="polite">

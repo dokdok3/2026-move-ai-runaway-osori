@@ -18,6 +18,8 @@ export interface LoadOfferCardProps {
   filter: LoadFilter
   onComplete: () => void
   completing: boolean
+  onCancelAcceptance: () => Promise<boolean>
+  canceling: boolean
 }
 
 const Wrapper = styled.div<{ isBest: boolean }>`
@@ -148,9 +150,12 @@ export function LoadOfferCard({
   filter,
   onComplete,
   completing,
+  onCancelAcceptance,
+  canceling,
 }: LoadOfferCardProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false)
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false)
   const isCompleted = load.status === 'COMPLETED' || Boolean(load.completedAt)
   const isLow = load.badge === 'LOW'
   const badgeLabel = isLow
@@ -168,6 +173,11 @@ export function LoadOfferCard({
     if (isCompleted) return
     setCompleteConfirmOpen(false)
     onComplete()
+  }
+
+  const handleCancelAcceptance = async () => {
+    const canceled = await onCancelAcceptance()
+    if (canceled) setCancelConfirmOpen(false)
   }
 
   return (
@@ -210,13 +220,23 @@ export function LoadOfferCard({
           </Button>
         )}
         {filter === 'ACCEPTED' ? (
-          <Button
-            type="button"
-            onClick={() => !isCompleted && setCompleteConfirmOpen(true)}
-            disabled={completing || isCompleted}
-          >
-            {completing ? '처리 중...' : '하차 완료'}
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => !isCompleted && setCancelConfirmOpen(true)}
+              disabled={canceling || completing || isCompleted}
+            >
+              {canceling ? '취소 중...' : '수락 취소'}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => !isCompleted && setCompleteConfirmOpen(true)}
+              disabled={canceling || completing || isCompleted}
+            >
+              {completing ? '처리 중...' : '하차 완료'}
+            </Button>
+          </>
         ) : (
           <Button type="button" onClick={() => setConfirmOpen(true)} disabled={accepting}>
             {accepting ? '수락 중...' : '수락'}
@@ -253,6 +273,23 @@ export function LoadOfferCard({
           onConfirm={handleComplete}
           onCancel={() => setCompleteConfirmOpen(false)}
           busy={completing}
+        />
+      )}
+
+      {cancelConfirmOpen && !isCompleted && (
+        <AlertDialog
+          title="화물 수락을 취소할까요?"
+          description={
+            <>
+              {load.origin}에서 {load.destination}까지 운행하는 화물이에요.
+              <br />
+              취소하면 다른 기사님이 수락할 수 있습니다.
+            </>
+          }
+          confirmLabel="수락 취소하기"
+          onConfirm={handleCancelAcceptance}
+          onCancel={() => setCancelConfirmOpen(false)}
+          busy={canceling}
         />
       )}
     </Wrapper>

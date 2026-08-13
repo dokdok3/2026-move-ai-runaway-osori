@@ -1,4 +1,4 @@
-import { HttpResponse } from 'msw'
+import { HttpResponse, http as rawHttp } from 'msw'
 import { createOpenApiHttp } from 'openapi-msw'
 import type { paths } from '@/api/schema.gen'
 import { findDriverByDriverId, freights } from '../data/dataset'
@@ -10,6 +10,22 @@ const hiddenCargoIds = new Set<number>()
 const acceptedCargoIds = new Set<number>()
 
 export const loadHandlers = [
+  rawHttp.post('/api/v1/loads/:cargoId/cancel', ({ params, request }) => {
+    const cargoId = Number(params.cargoId)
+    const driverId = Number(
+      request.headers.get('X-User-Id') ?? new URL(request.url).searchParams.get('driverId'),
+    )
+    if (!driverId || !acceptedCargoIds.has(cargoId)) {
+      return HttpResponse.json(
+        { success: false, message: '수락한 화물을 찾을 수 없습니다.' },
+        { status: 404 },
+      )
+    }
+
+    acceptedCargoIds.delete(cargoId)
+    updateCargoDetail(cargoId, { status: 'REQUESTED' })
+    return HttpResponse.json({ success: true, data: { cargoId, status: 'REQUESTED' } })
+  }),
   http.get('/api/v1/loads', ({ query }) => {
     const driverId = Number(query.get('driverId'))
     const driver = findDriverByDriverId(driverId)

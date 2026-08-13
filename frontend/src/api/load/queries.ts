@@ -1,8 +1,9 @@
 import { infiniteQueryOptions, mutationOptions } from '@tanstack/react-query'
-import { acceptLoad, completeLoad, getLoadList, hideLoad } from './api'
+import { acceptLoad, cancelLoad, completeLoad, getLoadList, hideLoad } from './api'
 import type {
   AcceptLoadParams,
   CompleteLoadParams,
+  CancelLoadParams,
   GetLoadListParams,
   HideLoadParams,
 } from './model'
@@ -32,6 +33,11 @@ export const loadQueries = {
 }
 
 export const loadMutations = {
+  cancel: () =>
+    mutationOptions({
+      mutationKey: [...loadQueryKeys.all, 'cancel'],
+      mutationFn: (params: CancelLoadParams) => cancelLoad(params),
+    }),
   accept: () =>
     mutationOptions({
       mutationKey: [...loadQueryKeys.all, 'accept'],

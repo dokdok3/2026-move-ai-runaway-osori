@@ -9,6 +9,7 @@ import { useRegionListQuery } from '@/api/region/service'
 import {
   useAcceptLoadMutation,
   useCompleteLoadMutation,
+  useCancelLoadMutation,
   useHideLoadMutation,
   useLoadListQuery,
 } from '@/api/load/service'
@@ -100,6 +101,7 @@ export function DriverPage() {
   const [nextRecommendation, setNextRecommendation] =
     useState<NextLoadRecommendationResponse | null>(null)
   const [completingCargoId, setCompletingCargoId] = useState<number | undefined>(undefined)
+  const [cancelingCargoId, setCancelingCargoId] = useState<number | undefined>(undefined)
   const seededRef = useRef(false)
   const loadMoreObserverRef = useRef<IntersectionObserver | null>(null)
 
@@ -111,6 +113,7 @@ export function DriverPage() {
   const acceptLoadMutation = useAcceptLoadMutation()
   const hideLoadMutation = useHideLoadMutation()
   const completeLoadMutation = useCompleteLoadMutation()
+  const cancelLoadMutation = useCancelLoadMutation()
 
   useEffect(() => {
     if (seededRef.current) return
@@ -189,6 +192,21 @@ export function DriverPage() {
     }
   }
 
+  const handleCancelAcceptance = async (cargoId: number) => {
+    setAcceptError(null)
+    setCancelingCargoId(cargoId)
+    try {
+      await cancelLoadMutation.mutateAsync({ cargoId, driverId: DEMO_DRIVER_ID })
+      await loadListQuery.refetch()
+      return true
+    } catch (error) {
+      setAcceptError(error instanceof Error ? error.message : '화물 수락을 취소하지 못했어요.')
+      return false
+    } finally {
+      setCancelingCargoId(undefined)
+    }
+  }
+
   const visibleLoads = (loadListQuery.data?.pages ?? [])
     .flatMap((page) => page.content ?? [])
     .filter((load) => load.cargoId !== undefined)
@@ -254,6 +272,8 @@ export function DriverPage() {
         loadMoreRef={setLoadMoreRef}
         onComplete={handleComplete}
         completingCargoId={completingCargoId}
+        onCancelAcceptance={handleCancelAcceptance}
+        cancelingCargoId={cancelingCargoId}
       />
 
       {acceptComplete && (

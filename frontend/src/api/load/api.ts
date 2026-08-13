@@ -8,7 +8,27 @@ import type {
   HideLoadParams,
   CompleteLoadParams,
   CompleteLoadResponse,
+  CancelLoadParams,
+  CancelLoadResponse,
 } from './model'
+
+export const cancelLoad = async (params: CancelLoadParams): Promise<CancelLoadResponse> => {
+  const query = new URLSearchParams({ driverId: String(params.driverId) })
+  const response = await fetch(`/api/v1/loads/${params.cargoId}/cancel?${query}`, {
+    method: 'POST',
+    headers: { 'X-User-Id': String(params.driverId) },
+  })
+  const result = (await response.json()) as {
+    data?: CancelLoadResponse
+    message?: string
+  }
+
+  if (!response.ok) {
+    throw new Error(result.message ?? `수락을 취소하지 못했습니다 (status: ${response.status})`)
+  }
+
+  return result.data ?? {}
+}
 
 export const completeLoad = async (params: CompleteLoadParams): Promise<CompleteLoadResponse> => {
   const { cargoId, driverId } = params
