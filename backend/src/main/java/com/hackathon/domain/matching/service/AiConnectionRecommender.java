@@ -6,9 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.hackathon.global.client.OpenAiClient;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,9 @@ public class AiConnectionRecommender {
     private static final int MAX_AI_CANDIDATES = 10;
     private static final int MAX_SUMMARY_LENGTH = 120;
     private static final int MAX_REASON_LENGTH = 120;
+    private static final Pattern LATIN_LETTER_PATTERN = Pattern.compile("[A-Za-z]");
+    private static final DateTimeFormatter KOREAN_DATE_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy년 M월 d일 H시 m분", Locale.KOREA);
     private static final String INSTRUCTIONS = """
             역할: 규칙 검증을 통과한 후보 중 다음 연계 화물 1건을 선택하고 근거를 설명하는 도우미다.
 
@@ -32,13 +37,15 @@ public class AiConnectionRecommender {
             - 입력에 없는 거리, 시간, 비용, 운행 조건은 만들지 않는다.
 
             선택 규칙:
-            1. ruleScore가 가장 높은 후보를 선택한다. 이 점수에는 공차 거리, 대기시간, 운임 조건이 이미 반영되어 있으므로 별도 가중치를 만들거나 점수를 재계산하지 않는다.
-            2. ruleScore가 같으면 emptyDistanceKm가 짧은 후보, fareKrw가 높은 후보, cargoId가 작은 후보 순으로 선택한다.
-            3. 정확히 1건만 선택하고 입력에 없는 cargoId를 반환하지 않는다.
+            1. 추천 점수가 가장 높은 후보를 선택한다. 이 점수에는 빈 차로 이동하는 거리, 대기 시간, 운임 조건이 이미 반영되어 있으므로 별도 가중치를 만들거나 점수를 재계산하지 않는다.
+            2. 추천 점수가 같으면 빈 차로 이동하는 거리가 짧은 후보, 운임이 높은 후보, 화물 번호가 작은 후보 순으로 선택한다.
+            3. 정확히 1건만 선택하고 입력에 없는 화물 번호를 반환하지 않는다.
 
             설명 규칙:
             - recommendationSummary는 핵심 선택 이유를 120자 이내의 한국어 한 문장으로 작성한다.
             - reasons는 서로 다른 후보 사실에 근거한 2~3개 문장이다. 가능한 경우 입력의 숫자와 단위를 그대로 사용한다.
+            - 위 두 필드의 문장에는 영문, 영문 약어, 입력이나 출력의 키 이름을 쓰지 않는다.
+            - 기사가 이해하기 쉽게 '추천 점수', '빈 차로 이동하는 거리', '운임', '화물 번호'로 표현하고, 거리 단위는 '킬로미터'로 적는다.
             - 선택을 뒷받침하지 않는 인과관계나 경쟁 후보에 없는 사실을 만들지 않는다.
 
             출력: 스키마에 없는 필드, 설명, 마크다운을 추가하지 않는다.
@@ -107,19 +114,19 @@ public class AiConnectionRecommender {
     private String requestJson(List<ConnectionRecommendationCandidate> candidates)
             throws JsonProcessingException {
         ObjectNode root = objectMapper.createObjectNode();
-        ArrayNode array = root.putArray("candidates");
+        ArrayNode array = root.putArray("후보 목록");
         for (ConnectionRecommendationCandidate candidate : candidates) {
             ObjectNode node = array.addObject();
-            node.put("cargoId", candidate.cargo().getId());
-            node.put("origin", label(candidate.cargo().getOriginSido(), candidate.cargo().getOriginSigungu()));
-            node.put("destination", label(candidate.cargo().getDestSido(), candidate.cargo().getDestSigungu()));
-            node.put("loadingAt", candidate.cargo().getLoadingAt().toString());
-            node.put("cargoType", candidate.cargo().getCargoType().name());
-            node.put("weightTon", candidate.cargo().getWeightTon());
-            node.put("fareKrw", candidate.cargo().getDesiredFare());
-            node.put("emptyDistanceKm", candidate.emptyDistanceKm());
-            node.put("waitMinutes", candidate.waitMinutes());
-            node.put("ruleScore", candidate.connectionScore());
+            node.put("화물 번호", candidate.cargo().getId());
+            node.put("출발지", label(candidate.cargo().getOriginSido(), candidate.cargo().getOriginSigungu()));
+            node.put("도착지", label(candidate.cargo().getDestSido(), candidate.cargo().getDestSigungu()));
+            node.put("상차 예정 시각", candidate.cargo().getLoadingAt().format(KOREAN_DATE_TIME_FORMATTER));
+            node.put("화물 종류", candidate.cargo().getCargoType().koreanName());
+            node.put("화물 중량(톤)", candidate.cargo().getWeightTon());
+            node.put("운임(원)", candidate.cargo().getDesiredFare());
+            node.put("빈 차로 이동하는 거리(킬로미터)", candidate.emptyDistanceKm());
+            node.put("대기 시간(분)", candidate.waitMinutes());
+            node.put("추천 점수", candidate.connectionScore());
         }
         return objectMapper.writeValueAsString(root);
     }
@@ -137,8 +144,11 @@ public class AiConnectionRecommender {
                 || response.reasons() == null
                 || response.reasons().size() < 2
                 || response.reasons().size() > 3
+                || containsLatinLetter(response.recommendationSummary())
                 || response.reasons().stream().anyMatch(reason ->
-                        !StringUtils.hasText(reason) || reason.length() > MAX_REASON_LENGTH)) {
+                        !StringUtils.hasText(reason)
+                                || reason.length() > MAX_REASON_LENGTH
+                                || containsLatinLetter(reason))) {
             throw new IllegalArgumentException("AI 연계 배차 응답이 올바르지 않습니다.");
         }
     }
@@ -146,17 +156,23 @@ public class AiConnectionRecommender {
     private RecommendationDecision fallback(ConnectionRecommendationCandidate candidate) {
         String distance = String.format(Locale.ROOT, "%.1f", candidate.emptyDistanceKm());
         String wait = waitLabel(candidate.waitMinutes());
+        String fare = String.format(Locale.KOREA, "%,d", candidate.cargo().getDesiredFare());
+        int score = candidate.connectionScore();
         return new RecommendationDecision(
                 candidate.cargo().getId(),
-                "공차 이동과 대기 시간을 줄이며 이어서 운송하기 좋은 화물입니다.",
+                "추천 점수가 " + score + "점으로 후보 중 가장 높아 다음 연계 화물로 선택했습니다.",
                 List.of(
-                        "이전 하차지에서 다음 상차지까지 공차 이동 거리는 " + distance + "km입니다.",
-                        "배송 완료 후 " + wait + " 뒤에 다음 상차가 예정되어 있습니다.",
-                        "추가 운임은 " + String.format(Locale.KOREA, "%,d", candidate.cargo().getDesiredFare())
-                                + "원입니다."
+                        "화물 " + candidate.cargo().getId() + "번의 추천 점수는 " + score
+                                + "점으로 모든 후보 중 가장 높습니다.",
+                        "빈 차로 이동하는 거리는 " + distance + "킬로미터이며, 운임은 " + fare + "원입니다.",
+                        "배송 완료 후 " + wait + " 뒤에 다음 상차가 예정되어 있습니다."
                 ),
                 "RULE_FALLBACK"
         );
+    }
+
+    private boolean containsLatinLetter(String value) {
+        return LATIN_LETTER_PATTERN.matcher(value).find();
     }
 
     private String waitLabel(long waitMinutes) {
