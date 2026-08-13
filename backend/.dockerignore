@@ -1,4 +1,6 @@
-.gradle
+*
+!Dockerfile
+!build/
 build/*
 !build/libs
 build/libs/*

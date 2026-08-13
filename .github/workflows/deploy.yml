@@ -3,6 +3,14 @@ name: Deploy to EC2
 on:
   push:
     branches: [main]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "compose.prod.yaml"
+      - "deploy/**"
+      - "scripts/deploy-blue-green.sh"
+      - "scripts/write-deploy-status.sh"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:
@@ -120,7 +128,6 @@ jobs:
           platforms: linux/amd64
           tags: |
             ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
-            ${{ env.BACKEND_IMAGE }}:latest
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=min,scope=backend
       - name: Build and push frontend
@@ -131,9 +138,8 @@ jobs:
           platforms: linux/amd64
           tags: |
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
-            ${{ env.FRONTEND_IMAGE }}:latest
           cache-from: type=gha,scope=frontend
-          cache-to: type=gha,mode=max,scope=frontend
+          cache-to: type=gha,mode=min,scope=frontend
       - name: Mark images ready
         env:
           DEPLOY_ACTOR: ${{ github.actor }}
