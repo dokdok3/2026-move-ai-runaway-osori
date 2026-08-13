@@ -185,7 +185,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /** 기사 화물 목록 조회 (filter: ALL 전체 · ACCEPTED 수락함 · HIDDEN 숨김) */
+    /** 기사 화물 목록 조회 (10건 커서 페이지네이션) */
     get: operations['getLoads']
     put?: never
     post?: never
@@ -358,6 +358,30 @@ export interface components {
       status?: string
       /** Format: date-time */
       completedAt?: string
+      nextLoadRecommendation?: components['schemas']['NextLoadRecommendationResponse']
+    }
+    NextLoadRecommendationResponse: {
+      /** Format: int64 */
+      cargoId?: number
+      origin?: string
+      destination?: string
+      /** Format: date-time */
+      loadingAt?: string
+      /** Format: date-time */
+      unloadingAt?: string
+      cargoType?: string
+      weightTon?: number
+      /** Format: int32 */
+      fare?: number
+      /** Format: double */
+      emptyDistanceKm?: number
+      /** Format: int64 */
+      waitMinutes?: number
+      /** Format: int32 */
+      connectionScore?: number
+      recommendationSummary?: string
+      recommendationReasons?: string[]
+      explanationMode?: string
     }
     AcceptResponse: {
       /** Format: int64 */
@@ -498,10 +522,17 @@ export interface components {
       sido?: string
       sigungus?: string[]
     }
-    ApiResponseListLoadResponse: {
+    ApiResponseCursorPageResponseLoadResponse: {
       success?: boolean
-      data?: components['schemas']['LoadResponse'][]
+      data?: components['schemas']['CursorPageResponseLoadResponse']
       message?: string
+    }
+    CursorPageResponseLoadResponse: {
+      content?: components['schemas']['LoadResponse'][]
+      nextCursor?: string
+      hasNext?: boolean
+      /** Format: int32 */
+      size?: number
     }
     LoadResponse: {
       /** Format: int64 */
@@ -970,6 +1001,7 @@ export interface operations {
         filter?: 'ALL' | 'ACCEPTED' | 'HIDDEN'
         preferenceText?: string
         refresh?: boolean
+        cursor?: string
       }
       header?: never
       path?: never
@@ -983,7 +1015,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          '*/*': components['schemas']['ApiResponseListLoadResponse']
+          '*/*': components['schemas']['ApiResponseCursorPageResponseLoadResponse']
         }
       }
     }

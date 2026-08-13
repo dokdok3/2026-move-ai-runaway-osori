@@ -1,4 +1,4 @@
-import { mutationOptions, queryOptions } from '@tanstack/react-query'
+import { infiniteQueryOptions, mutationOptions } from '@tanstack/react-query'
 import { acceptLoad, getLoadList, hideLoad } from './api'
 import type { AcceptLoadParams, GetLoadListParams, HideLoadParams } from './model'
 
@@ -12,14 +12,17 @@ export const loadQueryKeys = {
       params.preferenceText ?? '',
       params.refresh ?? false,
       params.filter ?? 'ALL',
+      params.cursor ?? '',
     ] as const,
 }
 
 export const loadQueries = {
   list: (params: GetLoadListParams) =>
-    queryOptions({
+    infiniteQueryOptions({
       queryKey: loadQueryKeys.list(params),
-      queryFn: () => getLoadList(params),
+      queryFn: ({ pageParam }) => getLoadList({ ...params, cursor: pageParam }),
+      initialPageParam: undefined as string | undefined,
+      getNextPageParam: (lastPage) => (lastPage.hasNext ? lastPage.nextCursor : undefined),
     }),
 }
 

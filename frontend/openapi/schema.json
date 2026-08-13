@@ -382,7 +382,7 @@
     "/api/v1/loads": {
       "get": {
         "tags": ["Load"],
-        "summary": "기사 화물 목록 조회 (filter: ALL 전체 · ACCEPTED 수락함 · HIDDEN 숨김)",
+        "summary": "기사 화물 목록 조회 (10건 커서 페이지네이션)",
         "operationId": "getLoads",
         "parameters": [
           {
@@ -408,13 +408,18 @@
             "in": "query",
             "required": false,
             "schema": { "type": "boolean", "default": false }
-          }
+          },
+          { "name": "cursor", "in": "query", "required": false, "schema": { "type": "string" } }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseListLoadResponse" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCursorPageResponseLoadResponse"
+                }
+              }
             }
           }
         }
@@ -687,7 +692,29 @@
           "assignmentId": { "type": "integer", "format": "int64" },
           "cargoId": { "type": "integer", "format": "int64" },
           "status": { "type": "string" },
-          "completedAt": { "type": "string", "format": "date-time" }
+          "completedAt": { "type": "string", "format": "date-time" },
+          "nextLoadRecommendation": {
+            "$ref": "#/components/schemas/NextLoadRecommendationResponse"
+          }
+        }
+      },
+      "NextLoadRecommendationResponse": {
+        "type": "object",
+        "properties": {
+          "cargoId": { "type": "integer", "format": "int64" },
+          "origin": { "type": "string" },
+          "destination": { "type": "string" },
+          "loadingAt": { "type": "string", "format": "date-time" },
+          "unloadingAt": { "type": "string", "format": "date-time" },
+          "cargoType": { "type": "string" },
+          "weightTon": { "type": "number" },
+          "fare": { "type": "integer", "format": "int32" },
+          "emptyDistanceKm": { "type": "number", "format": "double" },
+          "waitMinutes": { "type": "integer", "format": "int64" },
+          "connectionScore": { "type": "integer", "format": "int32" },
+          "recommendationSummary": { "type": "string" },
+          "recommendationReasons": { "type": "array", "items": { "type": "string" } },
+          "explanationMode": { "type": "string" }
         }
       },
       "AcceptResponse": {
@@ -864,12 +891,21 @@
           "sigungus": { "type": "array", "items": { "type": "string" } }
         }
       },
-      "ApiResponseListLoadResponse": {
+      "ApiResponseCursorPageResponseLoadResponse": {
         "type": "object",
         "properties": {
           "success": { "type": "boolean" },
-          "data": { "type": "array", "items": { "$ref": "#/components/schemas/LoadResponse" } },
+          "data": { "$ref": "#/components/schemas/CursorPageResponseLoadResponse" },
           "message": { "type": "string" }
+        }
+      },
+      "CursorPageResponseLoadResponse": {
+        "type": "object",
+        "properties": {
+          "content": { "type": "array", "items": { "$ref": "#/components/schemas/LoadResponse" } },
+          "nextCursor": { "type": "string" },
+          "hasNext": { "type": "boolean" },
+          "size": { "type": "integer", "format": "int32" }
         }
       },
       "LoadResponse": {

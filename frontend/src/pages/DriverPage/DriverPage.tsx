@@ -48,6 +48,7 @@ export function DriverPage() {
   const [acceptError, setAcceptError] = useState<string | null>(null)
   const [acceptComplete, setAcceptComplete] = useState(false)
   const seededRef = useRef(false)
+  const loadMoreObserverRef = useRef<IntersectionObserver | null>(null)
 
   const driverProfileQuery = useDriverProfileQuery({ driverId: DEMO_DRIVER_ID })
   const regionListQuery = useRegionListQuery()
@@ -117,7 +118,21 @@ export function DriverPage() {
     }
   }
 
-  const visibleLoads = (loadListQuery.data ?? []).filter((load) => load.cargoId !== undefined)
+  const visibleLoads = (loadListQuery.data?.pages ?? [])
+    .flatMap((page) => page.content ?? [])
+    .filter((load) => load.cargoId !== undefined)
+
+  const setLoadMoreRef = (node: HTMLDivElement | null) => {
+    loadMoreObserverRef.current?.disconnect()
+    if (!node || !loadListQuery.hasNextPage || typeof IntersectionObserver === 'undefined') return
+
+    loadMoreObserverRef.current = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting && !loadListQuery.isFetchingNextPage) {
+        loadListQuery.fetchNextPage()
+      }
+    })
+    loadMoreObserverRef.current.observe(node)
+  }
 
   const handleFilterChange = (nextFilter: LoadFilter) => {
     const nextParams = new URLSearchParams(searchParams)
@@ -161,6 +176,9 @@ export function DriverPage() {
         acceptingCargoId={acceptingCargoId}
         filter={filter}
         onFilterChange={handleFilterChange}
+        hasNextPage={loadListQuery.hasNextPage}
+        loadingMore={loadListQuery.isFetchingNextPage}
+        loadMoreRef={setLoadMoreRef}
       />
 
       {acceptComplete && (

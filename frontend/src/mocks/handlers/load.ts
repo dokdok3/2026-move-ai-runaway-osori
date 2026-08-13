@@ -33,7 +33,15 @@ export const loadHandlers = [
       .sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0))
       .map((load) => ({ ...load, rankingMode }))
 
-    return HttpResponse.json({ success: true, data })
+    const cursor = Number(query.get('cursor') ?? 0)
+    const size = 10
+    const content = data.slice(cursor, cursor + size)
+    const nextCursor = cursor + size < data.length ? String(cursor + size) : undefined
+
+    return HttpResponse.json({
+      success: true,
+      data: { content, nextCursor, hasNext: nextCursor !== undefined, size: content.length },
+    })
   }),
 
   http.post('/api/v1/loads/{cargoId}/hide', ({ params, query }) => {

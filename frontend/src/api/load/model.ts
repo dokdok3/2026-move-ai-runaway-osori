@@ -7,9 +7,10 @@ export type GetLoadListParams = {
   preferenceText?: string
   refresh?: boolean
   filter?: LoadFilter
+  cursor?: string
 }
 export type LoadResponse = components['schemas']['LoadResponse']
-export type GetLoadListResponse = LoadResponse[]
+export type GetLoadListResponse = components['schemas']['CursorPageResponseLoadResponse']
 
 export type AcceptLoadParams = {
   cargoId: number

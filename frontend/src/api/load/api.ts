@@ -17,7 +17,12 @@ export const getLoadList = async (params: GetLoadListParams): Promise<GetLoadLis
     )
   }
 
-  return result.data.data ?? []
+  const data = result.data.data
+  if (Array.isArray(data)) {
+    return { content: data, hasNext: false, size: data.length }
+  }
+
+  return data ?? { content: [], hasNext: false, size: 0 }
 }
 
 export const hideLoad = async (params: HideLoadParams): Promise<void> => {

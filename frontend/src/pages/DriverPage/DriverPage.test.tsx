@@ -32,13 +32,11 @@ describe('DriverPage', () => {
     renderWithProviders(<DriverPage />)
 
     const hideButtons = await waitForActionButtons('숨기기')
-    const initialCount = hideButtons.length
+    const firstHideButton = hideButtons[0]
 
-    await user.click(hideButtons[0])
+    await user.click(firstHideButton)
 
-    await waitFor(() => {
-      expect(actionButtons('숨기기')).toHaveLength(initialCount - 1)
-    })
+    await waitFor(() => expect(firstHideButton).not.toBeInTheDocument())
   })
 
   it('수락을 누르면 수락 요청이 처리되고 추천 목록에서 제거된다', async () => {

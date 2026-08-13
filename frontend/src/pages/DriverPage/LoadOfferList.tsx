@@ -11,6 +11,9 @@ export interface LoadOfferListProps {
   acceptingCargoId: number | undefined
   filter: LoadFilter
   onFilterChange: (filter: LoadFilter) => void
+  hasNextPage: boolean
+  loadingMore: boolean
+  loadMoreRef: (node: HTMLDivElement | null) => void
 }
 
 const TitleRow = styled.div`
@@ -95,6 +98,14 @@ const EmptyState = styled.p`
   text-align: center;
 `
 
+const LoadMoreStatus = styled.div`
+  min-height: 48px;
+  padding: 14px 0 4px;
+  color: ${(props) => props.theme.color.muted};
+  font-size: 14px;
+  text-align: center;
+`
+
 export function LoadOfferList({
   loads,
   onRefresh,
@@ -103,6 +114,9 @@ export function LoadOfferList({
   acceptingCargoId,
   filter,
   onFilterChange,
+  hasNextPage,
+  loadingMore,
+  loadMoreRef,
 }: LoadOfferListProps) {
   const filters: Array<{ value: LoadFilter; label: string }> = [
     { value: 'ALL', label: '전체' },
@@ -154,18 +168,27 @@ export function LoadOfferList({
               : '숨긴 화물이 아직 없어요.'}
         </EmptyState>
       ) : (
-        loads.map((load, index) => (
-          <LoadOfferCard
-            key={load.cargoId}
-            load={load}
-            isBest={index === 0}
-            onAccept={() =>
-              load.cargoId !== undefined ? onAccept(load.cargoId) : Promise.resolve(false)
-            }
-            onHide={() => load.cargoId !== undefined && onHide(load.cargoId)}
-            accepting={acceptingCargoId === load.cargoId}
-          />
-        ))
+        <>
+          {loads.map((load, index) => (
+            <LoadOfferCard
+              key={load.cargoId}
+              load={load}
+              isBest={index === 0}
+              onAccept={() =>
+                load.cargoId !== undefined ? onAccept(load.cargoId) : Promise.resolve(false)
+              }
+              onHide={() => load.cargoId !== undefined && onHide(load.cargoId)}
+              accepting={acceptingCargoId === load.cargoId}
+            />
+          ))}
+          <LoadMoreStatus ref={loadMoreRef} aria-live="polite">
+            {loadingMore
+              ? '화물을 더 불러오는 중이에요.'
+              : hasNextPage
+                ? ''
+                : '모든 화물을 봤어요.'}
+          </LoadMoreStatus>
+        </>
       )}
     </Card>
   )
