@@ -79,7 +79,10 @@ public class LoadService {
                     Cargo cargo = cargos.get(assignment.getCargoId());
                     return cargo == null
                             ? null
-                            : LoadResponse.of(cargo, 0).withCompletedAt(assignment.getCompletedAt());
+                            : applyFareInfo(
+                                    LoadResponse.of(cargo, 0).withCompletedAt(assignment.getCompletedAt()),
+                                    cargo
+                            );
                 })
                 .filter(Objects::nonNull)
                 .toList();
@@ -98,7 +101,7 @@ public class LoadService {
         return cargoIds.stream()
                        .map(cargos::get)
                        .filter(Objects::nonNull)
-                       .map(cargo -> LoadResponse.of(cargo, 0))
+                       .map(cargo -> applyFareInfo(LoadResponse.of(cargo, 0), cargo))
                        .toList();
     }
 
