@@ -52,13 +52,14 @@ class LoadControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
                         .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].badge").value("FAIR"))
-                .andExpect(jsonPath("$.data[0].regionAverageFare").isNumber())
-                .andExpect(jsonPath("$.data[0].origin").value("경기 수원시"))
-                .andExpect(jsonPath("$.data[0].destination").value("부산 강서구"))
-                .andExpect(jsonPath("$.data[0].matchScore").value(100))
+                .andExpect(jsonPath("$.data.content[0].badge").value("FAIR"))
+                .andExpect(jsonPath("$.data.content[0].regionAverageFare").isNumber())
+                .andExpect(jsonPath("$.data.content[0].origin").value("경기 수원시"))
+                .andExpect(jsonPath("$.data.content[0].destination").value("부산 강서구"))
+                .andExpect(jsonPath("$.data.content[0].matchScore").value(100))
+                .andExpect(jsonPath("$.data.size").value(10))
                 // 광주→전주(구간 밖)는 목록에 없어야 한다
-                .andExpect(jsonPath("$.data[?(@.origin == '광주 광산구')]").isEmpty());
+                .andExpect(jsonPath("$.data.content[?(@.origin == '광주 광산구')]").isEmpty());
     }
 
     @Test
@@ -68,8 +69,8 @@ class LoadControllerTest {
                         .header("X-User-Id", "1")
                         .param("filter", "ALL"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data").isNotEmpty());
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content").isNotEmpty());
     }
 
     @Test
@@ -79,7 +80,7 @@ class LoadControllerTest {
                         .header("X-User-Id", "1")
                         .param("filter", "HIDDEN"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray());
+                .andExpect(jsonPath("$.data.content").isArray());
     }
 
     @Test
@@ -89,7 +90,7 @@ class LoadControllerTest {
                         .header("X-User-Id", "1")
                         .param("filter", "ACCEPTED"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray());
+                .andExpect(jsonPath("$.data.content").isArray());
     }
 
     @Test
@@ -98,8 +99,8 @@ class LoadControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
                         .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[*].badge", everyItem(anyOf(is("LOW"), is("FAIR")))))
-                .andExpect(jsonPath("$.data[*].regionAverageFare", everyItem(notNullValue())));
+                .andExpect(jsonPath("$.data.content[*].badge", everyItem(anyOf(is("LOW"), is("FAIR")))))
+                .andExpect(jsonPath("$.data.content[*].regionAverageFare", everyItem(notNullValue())));
     }
 
     @Test
@@ -128,8 +129,8 @@ class LoadControllerTest {
     void emptyWhenNoMatch() throws Exception {
         String body = """
                 {
-                  "origins": [{"sido": "제주특별자치도", "sigungu": null}],
-                  "destinations": [{"sido": "제주특별자치도", "sigungu": null}]
+                  "origins": [{"sido": "테스트특별시", "sigungu": null}],
+                  "destinations": [{"sido": "테스트특별시", "sigungu": null}]
                 }
                 """;
         mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/drivers/me/route-preferences")
@@ -140,6 +141,7 @@ class LoadControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/loads")
                         .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.data.content").isEmpty())
+                .andExpect(jsonPath("$.data.hasNext").value(false));
     }
 }

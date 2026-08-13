@@ -5,9 +5,11 @@ import com.hackathon.domain.matching.dto.CompletedLoadResponse;
 import com.hackathon.domain.matching.dto.CompleteResponse;
 import com.hackathon.domain.matching.dto.LoadResponse;
 import com.hackathon.domain.matching.entity.LoadType;
+import com.hackathon.domain.matching.service.LoadCursorPaginator;
 import com.hackathon.domain.matching.service.LoadService;
 import com.hackathon.global.auth.LoginUser;
 import com.hackathon.global.response.ApiResponse;
+import com.hackathon.global.response.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
@@ -26,15 +28,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoadController {
 
     private final LoadService loadService;
+    private final LoadCursorPaginator loadCursorPaginator;
 
     @GetMapping
-    @Operation(summary = "기사 화물 목록 조회 (filter: ALL 전체 · ACCEPTED 수락함 · HIDDEN 숨김)")
-    public ApiResponse<List<LoadResponse>> getLoads(@LoginUser Long driverId,
-                                                     @RequestParam(name = "filter", defaultValue = "ALL")
-                                                     LoadType filter,
-                                                     @RequestParam(required = false) String preferenceText,
-                                                     @RequestParam(defaultValue = "false") boolean refresh) {
-        return ApiResponse.ok(loadService.findLoads(driverId, filter, preferenceText, refresh));
+    @Operation(summary = "기사 화물 목록 조회 (10건 커서 페이지네이션)")
+    public ApiResponse<CursorPageResponse<LoadResponse>> getLoads(
+            @LoginUser Long driverId,
+            @RequestParam(name = "filter", defaultValue = "ALL") LoadType filter,
+            @RequestParam(required = false) String preferenceText,
+            @RequestParam(defaultValue = "false") boolean refresh,
+            @RequestParam(required = false) String cursor) {
+        List<LoadResponse> loads = loadService.findLoads(driverId, filter, preferenceText, refresh);
+        return ApiResponse.ok(loadCursorPaginator.paginate(loads, driverId, filter, cursor));
     }
 
     @GetMapping("/completed")
