@@ -12,13 +12,15 @@ class DriverRouteLocationSynchronizer {
 
     private static final String UPDATE_LOCATION_SQL = """
             UPDATE driver d
-            SET current_location = (
-                    SELECT location FROM region_coordinate
-                    WHERE sido = ? AND sigungu = ?
+            SET current_location = COALESCE(
+                    (SELECT location FROM region_coordinate WHERE sido = ? AND sigungu = ?),
+                    (SELECT ST_Centroid(ST_Collect(location::geometry))::geography
+                     FROM region_coordinate WHERE sido = ?)
                 ),
-                preferred_destination = (
-                    SELECT location FROM region_coordinate
-                    WHERE sido = ? AND sigungu = ?
+                preferred_destination = COALESCE(
+                    (SELECT location FROM region_coordinate WHERE sido = ? AND sigungu = ?),
+                    (SELECT ST_Centroid(ST_Collect(location::geometry))::geography
+                     FROM region_coordinate WHERE sido = ?)
                 )
             WHERE d.id = ?
             """;
@@ -33,7 +35,9 @@ class DriverRouteLocationSynchronizer {
                      String destinationSido, String destinationSigungu) {
         try {
             jdbcTemplate.update(UPDATE_LOCATION_SQL,
-                    originSido, originSigungu, destinationSido, destinationSigungu, driverId);
+                    originSido, originSigungu, originSido,
+                    destinationSido, destinationSigungu, destinationSido,
+                    driverId);
         } catch (BadSqlGrammarException e) {
             // PostGIS 마이그레이션을 실행하지 않는 H2 단위 테스트에서는 대표 좌표가 필요 없다.
         }
