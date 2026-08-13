@@ -47,7 +47,6 @@ public class Cargo extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private CargoStatus status;
 
-    /** 화주가 "AI로 변환하기" 화면(자연어 파싱)을 거쳐 등록했는지. 직접 입력 폼은 false. */
     private Boolean aiParsed;
 
     public static Cargo create(Long shipperId,
