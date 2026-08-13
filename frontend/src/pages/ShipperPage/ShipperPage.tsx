@@ -28,6 +28,7 @@ export function ShipperPage() {
   const [rawText, setRawText] = useState('')
   const [cargoId, setCargoId] = useState<number | undefined>(undefined)
   const [formError, setFormError] = useState<string | null>(null)
+  const [showCreate, setShowCreate] = useState(false)
 
   const parseMutation = useCargoParseMutation()
   const createMutation = useCargoCreateMutation()
@@ -93,6 +94,7 @@ export function ShipperPage() {
       }
 
       setCargoId(newCargoId)
+      setShowCreate(true)
       await myCargosQuery.refetch()
     } catch (error) {
       setFormError(error instanceof Error ? error.message : '요청을 처리하지 못했어요.')
@@ -103,37 +105,45 @@ export function ShipperPage() {
 
   return (
     <PageLayout headerRight={<HeaderBackLink />}>
-      <Hero
-        eyebrow="✦ AI로 빠른 매칭"
-        title={
-          <>
-            화물 등록하고
-            <br />
-            3초 만에 기사 찾기
-          </>
-        }
-        description="카톡 요청을 그대로 붙여넣으면 AI가 정리부터 매칭까지 끝내요."
-      />
+      {!showCreate && !cargo ? (
+        <MyCargoList
+          cargos={myCargosQuery.data ?? []}
+          loading={myCargosQuery.isLoading}
+          error={myCargosQuery.isError}
+          onCreate={() => setShowCreate(true)}
+        />
+      ) : (
+        <>
+          <Hero
+            eyebrow="✦ AI로 빠른 매칭"
+            title={
+              <>
+                화물 등록하고
+                <br />
+                3초 만에 기사 찾기
+              </>
+            }
+            description="카톡 요청을 그대로 붙여넣으면 AI가 정리부터 매칭까지 끝내요."
+          />
 
-      <CargoRequestForm
-        value={rawText}
-        onChange={setRawText}
-        onSubmit={handleConvert}
-        loading={isSubmitting}
-        error={formError}
-      />
-
-      <MyCargoList
-        cargos={myCargosQuery.data ?? []}
-        loading={myCargosQuery.isLoading}
-        error={myCargosQuery.isError}
-      />
+          <CargoRequestForm
+            value={rawText}
+            onChange={setRawText}
+            onSubmit={handleConvert}
+            loading={isSubmitting}
+            error={formError}
+          />
+        </>
+      )}
 
       {cargo && (
         <>
           <CargoSummaryCard
             cargo={cargo}
-            onEdit={() => setCargoId(undefined)}
+            onEdit={() => {
+              setCargoId(undefined)
+              setShowCreate(true)
+            }}
             onRematch={() => cargoDetailQuery.refetch()}
             rematchLoading={cargoDetailQuery.isFetching}
           />

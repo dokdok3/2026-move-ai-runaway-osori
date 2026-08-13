@@ -9,6 +9,8 @@ describe('ShipperPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<ShipperPage />)
 
+    await user.click(screen.getByRole('button', { name: /새 화물/ }))
+
     const textarea = screen.getByLabelText('화물 요청 원문')
     await user.type(textarea, '내일 서울에서 부산으로 냉장 5톤 50만원에 보내주세요')
     await user.click(screen.getByRole('button', { name: 'AI 자동 변환' }))
@@ -19,13 +21,6 @@ describe('ShipperPage', () => {
     expect(within(summaryCard).getByText('부산광역시')).toBeInTheDocument()
     expect(within(summaryCard).getByText(/냉장 · 5톤/)).toBeInTheDocument()
     expect(within(summaryCard).getByText('500,000원')).toBeInTheDocument()
-
-    const myCargoHeading = screen.getByRole('heading', { name: '내 화물' })
-    const myCargoCard = myCargoHeading.parentElement?.parentElement as HTMLElement
-    await waitFor(() => {
-      expect(within(myCargoCard).getByText('총 1건')).toBeInTheDocument()
-      expect(within(myCargoCard).getByText('서울특별시 → 부산광역시')).toBeInTheDocument()
-    })
 
     await waitFor(() => {
       expect(
@@ -38,6 +33,8 @@ describe('ShipperPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<ShipperPage />)
 
+    await user.click(screen.getByRole('button', { name: /새 화물/ }))
+
     await user.click(screen.getByRole('button', { name: 'AI 자동 변환' }))
 
     expect(await screen.findByText('화물 요청 내용을 입력해 주세요.')).toBeInTheDocument()
@@ -47,6 +44,8 @@ describe('ShipperPage', () => {
   it('출발지·도착지를 인식하지 못하면 오류 문구를 보여주고 요약을 만들지 않는다', async () => {
     const user = userEvent.setup()
     renderWithProviders(<ShipperPage />)
+
+    await user.click(screen.getByRole('button', { name: /새 화물/ }))
 
     const textarea = screen.getByLabelText('화물 요청 원문')
     await user.type(textarea, '냉장 화물 옮겨주세요')
