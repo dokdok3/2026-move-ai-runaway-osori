@@ -6,6 +6,7 @@ public record CompleteResponse(
         Long assignmentId,
         Long cargoId,
         String status,
-        LocalDateTime completedAt
+        LocalDateTime completedAt,
+        NextLoadRecommendationResponse nextLoadRecommendation
 ) {
 }

@@ -13,6 +13,7 @@ import com.hackathon.domain.matching.dto.AcceptResponse;
 import com.hackathon.domain.matching.dto.CompletedLoadResponse;
 import com.hackathon.domain.matching.dto.CompleteResponse;
 import com.hackathon.domain.matching.dto.LoadResponse;
+import com.hackathon.domain.matching.dto.NextLoadRecommendationResponse;
 import com.hackathon.domain.matching.entity.Assignment;
 import com.hackathon.domain.matching.entity.DriverHiddenCargo;
 import com.hackathon.domain.matching.entity.DriverHiddenCargoId;
@@ -53,6 +54,8 @@ public class LoadService {
     private final AiRouteReranker aiRouteReranker;
     private final PostgisCandidateRepository postgisCandidateRepository;
     private final DriverHiddenCargoRepository driverHiddenCargoRepository;
+    private final CargoCompletionProcessor cargoCompletionProcessor;
+    private final ConnectionRecommendationService connectionRecommendationService;
 
     @Transactional(readOnly = true)
     public List<LoadResponse> findLoads(Long driverId, LoadType filter, String preferenceText, boolean refresh) {
@@ -165,38 +168,29 @@ public class LoadService {
         return new AcceptResponse(assignment.getId(), cargoId, CargoStatus.MATCHED.name());
     }
 
-    @Transactional
     public CompleteResponse complete(Long driverId, Long cargoId) {
-        driverRepository.findById(driverId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DRIVER_NOT_FOUND));
-        Cargo cargo = cargoRepository.findById(cargoId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CARGO_NOT_FOUND));
-        Assignment assignment = assignmentRepository.findByCargoId(cargoId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CARGO_NOT_ASSIGNED));
-
-        if (!assignment.getDriverId().equals(driverId)) {
-            throw new BusinessException(ErrorCode.CARGO_ASSIGNMENT_ACCESS_DENIED);
-        }
-        if (cargo.getStatus() == CargoStatus.COMPLETED) {
-            throw new BusinessException(ErrorCode.CARGO_ALREADY_COMPLETED);
-        }
-        if (cargo.getStatus() != CargoStatus.MATCHED) {
-            throw new BusinessException(ErrorCode.CARGO_NOT_COMPLETABLE);
-        }
-
-        int updated = cargoRepository.updateStatusIf(cargoId, CargoStatus.MATCHED, CargoStatus.COMPLETED);
-        if (updated == 0) {
-            throw new BusinessException(ErrorCode.CARGO_ALREADY_COMPLETED);
-        }
-
-        assignment.complete();
-        Assignment completedAssignment = assignmentRepository.save(assignment);
+        CargoCompletionProcessor.CompletionResult completion =
+                cargoCompletionProcessor.complete(driverId, cargoId);
         return new CompleteResponse(
-                completedAssignment.getId(),
-                cargoId,
+                completion.assignmentId(),
+                completion.cargoId(),
                 CargoStatus.COMPLETED.name(),
-                completedAssignment.getCompletedAt()
+                completion.completedAt(),
+                connectionRecommendationOrNull(driverId, cargoId, completion.completedAt())
         );
+    }
+
+    private NextLoadRecommendationResponse connectionRecommendationOrNull(
+            Long driverId,
+            Long cargoId,
+            LocalDateTime completedAt
+    ) {
+        try {
+            return connectionRecommendationService.recommend(driverId, cargoId, completedAt);
+        } catch (Exception e) {
+            log.warn("연계 배차 추천 실패 - 배송 완료 결과만 반환합니다. cargoId={}", cargoId, e);
+            return null;
+        }
     }
 
     @Transactional(readOnly = true)

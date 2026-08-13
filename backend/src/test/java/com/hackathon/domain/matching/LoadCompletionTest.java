@@ -1,6 +1,10 @@
 package com.hackathon.domain.matching;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -24,9 +28,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class LoadCompletionTest {
 
     @Autowired
@@ -61,6 +67,61 @@ class LoadCompletionTest {
                 .isEqualTo(CargoStatus.COMPLETED);
         assertThat(assignmentRepository.findByCargoId(cargoId).orElseThrow().getCompletedAt())
                 .isNotNull();
+    }
+
+    @Test
+    @DisplayName("배송 완료 시 이어서 운송할 최적 화물 1건과 추천 이유를 반환한다")
+    void returnsOneConnectionRecommendationOnCompletion() throws Exception {
+        LocalDateTime completedAround = LocalDateTime.now();
+        LocalDateTime loadingAt = completedAround.minusHours(9);
+        LocalDateTime unloadingAt = completedAround.minusHours(1);
+        Long completedCargoId = saveCargo(
+                "경기도", "수원시", "제주특별자치도", "제주시",
+                800_000, loadingAt, unloadingAt
+        );
+        Long bestNextCargoId = saveCargo(
+                "제주특별자치도", "제주시", "서울특별시", "강남구",
+                900_000, completedAround.plusHours(1), completedAround.plusHours(8)
+        );
+        saveCargo(
+                "제주특별자치도", "제주시", "부산광역시", "강서구",
+                700_000, completedAround.plusHours(2), completedAround.plusHours(10)
+        );
+        loadService.accept(1L, completedCargoId);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/loads/{cargoId}/complete", completedCargoId)
+                        .header("X-User-Id", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.nextLoadRecommendation").isMap())
+                .andExpect(jsonPath("$.data.nextLoadRecommendation.cargoId").value(bestNextCargoId))
+                .andExpect(jsonPath("$.data.nextLoadRecommendation.emptyDistanceKm").value(0.0))
+                .andExpect(jsonPath("$.data.nextLoadRecommendation.waitMinutes")
+                        .value(allOf(greaterThanOrEqualTo(59), lessThanOrEqualTo(60))))
+                .andExpect(jsonPath("$.data.nextLoadRecommendation.recommendationSummary").isNotEmpty())
+                .andExpect(jsonPath("$.data.nextLoadRecommendation.recommendationReasons.length()").value(3))
+                .andExpect(jsonPath("$.data.nextLoadRecommendation.explanationMode")
+                        .value("RULE_FALLBACK"));
+    }
+
+    @Test
+    @DisplayName("48시간 안에 이어갈 화물이 없으면 완료 응답의 추천은 null이다")
+    void returnsNullWhenNoConnectionCandidateExists() throws Exception {
+        LocalDateTime completedAround = LocalDateTime.now();
+        Long completedCargoId = saveCargo(
+                "경기도", "수원시", "세종특별자치시", "세종시",
+                800_000, completedAround.minusHours(9), completedAround.minusHours(1)
+        );
+        saveCargo(
+                "세종특별자치시", "세종시", "서울특별시", "강남구",
+                900_000, completedAround.plusHours(49), completedAround.plusHours(57)
+        );
+        loadService.accept(1L, completedCargoId);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/loads/{cargoId}/complete", completedCargoId)
+                        .header("X-User-Id", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.data.nextLoadRecommendation").value(nullValue()));
     }
 
     @Test
@@ -138,13 +199,27 @@ class LoadCompletionTest {
 
     private Long createCargo() {
         LocalDateTime loadingAt = LocalDateTime.now().plusDays(2);
+        return saveCargo(
+                "경기도", "수원시", "부산광역시", "강서구",
+                800_000, loadingAt, loadingAt.plusHours(8));
+    }
+
+    private Long saveCargo(
+            String originSido,
+            String originSigungu,
+            String destSido,
+            String destSigungu,
+            int fare,
+            LocalDateTime loadingAt,
+            LocalDateTime unloadingAt
+    ) {
         Cargo cargo = Cargo.create(
                 300L,
-                "경기도", "수원시",
-                "부산광역시", "강서구",
+                originSido, originSigungu,
+                destSido, destSigungu,
                 CargoType.GENERAL, "완료 테스트 화물", new BigDecimal("3.0"),
-                "카고", "윙바디", 800_000,
-                loadingAt, loadingAt.plusHours(8), 380
+                "카고", "윙바디", fare,
+                loadingAt, unloadingAt, 380
         );
         return cargoRepository.save(cargo).getId();
     }
