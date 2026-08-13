@@ -4,10 +4,14 @@ import styled from '@emotion/styled'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import type { CargoType } from '@/api/fare/model'
+import type { RegionResponse } from '@/api/region/model'
+import { RegionSelect } from '@/pages/DriverPage/RegionSelect'
 
 export interface ManualCargoDraft {
-  origin: string
-  destination: string
+  originSido: string
+  originSigungu: string
+  destinationSido: string
+  destinationSigungu: string
   loadingAt: string
   unloadingAt: string
   cargoType: CargoType | ''
@@ -24,6 +28,7 @@ export interface ManualCargoFormProps {
   error: string | null
   /** AI 변환으로 채운 폼처럼, 빈 항목을 바로 에러로 보여줘야 할 때 켠다. */
   showErrors?: boolean
+  regions: RegionResponse[]
 }
 
 /** 모든 항목이 필수이며 중량과 운임은 0보다 큰 숫자여야 한다. */
@@ -80,6 +85,27 @@ const Field = styled.input`
 
 const Select = Field.withComponent('select')
 
+const RegionSelectRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+`
+
+const FormGroup = styled.div`
+  padding: 4px 0 6px;
+
+  & + & {
+    margin-top: 6px;
+    padding-top: 24px;
+    border-top: 1px solid ${(props) => props.theme.color.border};
+  }
+
+  > label:last-child {
+    margin-bottom: 0;
+  }
+`
+
 const Actions = styled.div`
   position: sticky;
   bottom: 0;
@@ -103,6 +129,7 @@ export function ManualCargoForm({
   loading,
   error,
   showErrors = false,
+  regions,
 }: ManualCargoFormProps) {
   const change =
     (key: keyof ManualCargoDraft) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -120,100 +147,140 @@ export function ManualCargoForm({
     onSubmit()
   }
 
+  const sidoOptions = regions
+    .map((region) => region.sido)
+    .filter((sido): sido is string => Boolean(sido))
+  const sigungusOf = (sido: string) =>
+    regions.find((region) => region.sido === sido)?.sigungus ?? []
+
   return (
     <form onSubmit={submit}>
       <Card>
         <Title>화물 정보</Title>
-        <Row>
-          출발지<RequiredMark aria-hidden="true">*</RequiredMark>
-          <Field
-            required
-            aria-label="출발지"
-            value={value.origin}
-            onChange={change('origin')}
-            aria-invalid={invalid('origin')}
-            placeholder="예: 서울특별시 송파구"
-          />
-        </Row>
-        <Row>
-          출발 일시<RequiredMark aria-hidden="true">*</RequiredMark>
-          <Field
-            required
-            aria-label="출발 일시"
-            type="datetime-local"
-            value={value.loadingAt}
-            onChange={change('loadingAt')}
-            aria-invalid={invalid('loadingAt')}
-          />
-        </Row>
-        <Row>
-          도착지<RequiredMark aria-hidden="true">*</RequiredMark>
-          <Field
-            required
-            aria-label="도착지"
-            value={value.destination}
-            onChange={change('destination')}
-            aria-invalid={invalid('destination')}
-            placeholder="예: 부산광역시 강서구"
-          />
-        </Row>
-        <Row>
-          도착 일시<RequiredMark aria-hidden="true">*</RequiredMark>
-          <Field
-            required
-            aria-label="도착 일시"
-            type="datetime-local"
-            value={value.unloadingAt}
-            onChange={change('unloadingAt')}
-            aria-invalid={invalid('unloadingAt')}
-          />
-        </Row>
-        <Row>
-          화물 종류<RequiredMark aria-hidden="true">*</RequiredMark>
-          <Select
-            required
-            aria-label="화물 종류"
-            aria-invalid={invalid('cargoType')}
-            value={value.cargoType}
-            onChange={change('cargoType')}
-          >
-            <option value="" disabled>
-              화물 종류를 선택해 주세요
-            </option>
-            <option value="GENERAL">일반화물</option>
-            <option value="REFRIGERATED">냉장</option>
-            <option value="FROZEN">냉동</option>
-            <option value="CONSTRUCTION">건설자재</option>
-            <option value="HAZARDOUS">위험물</option>
-          </Select>
-        </Row>
-        <Row>
-          중량<RequiredMark aria-hidden="true">*</RequiredMark>
-          <Field
-            required
-            aria-label="중량"
-            type="number"
-            inputMode="decimal"
-            value={value.weightTon}
-            onChange={change('weightTon')}
-            aria-invalid={invalid('weightTon')}
-            placeholder="예: 5"
-          />
-        </Row>
-        <Row>
-          운임<RequiredMark aria-hidden="true">*</RequiredMark>
-          <Field
-            required
-            aria-label="운임"
-            type="number"
-            inputMode="numeric"
-            value={value.desiredFare}
-            onChange={change('desiredFare')}
-            aria-invalid={invalid('desiredFare')}
-            placeholder="예: 500000"
-            step="10000"
-          />
-        </Row>
+        <FormGroup>
+          <Row>
+            출발지<RequiredMark aria-hidden="true">*</RequiredMark>
+            <RegionSelectRow>
+              <RegionSelect
+                required
+                ariaLabel="출발지 시도"
+                value={value.originSido}
+                options={sidoOptions}
+                placeholder="시도 선택"
+                invalid={invalid('originSido')}
+                onChange={(originSido) => onChange({ ...value, originSido, originSigungu: '' })}
+              />
+              <RegionSelect
+                required
+                ariaLabel="출발지 시군구"
+                value={value.originSigungu}
+                options={sigungusOf(value.originSido)}
+                placeholder="시군구 선택"
+                disabled={!value.originSido}
+                invalid={invalid('originSigungu')}
+                onChange={(originSigungu) => onChange({ ...value, originSigungu })}
+              />
+            </RegionSelectRow>
+          </Row>
+          <Row>
+            출발 일시<RequiredMark aria-hidden="true">*</RequiredMark>
+            <Field
+              required
+              aria-label="출발 일시"
+              type="datetime-local"
+              value={value.loadingAt}
+              onChange={change('loadingAt')}
+              aria-invalid={invalid('loadingAt')}
+            />
+          </Row>
+        </FormGroup>
+        <FormGroup>
+          <Row>
+            도착지<RequiredMark aria-hidden="true">*</RequiredMark>
+            <RegionSelectRow>
+              <RegionSelect
+                required
+                ariaLabel="도착지 시도"
+                value={value.destinationSido}
+                options={sidoOptions}
+                placeholder="시도 선택"
+                invalid={invalid('destinationSido')}
+                onChange={(destinationSido) =>
+                  onChange({ ...value, destinationSido, destinationSigungu: '' })
+                }
+              />
+              <RegionSelect
+                required
+                ariaLabel="도착지 시군구"
+                value={value.destinationSigungu}
+                options={sigungusOf(value.destinationSido)}
+                placeholder="시군구 선택"
+                disabled={!value.destinationSido}
+                invalid={invalid('destinationSigungu')}
+                onChange={(destinationSigungu) => onChange({ ...value, destinationSigungu })}
+              />
+            </RegionSelectRow>
+          </Row>
+          <Row>
+            도착 일시<RequiredMark aria-hidden="true">*</RequiredMark>
+            <Field
+              required
+              aria-label="도착 일시"
+              type="datetime-local"
+              value={value.unloadingAt}
+              onChange={change('unloadingAt')}
+              aria-invalid={invalid('unloadingAt')}
+            />
+          </Row>
+        </FormGroup>
+        <FormGroup>
+          <Row>
+            화물 종류<RequiredMark aria-hidden="true">*</RequiredMark>
+            <Select
+              required
+              aria-label="화물 종류"
+              aria-invalid={invalid('cargoType')}
+              value={value.cargoType}
+              onChange={change('cargoType')}
+            >
+              <option value="" disabled>
+                화물 종류를 선택해 주세요
+              </option>
+              <option value="GENERAL">일반화물</option>
+              <option value="REFRIGERATED">냉장</option>
+              <option value="FROZEN">냉동</option>
+              <option value="CONSTRUCTION">건설자재</option>
+              <option value="HAZARDOUS">위험물</option>
+            </Select>
+          </Row>
+          <Row>
+            중량<RequiredMark aria-hidden="true">*</RequiredMark>
+            <Field
+              required
+              aria-label="중량"
+              type="number"
+              inputMode="decimal"
+              value={value.weightTon}
+              onChange={change('weightTon')}
+              aria-invalid={invalid('weightTon')}
+              placeholder="예: 5"
+            />
+          </Row>
+          <Row>
+            운임<RequiredMark aria-hidden="true">*</RequiredMark>
+            <Field
+              required
+              aria-label="운임"
+              type="number"
+              inputMode="numeric"
+              value={value.desiredFare}
+              onChange={change('desiredFare')}
+              aria-invalid={invalid('desiredFare')}
+              placeholder="예: 500000"
+              step="10000"
+            />
+          </Row>
+        </FormGroup>
         {error && <ErrorText role="alert">{error}</ErrorText>}
       </Card>
       <Actions>

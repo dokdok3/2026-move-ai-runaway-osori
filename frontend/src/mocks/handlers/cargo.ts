@@ -110,9 +110,9 @@ export const cargoHandlers = [
     return HttpResponse.json({
       success: true,
       data: {
-        origin: parsed.originSido ? { sido: parsed.originSido, sigungu: '전체' } : undefined,
+        origin: parsed.originSido ? { sido: parsed.originSido, sigungu: '송파구' } : undefined,
         destination: parsed.destinationSido
-          ? { sido: parsed.destinationSido, sigungu: '전체' }
+          ? { sido: parsed.destinationSido, sigungu: '강서구' }
           : undefined,
         cargoType: parsed.cargoType,
         cargoDescription: body.requestText,

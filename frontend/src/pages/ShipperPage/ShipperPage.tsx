@@ -14,6 +14,7 @@ import {
 } from '@/api/cargo/service'
 import type { CreateCargoResponse } from '@/api/cargo/model'
 import { cargoQueryKeys } from '@/api/cargo/queries'
+import { useRegionListQuery } from '@/api/region/service'
 import { toCargoType } from '@/utils/cargoType'
 import { CargoRequestForm } from './CargoRequestForm'
 import { CargoSummaryCard } from './CargoSummaryCard'
@@ -39,8 +40,10 @@ const DetailTitle = styled.h1`
   font-weight: 800;
 `
 const EMPTY_MANUAL_CARGO: ManualCargoDraft = {
-  origin: '',
-  destination: '',
+  originSido: '',
+  originSigungu: '',
+  destinationSido: '',
+  destinationSigungu: '',
   loadingAt: '',
   unloadingAt: '',
   cargoType: 'GENERAL',
@@ -71,6 +74,7 @@ export function ShipperPage() {
 
   const parseMutation = useCargoParseMutation()
   const createMutation = useCargoCreateMutation()
+  const regionListQuery = useRegionListQuery()
   const cargoDetailQuery = useCargoDetailQuery(cargoId)
   const myCargosQuery = useMyCargosQuery({
     shipperId: DEMO_SHIPPER_ID,
@@ -109,8 +113,10 @@ export function ShipperPage() {
 
       // 인식 못한 항목은 빈 값으로 두고 등록 폼에서 에러 표시 + 등록 비활성으로 안내한다.
       setManualCargo({
-        origin: originSido && originSigungu ? `${originSido} ${originSigungu}` : '',
-        destination: destSido && destSigungu ? `${destSido} ${destSigungu}` : '',
+        originSido: originSido ?? '',
+        originSigungu: originSigungu ?? '',
+        destinationSido: destSido ?? '',
+        destinationSigungu: destSigungu ?? '',
         loadingAt: parsed.loadingDate ? `${parsed.loadingDate}T09:00` : '',
         unloadingAt: parsed.unloadingDate ? `${parsed.unloadingDate}T18:00` : '',
         cargoType: cargoType ?? '',
@@ -150,8 +156,10 @@ export function ShipperPage() {
   const handleManualSubmit = async () => {
     setFormError(null)
     if (
-      !manualCargo.origin.trim() ||
-      !manualCargo.destination.trim() ||
+      !manualCargo.originSido ||
+      !manualCargo.originSigungu ||
+      !manualCargo.destinationSido ||
+      !manualCargo.destinationSigungu ||
       !manualCargo.loadingAt ||
       !manualCargo.unloadingAt ||
       !manualCargo.weightTon ||
@@ -161,8 +169,6 @@ export function ShipperPage() {
       return
     }
 
-    const [originSido, ...originDetail] = manualCargo.origin.trim().split(/\s+/)
-    const [destinationSido, ...destinationDetail] = manualCargo.destination.trim().split(/\s+/)
     const cargoType = toCargoType(manualCargo.cargoType)
     if (!cargoType) return
 
@@ -170,10 +176,10 @@ export function ShipperPage() {
       const created = await createMutation.mutateAsync({
         params: { shipperId: DEMO_SHIPPER_ID },
         body: {
-          origin: { sido: originSido, sigungu: originDetail.join(' ') || '전체' },
+          origin: { sido: manualCargo.originSido, sigungu: manualCargo.originSigungu },
           destination: {
-            sido: destinationSido,
-            sigungu: destinationDetail.join(' ') || '전체',
+            sido: manualCargo.destinationSido,
+            sigungu: manualCargo.destinationSigungu,
           },
           cargoType,
           weightTon: Number(manualCargo.weightTon),
@@ -280,6 +286,7 @@ export function ShipperPage() {
             loading={createMutation.isPending}
             error={formError}
             showErrors={parseMutation.isSuccess || parseMutation.isError}
+            regions={regionListQuery.data ?? []}
           />
         </>
       ) : null}

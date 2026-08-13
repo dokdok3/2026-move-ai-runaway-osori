@@ -18,8 +18,10 @@ describe('ShipperPage', () => {
     await user.click(screen.getByRole('button', { name: 'AI 자동 변환' }))
 
     expect(await screen.findByRole('heading', { name: '화물 정보 입력' })).toBeInTheDocument()
-    expect(screen.getByLabelText(/출발지/)).toHaveValue('서울특별시 전체')
-    expect(screen.getByLabelText(/도착지/)).toHaveValue('부산광역시 전체')
+    expect(screen.getByLabelText('출발지 시도')).toHaveValue('서울특별시')
+    expect(screen.getByLabelText('출발지 시군구')).toHaveValue('송파구')
+    expect(screen.getByLabelText('도착지 시도')).toHaveValue('부산광역시')
+    expect(screen.getByLabelText('도착지 시군구')).toHaveValue('강서구')
     expect(screen.getByLabelText(/중량/)).toHaveValue(5)
     expect(screen.getByLabelText(/운임/)).toHaveValue(500000)
     expect(screen.getByLabelText(/화물 종류/)).toHaveValue('REFRIGERATED')
@@ -37,13 +39,13 @@ describe('ShipperPage', () => {
     await user.click(screen.getByRole('button', { name: 'AI 자동 변환' }))
     await user.click(await screen.findByRole('button', { name: '등록하기' }))
     await waitFor(() => {
-      expect(screen.queryByLabelText(/출발지/)).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('출발지 시도')).not.toBeInTheDocument()
     })
 
     const summaryHeading = await screen.findByText('화물 정보')
     const summaryCard = summaryHeading.closest('div')?.parentElement as HTMLElement
-    expect(within(summaryCard).getByText('서울특별시')).toBeInTheDocument()
-    expect(within(summaryCard).getByText('부산광역시')).toBeInTheDocument()
+    expect(within(summaryCard).getByText('서울특별시 송파구')).toBeInTheDocument()
+    expect(within(summaryCard).getByText('부산광역시 강서구')).toBeInTheDocument()
     expect(within(summaryCard).getByText(/냉장 · 5톤/)).toBeInTheDocument()
     expect(within(summaryCard).getByText('500,000원')).toBeInTheDocument()
 
@@ -60,7 +62,8 @@ describe('ShipperPage', () => {
     await user.click(screen.getByRole('button', { name: /직접 입력하기/ }))
 
     expect(screen.getByRole('heading', { name: '화물 정보 입력' })).toBeInTheDocument()
-    expect(screen.getByLabelText('출발지')).toBeInTheDocument()
+    expect(screen.getByLabelText('출발지 시도')).toBeInTheDocument()
+    expect(screen.getByLabelText('출발지 시군구')).toBeDisabled()
     expect(screen.getByRole('button', { name: '등록하기' })).toBeInTheDocument()
   })
 
@@ -93,14 +96,18 @@ describe('ShipperPage', () => {
     await user.click(screen.getByRole('button', { name: 'AI 자동 변환' }))
 
     expect(await screen.findByText(/원문에서 인식하지 못한 항목이 있어요/)).toBeInTheDocument()
-    expect(screen.getByLabelText(/출발지/)).toBeInvalid()
-    expect(screen.getByLabelText(/도착지/)).toBeInvalid()
+    expect(screen.getByLabelText('출발지 시도')).toBeInvalid()
+    expect(screen.getByLabelText('출발지 시군구')).toBeInvalid()
+    expect(screen.getByLabelText('도착지 시도')).toBeInvalid()
+    expect(screen.getByLabelText('도착지 시군구')).toBeInvalid()
     expect(screen.getByLabelText(/중량/)).toBeInvalid()
     expect(screen.getByLabelText(/운임/)).toBeInvalid()
     expect(screen.getByRole('button', { name: '등록하기' })).toBeDisabled()
 
-    await user.type(screen.getByLabelText(/출발지/), '서울특별시 송파구')
-    expect(screen.getByLabelText(/출발지/)).toBeValid()
+    await user.selectOptions(screen.getByLabelText('출발지 시도'), '서울특별시')
+    await user.selectOptions(screen.getByLabelText('출발지 시군구'), '송파구')
+    expect(screen.getByLabelText('출발지 시도')).toBeValid()
+    expect(screen.getByLabelText('출발지 시군구')).toBeValid()
     expect(screen.getByRole('button', { name: '등록하기' })).toBeDisabled()
   })
 
@@ -134,9 +141,12 @@ describe('ShipperPage', () => {
     await user.type(screen.getByLabelText('화물 요청 원문'), '내동 화물')
     await user.click(screen.getByRole('button', { name: 'AI 자동 변환' }))
 
-    expect(await screen.findByLabelText('출발지')).toHaveValue('충청북도 청주시')
-    expect(screen.getByLabelText('출발지')).toBeValid()
-    expect(screen.getByLabelText('도착지')).toBeInvalid()
+    expect(await screen.findByLabelText('출발지 시도')).toHaveValue('충청북도')
+    expect(screen.getByLabelText('출발지 시군구')).toHaveValue('청주시')
+    expect(screen.getByLabelText('출발지 시도')).toBeValid()
+    expect(screen.getByLabelText('출발지 시군구')).toBeValid()
+    expect(screen.getByLabelText('도착지 시도')).toBeValid()
+    expect(screen.getByLabelText('도착지 시군구')).toBeInvalid()
     expect(screen.getByLabelText('화물 종류')).toBeInvalid()
     expect(screen.getByLabelText('출발 일시')).toBeInvalid()
     expect(screen.getByLabelText('도착 일시')).toBeInvalid()
@@ -160,8 +170,10 @@ describe('ShipperPage', () => {
 
     expect(await screen.findByRole('heading', { name: '화물 정보 입력' })).toBeInTheDocument()
     expect(screen.getByText(/AI 변환 서버 오류입니다\. 직접 입력해주세요\./)).toBeInTheDocument()
-    expect(screen.getByLabelText(/출발지/)).toBeInvalid()
-    expect(screen.getByLabelText(/도착지/)).toBeInvalid()
+    expect(screen.getByLabelText('출발지 시도')).toBeInvalid()
+    expect(screen.getByLabelText('출발지 시군구')).toBeInvalid()
+    expect(screen.getByLabelText('도착지 시도')).toBeInvalid()
+    expect(screen.getByLabelText('도착지 시군구')).toBeInvalid()
     expect(screen.getByLabelText(/중량/)).toBeInvalid()
     expect(screen.getByLabelText(/운임/)).toBeInvalid()
     expect(screen.getByRole('button', { name: '등록하기' })).toBeDisabled()
@@ -183,7 +195,7 @@ describe('ShipperPage', () => {
     expect(screen.getByRole('button', { name: 'AI 자동 변환' })).toBeDisabled()
 
     await user.click(screen.getByRole('button', { name: /직접 입력하기/ }))
-    expect(screen.getByLabelText(/출발지/)).toHaveValue('')
+    expect(screen.getByLabelText('출발지 시도')).toHaveValue('')
   })
 
   it('모든 항목이 자동 변환되면 등록하기가 활성화된다', async () => {
@@ -198,6 +210,7 @@ describe('ShipperPage', () => {
     await user.click(screen.getByRole('button', { name: 'AI 자동 변환' }))
 
     expect(await screen.findByRole('button', { name: '등록하기' })).toBeEnabled()
-    expect(screen.getByLabelText(/출발지/)).toBeValid()
+    expect(screen.getByLabelText('출발지 시도')).toBeValid()
+    expect(screen.getByLabelText('출발지 시군구')).toBeValid()
   })
 })

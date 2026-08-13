@@ -8,6 +8,8 @@ export interface RegionSelectProps {
   ariaLabel: string
   onChange: (value: string) => void
   disabled?: boolean
+  required?: boolean
+  invalid?: boolean
 }
 
 const Select = styled.select`
@@ -32,6 +34,11 @@ const Select = styled.select`
   &:disabled {
     opacity: 0.6;
   }
+
+  &[aria-invalid='true'] {
+    border-color: #b3261e;
+    background: #fff6f5;
+  }
 `
 
 export function RegionSelect({
@@ -41,13 +48,22 @@ export function RegionSelect({
   ariaLabel,
   onChange,
   disabled,
+  required,
+  invalid,
 }: RegionSelectProps) {
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
     onChange(event.target.value)
   }
 
   return (
-    <Select aria-label={ariaLabel} value={value} onChange={handleChange} disabled={disabled}>
+    <Select
+      aria-label={ariaLabel}
+      value={value}
+      onChange={handleChange}
+      disabled={disabled}
+      required={required}
+      aria-invalid={invalid || undefined}
+    >
       <option value="">{placeholder}</option>
       {options.map((option) => (
         <option key={option} value={option}>
