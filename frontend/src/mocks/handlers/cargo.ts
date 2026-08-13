@@ -63,7 +63,14 @@ export const cargoHandlers = [
 
   http.post('/api/v1/cargos/parse', async ({ request }) => {
     const body = await request.json()
-    const parsed = parseFreeText(body.rawText)
+    const parsed = parseFreeText(body.requestText)
+
+    const missingFields = [
+      !parsed.originSido && 'origin',
+      !parsed.destinationSido && 'destination',
+      parsed.weightTon === undefined && 'weightTon',
+      parsed.desiredFare === undefined && 'offeredFareKrw',
+    ].filter((field): field is string => Boolean(field))
 
     return HttpResponse.json({
       success: true,
@@ -71,9 +78,12 @@ export const cargoHandlers = [
         origin: parsed.originSido ? { sido: parsed.originSido } : undefined,
         destination: parsed.destinationSido ? { sido: parsed.destinationSido } : undefined,
         cargoType: parsed.cargoType,
-        cargoDescription: body.rawText,
+        cargoDescription: body.requestText,
         weightTon: parsed.weightTon,
-        desiredFare: parsed.desiredFare,
+        offeredFareKrw: parsed.desiredFare,
+        missingFields,
+        confidence: missingFields.length === 0 ? 'HIGH' : 'MEDIUM',
+        warnings: [],
       },
     })
   }),

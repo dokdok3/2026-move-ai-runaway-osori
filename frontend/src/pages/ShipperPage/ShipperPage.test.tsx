@@ -46,9 +46,7 @@ describe('ShipperPage', () => {
     await user.click(screen.getByRole('button', { name: 'AI 자동 변환' }))
 
     expect(
-      await screen.findByText(
-        '원문에서 출발지·도착지·톤수를 인식하지 못했어요. 조금 더 구체적으로 적어주세요.',
-      ),
+      await screen.findByText(/원문에서 출발지·도착지·톤수를 인식하지 못했어요/),
     ).toBeInTheDocument()
     expect(screen.queryByText('화물 정보')).not.toBeInTheDocument()
   })
