@@ -10,4 +10,27 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: #17202b;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(40, 85, 217, 0.13), rgba(40, 85, 217, 0) 34rem),
+    #f2f4f7;
+  font-size: 16px;
+  word-break: keep-all;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

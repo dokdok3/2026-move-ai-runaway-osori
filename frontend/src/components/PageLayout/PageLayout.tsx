@@ -10,14 +10,14 @@ export interface PageLayoutProps {
 const Main = styled.main`
   max-width: 472px;
   margin: 0 auto;
-  padding: 14px 16px 32px;
+  padding: 12px 12px 36px;
 `
 
 const Footer = styled.footer`
   max-width: 472px;
   margin: 0 auto;
   padding: 6px 16px 28px;
-  font-size: 12px;
+  font-size: 14px;
   color: ${(props) => props.theme.color.muted};
   text-align: center;
 `

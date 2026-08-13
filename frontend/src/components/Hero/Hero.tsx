@@ -33,22 +33,27 @@ const Wrapper = styled.div`
 const Eyebrow = styled.div`
   margin-bottom: 16px;
   color: ${(props) => props.theme.color.navy700};
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 `
 
 const Title = styled.h1`
   margin: 0 0 10px;
-  font-size: 27px;
+  font-size: 29px;
+  font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.02em;
   color: ${(props) => props.theme.color.navy900};
+
+  @media (max-width: 520px) {
+    font-size: 27px;
+  }
 `
 
 const Description = styled.p`
   max-width: 31ch;
   margin: 0;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.55;
   color: #526174;
   word-break: keep-all;

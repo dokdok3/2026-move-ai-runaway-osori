@@ -15,21 +15,25 @@ export interface LoadOfferCardProps {
 }
 
 const Wrapper = styled.div<{ isBest: boolean }>`
-  padding: 16px;
+  padding: 18px;
   margin-bottom: 14px;
   border-radius: 12px;
   background: ${(props) => props.theme.color.white};
-  border: 1px solid
+  border: ${(props) => (props.isBest ? '3px' : '1px')} solid
     ${(props) => (props.isBest ? props.theme.color.navy700 : props.theme.color.border)};
-  box-shadow: ${(props) => (props.isBest ? '0 10px 28px rgba(40, 85, 217, 0.1)' : 'none')};
+  box-shadow: none;
+
+  @media (max-width: 380px) {
+    padding: 16px;
+  }
 `
 
 const BestLabel = styled.div`
   display: inline-flex;
   align-items: center;
-  margin-bottom: 12px;
+  margin: 0;
   padding: 7px 9px;
-  border-radius: 7px;
+  border-radius: ${(props) => props.theme.radius.sm};
   background: ${(props) => props.theme.color.navy700};
   color: ${(props) => props.theme.color.white};
   font-size: 14px;
@@ -38,48 +42,102 @@ const BestLabel = styled.div`
 
 const Top = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  justify-content: flex-start;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
+
+  > span:last-child {
+    margin-left: auto;
+  }
 `
 
 const Route = styled.div`
-  font-size: 15px;
-  font-weight: 700;
-  color: ${(props) => props.theme.color.navy900};
-`
-
-const TimeRow = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 44px 1fr;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin: 10px 0;
-  font-size: 15px;
-  color: #465365;
+  gap: 10px;
+  padding: 2px 0 14px;
+
+  @media (max-width: 380px) {
+    grid-template-columns: 1fr 32px 1fr;
+    gap: 4px;
+  }
 `
 
-const TagChip = styled.span<{ tone: 'pickup' | 'dropoff' }>`
-  padding: 5px 8px;
-  border-radius: 7px;
-  font-size: 13px;
+const Place = styled.div`
+  min-width: 0;
+  text-align: center;
+`
+
+const PlaceLabel = styled.span`
+  display: block;
+  margin-bottom: 4px;
+  color: ${(props) => props.theme.color.label};
+  font-size: 14px;
+  font-weight: 600;
+`
+
+const City = styled.strong`
+  display: block;
+  color: ${(props) => props.theme.color.text};
+  font-size: 26px;
+  font-weight: 850;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+
+  @media (max-width: 380px) {
+    font-size: 22px;
+  }
+`
+
+const Time = styled.time`
+  display: block;
+  margin-top: 4px;
+  color: ${(props) => props.theme.color.mutedLight};
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+`
+
+const Arrow = styled.span`
+  color: ${(props) => props.theme.color.navy500};
+  font-size: 34px;
   font-weight: 700;
-  color: ${(props) => (props.tone === 'pickup' ? '#9a4a44' : '#33578c')};
-  background: ${(props) => (props.tone === 'pickup' ? '#fbebea' : props.theme.color.blue100)};
+  line-height: 1;
+  text-align: center;
 `
 
 const Sub = styled.div`
-  margin-bottom: 10px;
-  font-size: 15px;
-  color: #586474;
+  color: ${(props) => props.theme.color.mutedLight};
+  font-size: 14px;
+  line-height: 1.5;
 `
 
 const Price = styled.div`
-  margin-bottom: 14px;
-  font-size: 23px;
-  font-weight: 800;
+  font-size: 30px;
+  font-weight: 850;
+  letter-spacing: -0.03em;
   color: ${(props) => props.theme.color.text};
+
+  @media (max-width: 380px) {
+    font-size: 25px;
+    text-align: right;
+  }
+`
+
+const Meta = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+
+  @media (max-width: 380px) {
+    display: grid;
+    gap: 8px;
+  }
 `
 
 const Actions = styled.div`
@@ -101,27 +159,31 @@ export function LoadOfferCard({ load, isBest, onAccept, onHide, accepting }: Loa
 
   return (
     <Wrapper isBest={isBest}>
-      {isBest && <BestLabel>✦ 최적 매칭</BestLabel>}
-
       <Top>
-        <Route>
-          {load.origin} → {load.destination}
-        </Route>
+        {isBest && <BestLabel>✦ 최적 매칭</BestLabel>}
         <Badge tone={isLow ? 'warn' : load.badge === 'FAIR' ? 'ok' : 'neutral'}>{badgeLabel}</Badge>
       </Top>
 
-      <TimeRow>
-        <TagChip tone="pickup">상차</TagChip>
-        {formatShortDateTime(load.loadingAt)}
-        <TagChip tone="dropoff">하차</TagChip>
-        {formatShortDateTime(load.unloadingAt)}
-      </TimeRow>
+      <Route>
+        <Place>
+          <PlaceLabel>출발지</PlaceLabel>
+          <City>{load.origin}</City>
+          <Time>{formatShortDateTime(load.loadingAt)}</Time>
+        </Place>
+        <Arrow aria-hidden="true">→</Arrow>
+        <Place>
+          <PlaceLabel>도착지</PlaceLabel>
+          <City>{load.destination}</City>
+          <Time>{formatShortDateTime(load.unloadingAt)}</Time>
+        </Place>
+      </Route>
 
-      <Sub>
-        {load.bodyType} · {load.weightTon}톤 · {getCargoTypeLabel(load.cargoType)}
-      </Sub>
-
-      <Price>{formatFare(load.fare)}</Price>
+      <Meta>
+        <Sub>
+          {load.bodyType} · {load.weightTon}톤 · {getCargoTypeLabel(load.cargoType)}
+        </Sub>
+        <Price>{formatFare(load.fare)}</Price>
+      </Meta>
 
       {isLow && load.regionAverageFare !== undefined && (
         <FareWarningBanner

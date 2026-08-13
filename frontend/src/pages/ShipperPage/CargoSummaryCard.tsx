@@ -22,8 +22,8 @@ const Head = styled.div`
 
 const Title = styled.h2`
   margin: 0;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
   color: ${(props) => props.theme.color.navy900};
 `
 

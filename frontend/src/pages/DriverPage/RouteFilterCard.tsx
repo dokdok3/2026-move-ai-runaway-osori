@@ -17,8 +17,8 @@ export interface RouteFilterCardProps {
 
 const Title = styled.div`
   margin-bottom: 14px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
   color: ${(props) => props.theme.color.navy900};
 `
 

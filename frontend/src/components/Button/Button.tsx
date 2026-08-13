@@ -37,7 +37,7 @@ const StyledButton = styled.button<{ variant: 'primary' | 'ghost'; fullWidth: bo
       : `
         background: ${props.theme.color.surface};
         color: ${props.theme.color.navy700};
-        border: 2px solid ${props.theme.color.navy700};
+        border: 2px solid ${props.theme.color.borderStrong};
       `}
 
   &:active {
@@ -58,7 +58,9 @@ const StyledButton = styled.button<{ variant: 'primary' | 'ghost'; fullWidth: bo
   @media (hover: hover) {
     &:not(:disabled):hover {
       background: ${(props) =>
-        props.variant === 'primary' ? props.theme.color.navy700Hover : props.theme.color.blue50};
+        props.variant === 'primary' ? props.theme.color.navy700Hover : props.theme.color.surface};
+      border-color: ${(props) =>
+        props.variant === 'primary' ? 'transparent' : props.theme.color.mutedLight};
     }
   }
 `

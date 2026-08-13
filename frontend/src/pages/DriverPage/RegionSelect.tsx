@@ -16,13 +16,18 @@ const Select = styled.select`
   padding: 15px 14px;
   border: 2px solid ${(props) => props.theme.color.borderStrong};
   border-radius: ${(props) => props.theme.radius.md};
-  background: ${(props) => props.theme.color.blue50};
+  background: ${(props) => props.theme.color.surface};
   color: ${(props) => props.theme.color.text};
   font-family: inherit;
   font-size: 16px;
   font-weight: 600;
   text-align: center;
   text-align-last: center;
+
+  &:focus-visible {
+    outline: 3px solid ${(props) => props.theme.color.focus};
+    outline-offset: 2px;
+  }
 
   &:disabled {
     opacity: 0.6;

@@ -19,8 +19,8 @@ const TitleRow = styled.div`
 `
 
 const Title = styled.div`
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
   color: ${(props) => props.theme.color.navy900};
 `
 
@@ -35,6 +35,17 @@ const RefreshButton = styled.button`
   background: ${(props) => props.theme.color.surface};
   color: ${(props) => props.theme.color.navy700};
   cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid ${(props) => props.theme.color.focus};
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      border-color: ${(props) => props.theme.color.mutedLight};
+    }
+  }
 
   svg {
     width: 22px;
