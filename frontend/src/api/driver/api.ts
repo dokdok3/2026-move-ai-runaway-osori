@@ -6,7 +6,28 @@ import type {
   UpdateRoutePreferencesParams,
   UpdateRoutePreferencesRequest,
   UpdateRoutePreferencesResponse,
+  UpdateDriverProfileParams,
+  UpdateDriverProfileRequest,
+  UpdateDriverProfileResponse,
 } from './model'
+
+export const updateDriverProfile = async (
+  params: UpdateDriverProfileParams,
+  body: UpdateDriverProfileRequest,
+): Promise<UpdateDriverProfileResponse> => {
+  const result = await apiClient.PUT('/api/v1/drivers/me', {
+    params: { query: params },
+    body,
+  })
+  if (!result.data) {
+    throw new Error(
+      extractApiErrorMessage(result.error) ??
+        `기사 정보를 수정하지 못했습니다 (status: ${result.response.status})`,
+    )
+  }
+
+  return result.data.data ?? {}
+}
 
 export const getDriverProfile = async (
   params: GetDriverProfileParams,

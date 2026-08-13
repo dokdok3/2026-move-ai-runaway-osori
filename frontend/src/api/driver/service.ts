@@ -10,3 +10,5 @@ export const useSuspenseDriverProfileQuery = (params: GetDriverProfileParams) =>
 
 export const useUpdateRoutePreferencesMutation = () =>
   useMutation(driverMutations.updateRoutePreferences())
+
+export const useUpdateDriverProfileMutation = () => useMutation(driverMutations.updateProfile())

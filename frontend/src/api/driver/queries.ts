@@ -1,9 +1,11 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query'
-import { getDriverProfile, updateRoutePreferences } from './api'
+import { getDriverProfile, updateDriverProfile, updateRoutePreferences } from './api'
 import type {
   GetDriverProfileParams,
   UpdateRoutePreferencesParams,
   UpdateRoutePreferencesRequest,
+  UpdateDriverProfileParams,
+  UpdateDriverProfileRequest,
 } from './model'
 
 export const driverQueryKeys = {
@@ -20,6 +22,17 @@ export const driverQueries = {
 }
 
 export const driverMutations = {
+  updateProfile: () =>
+    mutationOptions({
+      mutationKey: [...driverQueryKeys.all, 'updateProfile'],
+      mutationFn: ({
+        params,
+        body,
+      }: {
+        params: UpdateDriverProfileParams
+        body: UpdateDriverProfileRequest
+      }) => updateDriverProfile(params, body),
+    }),
   updateRoutePreferences: () =>
     mutationOptions({
       mutationKey: [...driverQueryKeys.all, 'updateRoutePreferences'],

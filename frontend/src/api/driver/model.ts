@@ -11,3 +11,9 @@ export type UpdateRoutePreferencesParams = {
 }
 export type UpdateRoutePreferencesRequest = components['schemas']['RoutePreferenceRequest']
 export type UpdateRoutePreferencesResponse = DriverResponse
+
+export type UpdateDriverProfileParams = {
+  driverId: number
+}
+export type UpdateDriverProfileRequest = components['schemas']['DriverProfileRequest']
+export type UpdateDriverProfileResponse = DriverResponse

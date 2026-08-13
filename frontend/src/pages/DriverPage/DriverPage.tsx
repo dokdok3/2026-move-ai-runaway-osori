@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { AlertDialog } from '@/components/AlertDialog'
 import { Hero } from '@/components/Hero'
@@ -15,6 +15,7 @@ import {
 import type { LoadFilter } from '@/api/load/model'
 import { RouteFilterCard } from './RouteFilterCard'
 import { LoadOfferList } from './LoadOfferList'
+import { DriverProfileSummary } from './DriverProfileSummary'
 
 /** 이 화면은 기사 로그인이 없는 데모라 기사 id를 고정값으로 둔다. */
 const DEMO_DRIVER_ID = 1
@@ -44,6 +45,27 @@ const ErrorText = styled.p`
   color: #b3261e;
   font-size: 14px;
   line-height: 1.5;
+`
+
+const ProfileLink = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-left: auto;
+  padding: 10px 14px;
+  border: 2px solid ${(props) => props.theme.color.navy300};
+  border-radius: ${(props) => props.theme.radius.md};
+  background: ${(props) => props.theme.color.blue100};
+  color: ${(props) => props.theme.color.navy700};
+  font-size: 15px;
+  font-weight: 750;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 3px solid ${(props) => props.theme.color.focus};
+    outline-offset: 2px;
+  }
 `
 
 export function DriverPage() {
@@ -163,7 +185,7 @@ export function DriverPage() {
   }
 
   return (
-    <PageLayout>
+    <PageLayout headerRight={<ProfileLink to="/driver/profile">내 정보</ProfileLink>}>
       <Hero
         eyebrow="✦ 내 지역 화물만 골라보기"
         title={
@@ -175,6 +197,8 @@ export function DriverPage() {
         }
         description="활동 지역과 조건에 맞는 화물만 추천해서 놓치지 않게 알려드려요."
       />
+
+      <DriverProfileSummary profile={driverProfileQuery.data} />
 
       <RouteFilterCard
         regions={regionListQuery.data ?? []}

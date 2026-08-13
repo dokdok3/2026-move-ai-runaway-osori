@@ -29,6 +29,7 @@ export const toDriverResponse = (row: DriverRow): DriverResponse => {
   return {
     driverId: n,
     name: row.name,
+    phoneNumber: `010-${String(1200 + n).padStart(4, '0')}-${String(5600 + n).padStart(4, '0')}`,
     plateNumber: `${10 + (n % 80)}${['가', '나', '다', '라', '마'][n % 5]}${1000 + n}`,
     vehicleType: VEHICLE_TYPES[n % VEHICLE_TYPES.length],
     bodyType: isColdChain ? '냉동탑차' : '카고',
@@ -37,6 +38,9 @@ export const toDriverResponse = (row: DriverRow): DriverResponse => {
     totalTrips: 40 + n * 7,
     completionRate: row.completionRate,
     minAcceptFare: row.minimumAcceptFareKrw,
+    vehicleCargoTypes: row.vehicleCargoTypes,
+    contactableFrom: '06:00',
+    contactableTo: '20:00',
     routePreferences: {
       origins: [{ sido: row.preferredOriginSido, sigungu: row.preferredOriginSigungu }],
       destinations: [
