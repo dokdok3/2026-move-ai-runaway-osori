@@ -27,22 +27,6 @@ public class PostgisCandidateRepository {
                 WHERE c.status = 'REQUESTED'
                   AND c.origin_location IS NOT NULL
                   AND c.destination_location IS NOT NULL
-                  AND EXISTS (
-                      SELECT 1
-                      FROM driver_route_preference origin_pref
-                      WHERE origin_pref.driver_id = d.id
-                        AND origin_pref.direction = 'ORIGIN'
-                        AND origin_pref.sido = c.origin_sido
-                        AND (origin_pref.sigungu IS NULL OR origin_pref.sigungu = c.origin_sigungu)
-                  )
-                  AND EXISTS (
-                      SELECT 1
-                      FROM driver_route_preference destination_pref
-                      WHERE destination_pref.driver_id = d.id
-                        AND destination_pref.direction = 'DESTINATION'
-                        AND destination_pref.sido = c.dest_sido
-                        AND (destination_pref.sigungu IS NULL OR destination_pref.sigungu = c.dest_sigungu)
-                  )
                   AND c.cargo_type = ANY (string_to_array(d.vehicle_cargo_types, '|'))
                   AND c.weight_ton <= d.capacity_ton
                   AND c.desired_fare >= d.min_accept_fare
@@ -69,6 +53,10 @@ public class PostgisCandidateRepository {
                       )
                       OR ST_DWithin(c.destination_location, d.preferred_destination, d.destination_radius_m)
                   )
+                  AND ST_Distance(c.origin_location, d.current_location)
+                      <= ST_Distance(c.origin_location, d.preferred_destination)
+                  AND ST_Distance(c.destination_location, d.preferred_destination)
+                      <= ST_Distance(c.destination_location, d.current_location)
                   AND NOT EXISTS (
                       SELECT 1 FROM driver_hidden_cargo h
                       WHERE h.driver_id = d.id AND h.cargo_id = c.id
