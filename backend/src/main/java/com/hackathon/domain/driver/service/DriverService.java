@@ -1,5 +1,6 @@
 package com.hackathon.domain.driver.service;
 
+import com.hackathon.domain.driver.dto.DriverProfileRequest;
 import com.hackathon.domain.driver.dto.DriverResponse;
 import com.hackathon.domain.driver.dto.RegionPoint;
 import com.hackathon.domain.driver.dto.RoutePreferenceRequest;
@@ -27,6 +28,16 @@ public class DriverService {
     @Transactional(readOnly = true)
     public DriverResponse findMe(Long driverId) {
         Driver driver = getDriver(driverId);
+        return DriverResponse.from(driver, preferenceRepository.findByDriverId(driverId));
+    }
+
+    @Transactional
+    public DriverResponse updateMe(Long driverId, DriverProfileRequest request) {
+        Driver driver = getDriver(driverId);
+        driver.updateProfile(request.name(), request.phoneNumber(), request.plateNumber(),
+                request.vehicleType(), request.capacityTon(), request.bodyType(),
+                String.join("|", request.vehicleCargoTypes()), request.minAcceptFare(),
+                request.contactableFrom(), request.contactableTo());
         return DriverResponse.from(driver, preferenceRepository.findByDriverId(driverId));
     }
 
