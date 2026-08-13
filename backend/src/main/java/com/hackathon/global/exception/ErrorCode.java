@@ -12,6 +12,7 @@ public enum ErrorCode implements ErrorCodeSpec {
     CARGO_NOT_MODIFIABLE(400, "배차 완료된 화물은 수정할 수 없습니다."),
     VEHICLE_NOT_SUITABLE(400, "차량 적재량이 부족합니다."),
     DRIVER_NOT_FOUND(404, "기사를 찾을 수 없습니다."),
+    SHIPPER_NOT_FOUND(404, "화주를 찾을 수 없습니다."),
     AI_PARSING_FAILED(422, "요청 내용에서 출발지와 도착지를 읽지 못했습니다."),
     AI_CALL_FAILED(502, "AI 호출에 실패했습니다.");
 

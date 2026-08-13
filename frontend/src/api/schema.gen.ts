@@ -90,6 +90,24 @@ export interface paths {
     patch: operations['update']
     trace?: never
   }
+  '/api/v1/shippers/me': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** 내 화주 프로필 조회 */
+    get: operations['getShipperProfile']
+    /** 내 화주 프로필 수정 */
+    put: operations['updateShipperProfile']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/regions': {
     parameters: {
       query?: never
@@ -393,6 +411,27 @@ export interface components {
       data?: components['schemas']['FareQuoteResponse']
       message?: string
     }
+    ApiResponseShipperProfileResponse: {
+      success?: boolean
+      data?: components['schemas']['ShipperProfileResponse']
+      message?: string
+    }
+    ShipperProfileRequest: {
+      companyName: string
+      contactName: string
+      phoneNumber: string
+      businessNumber?: string
+      address?: string
+    }
+    ShipperProfileResponse: {
+      /** Format: int64 */
+      shipperId?: number
+      companyName?: string
+      contactName?: string
+      phoneNumber?: string
+      businessNumber?: string
+      address?: string
+    }
   }
   responses: never
   parameters: never
@@ -546,6 +585,50 @@ export interface operations {
         }
         content: {
           '*/*': components['schemas']['ApiResponseCargoDetailResponse']
+        }
+      }
+    }
+  }
+  getShipperProfile: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseShipperProfileResponse']
+        }
+      }
+    }
+  }
+  updateShipperProfile: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ShipperProfileRequest']
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['ApiResponseShipperProfileResponse']
         }
       }
     }

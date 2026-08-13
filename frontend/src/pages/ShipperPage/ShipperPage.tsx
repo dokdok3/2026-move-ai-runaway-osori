@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Hero } from '@/components/Hero'
-import { HeaderBackLink } from '@/components/AppHeader'
+import { HeaderProfileLink } from '@/components/AppHeader'
 import { PageLayout } from '@/components/PageLayout'
 import { FareWarningBanner } from '@/components/FareWarningBanner'
 import {
@@ -96,7 +96,7 @@ export function ShipperPage() {
   const cargo = cargoDetailQuery.data
 
   return (
-    <PageLayout headerRight={<HeaderBackLink />}>
+    <PageLayout headerRight={<HeaderProfileLink />}>
       <Hero
         eyebrow="✦ AI로 빠른 매칭"
         title={

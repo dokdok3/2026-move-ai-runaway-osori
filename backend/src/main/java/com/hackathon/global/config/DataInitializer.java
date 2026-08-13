@@ -8,6 +8,8 @@ import com.hackathon.domain.driver.entity.Driver;
 import com.hackathon.domain.driver.entity.DriverRoutePreference;
 import com.hackathon.domain.driver.repository.DriverRepository;
 import com.hackathon.domain.driver.repository.DriverRoutePreferenceRepository;
+import com.hackathon.domain.shipper.entity.Shipper;
+import com.hackathon.domain.shipper.repository.ShipperRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,10 +31,15 @@ public class DataInitializer implements ApplicationRunner {
     private final DriverRepository driverRepository;
     private final DriverRoutePreferenceRepository preferenceRepository;
     private final CargoRepository cargoRepository;
+    private final ShipperRepository shipperRepository;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        if (shipperRepository.count() == 0) {
+            shipperRepository.save(Shipper.create(1L));
+        }
+
         if (driverRepository.count() > 0) {
             return;
         }

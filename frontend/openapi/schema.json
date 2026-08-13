@@ -228,6 +228,52 @@
         }
       }
     },
+    "/api/v1/shippers/me": {
+      "get": {
+        "tags": ["Shipper"],
+        "summary": "내 화주 프로필 조회",
+        "operationId": "getShipperProfile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShipperProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Shipper"],
+        "summary": "내 화주 프로필 수정",
+        "operationId": "updateShipperProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipperProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShipperProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/regions": {
       "get": {
         "tags": ["Region"],
@@ -979,6 +1025,42 @@
           "message": {
             "type": "string"
           }
+        }
+      },
+      "ApiResponseShipperProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShipperProfileResponse"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ShipperProfileRequest": {
+        "type": "object",
+        "properties": {
+          "companyName": { "type": "string", "maxLength": 100 },
+          "contactName": { "type": "string", "maxLength": 50 },
+          "phoneNumber": { "type": "string", "maxLength": 20 },
+          "businessNumber": { "type": "string", "maxLength": 20 },
+          "address": { "type": "string", "maxLength": 200 }
+        },
+        "required": ["companyName", "contactName", "phoneNumber"]
+      },
+      "ShipperProfileResponse": {
+        "type": "object",
+        "properties": {
+          "shipperId": { "type": "integer", "format": "int64" },
+          "companyName": { "type": "string" },
+          "contactName": { "type": "string" },
+          "phoneNumber": { "type": "string" },
+          "businessNumber": { "type": "string" },
+          "address": { "type": "string" }
         }
       }
     }
