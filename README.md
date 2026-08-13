@@ -24,6 +24,10 @@
 - 구간 평균 운임 비교 및 비정상 저가 운임 경고
 - 화주 목록 페이지네이션과 기사 추천 목록 무한 스크롤
 
+## 서비스 데모
+
+- [서비스 데모 영상 보기](https://www.youtube.com/watch?v=ds4PwnvFsMI)
+
 ## 기술 스택
 
 - Backend: Java 25, Spring Boot 3.5, Gradle, JPA, Flyway, PostgreSQL/PostGIS, Redis, Swagger
