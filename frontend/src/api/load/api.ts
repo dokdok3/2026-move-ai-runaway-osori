@@ -6,7 +6,24 @@ import type {
   GetLoadListParams,
   GetLoadListResponse,
   HideLoadParams,
+  CompleteLoadParams,
+  CompleteLoadResponse,
 } from './model'
+
+export const completeLoad = async (params: CompleteLoadParams): Promise<CompleteLoadResponse> => {
+  const { cargoId, driverId } = params
+  const result = await apiClient.POST('/api/v1/loads/{cargoId}/complete', {
+    params: { path: { cargoId }, query: { driverId } },
+  })
+  if (!result.data) {
+    throw new Error(
+      extractApiErrorMessage(result.error) ??
+        `하차 완료 처리에 실패했습니다 (status: ${result.response.status})`,
+    )
+  }
+
+  return result.data.data ?? {}
+}
 
 export const getLoadList = async (params: GetLoadListParams): Promise<GetLoadListResponse> => {
   const result = await apiClient.GET('/api/v1/loads', { params: { query: params } })

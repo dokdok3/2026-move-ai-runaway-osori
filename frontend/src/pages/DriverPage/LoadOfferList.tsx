@@ -14,6 +14,8 @@ export interface LoadOfferListProps {
   hasNextPage: boolean
   loadingMore: boolean
   loadMoreRef: (node: HTMLDivElement | null) => void
+  onComplete: (cargoId: number) => void
+  completingCargoId: number | undefined
 }
 
 const TitleRow = styled.div`
@@ -114,9 +116,10 @@ export function LoadOfferList({
   acceptingCargoId,
   filter,
   onFilterChange,
-  hasNextPage,
   loadingMore,
   loadMoreRef,
+  onComplete,
+  completingCargoId,
 }: LoadOfferListProps) {
   const filters: Array<{ value: LoadFilter; label: string }> = [
     { value: 'ALL', label: '전체' },
@@ -161,11 +164,17 @@ export function LoadOfferList({
 
       {loads.length === 0 ? (
         <EmptyState>
-          {filter === 'ALL'
-            ? '조건에 맞는 화물이 아직 없어요. 활동 지역을 조정해 보세요.'
-            : filter === 'ACCEPTED'
-              ? '수락한 화물이 아직 없어요.'
-              : '숨긴 화물이 아직 없어요.'}
+          {filter === 'ALL' ? (
+            <>
+              조건에 맞는 화물이 아직 없어요.
+              <br />
+              활동 지역을 조정해 보세요.
+            </>
+          ) : filter === 'ACCEPTED' ? (
+            '수락한 화물이 아직 없어요.'
+          ) : (
+            '숨긴 화물이 아직 없어요.'
+          )}
         </EmptyState>
       ) : (
         <>
@@ -179,14 +188,13 @@ export function LoadOfferList({
               }
               onHide={() => load.cargoId !== undefined && onHide(load.cargoId)}
               accepting={acceptingCargoId === load.cargoId}
+              filter={filter}
+              onComplete={() => load.cargoId !== undefined && onComplete(load.cargoId)}
+              completing={completingCargoId === load.cargoId}
             />
           ))}
           <LoadMoreStatus ref={loadMoreRef} aria-live="polite">
-            {loadingMore
-              ? '화물을 더 불러오는 중이에요.'
-              : hasNextPage
-                ? ''
-                : '모든 화물을 봤어요.'}
+            {loadingMore ? '화물을 더 불러오는 중이에요.' : ''}
           </LoadMoreStatus>
         </>
       )}
