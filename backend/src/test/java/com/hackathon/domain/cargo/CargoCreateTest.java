@@ -81,4 +81,28 @@ class CargoCreateTest {
                         .content(invalid))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("하차 일시가 없으면 400")
+    void rejectsMissingUnloadingAt() throws Exception {
+        String invalid = BODY.replace("\"unloadingAt\": \"2026-08-12T18:00:00\",", "\"unloadingAt\": null,");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos")
+                        .header("X-User-Id", "100")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalid))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("출발 시군구가 없으면 400")
+    void rejectsMissingOriginSigungu() throws Exception {
+        String invalid = BODY.replace("\"sigungu\": \"강남구\"", "\"sigungu\": null");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos")
+                        .header("X-User-Id", "100")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalid))
+                .andExpect(status().isBadRequest());
+    }
 }
