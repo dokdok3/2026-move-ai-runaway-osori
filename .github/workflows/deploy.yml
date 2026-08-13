@@ -1,0 +1,126 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/${{ github.repository }}-backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository }}-frontend
+
+jobs:
+  build-and-push:
+    name: Build and push images
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.image.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: gradle
+      - name: Test backend
+        working-directory: backend
+        run: ./gradlew test --no-daemon
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Test frontend
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile && pnpm lint && pnpm build
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: image
+        run: echo "tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+            ${{ env.BACKEND_IMAGE }}:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+            ${{ env.FRONTEND_IMAGE }}:latest
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  deploy:
+    name: Blue-green deploy
+    needs: build-and-push
+    if: vars.EC2_READY == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+        run: |
+          test -n "${{ vars.EC2_HOST }}"
+          test -n "${{ vars.EC2_USER }}"
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/ec2_deploy
+          chmod 600 ~/.ssh/ec2_deploy
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      - name: Upload deployment files
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_USER: ${{ vars.EC2_USER }}
+        run: |
+          SSH="ssh -i $HOME/.ssh/ec2_deploy"
+          SCP="scp -i $HOME/.ssh/ec2_deploy"
+          $SSH "$EC2_USER@$EC2_HOST" "mkdir -p ~/hackathon-deploy/scripts ~/hackathon-deploy/deploy/nginx"
+          $SCP compose.prod.yaml "$EC2_USER@$EC2_HOST:~/hackathon-deploy/compose.prod.yaml"
+          $SCP scripts/deploy-blue-green.sh "$EC2_USER@$EC2_HOST:~/hackathon-deploy/scripts/deploy-blue-green.sh"
+          $SCP deploy/nginx/hackathon.conf.template "$EC2_USER@$EC2_HOST:~/hackathon-deploy/deploy/nginx/hackathon.conf.template"
+      - name: Authenticate EC2 to GHCR
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_USER: ${{ vars.EC2_USER }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | ssh -i ~/.ssh/ec2_deploy "$EC2_USER@$EC2_HOST" \
+            "docker login ghcr.io --username '${{ github.actor }}' --password-stdin"
+      - name: Switch blue-green deployment
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_USER: ${{ vars.EC2_USER }}
+        run: |
+          ssh -i ~/.ssh/ec2_deploy "$EC2_USER@$EC2_HOST" \
+            "cd ~/hackathon-deploy && chmod +x scripts/deploy-blue-green.sh && BACKEND_IMAGE='$BACKEND_IMAGE' FRONTEND_IMAGE='$FRONTEND_IMAGE' scripts/deploy-blue-green.sh '${{ needs.build-and-push.outputs.image-tag }}'"

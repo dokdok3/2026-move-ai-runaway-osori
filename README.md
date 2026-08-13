@@ -75,3 +75,9 @@ cd frontend && pnpm lint && pnpm build
 ```
 
 DB 스키마 변경은 `backend/src/main/resources/db/migration`에 Flyway SQL 파일로 추가합니다.
+
+## 배포
+
+`main` 브랜치에 푸시하면 GitHub Actions가 테스트와 컨테이너 빌드를 수행합니다. 운영 배포는
+단일 EC2에서 blue/green 애플리케이션을 교대로 기동하고 health check 후 Nginx를 전환합니다.
+최초 EC2 및 GitHub 설정은 `docs/deployment.md`를 참고합니다.

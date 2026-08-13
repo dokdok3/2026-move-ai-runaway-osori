@@ -8,7 +8,8 @@
 ├── frontend/         Node 22 · pnpm 9 · React 19 · TypeScript 5.9 · Vite 7
 ├── docs/             기획·API·배포·데이터 문서
 ├── scripts/          Mock 데이터 생성과 API 검증 스크립트
-└── compose.yaml      로컬 PostgreSQL/PostGIS · Redis
+├── compose.yaml      로컬 PostgreSQL/PostGIS · Redis
+└── compose.prod.yaml EC2 blue/green 운영 구성
 ```
 
 `docs/`와 `scripts/`는 관련 문서 또는 스크립트를 처음 추가할 때 생성한다.
@@ -48,3 +49,10 @@ main <- develop <- feature
 - `main`: 배포 가능한 안정 버전
 - `develop`: 기능 통합 브랜치
 - `feature/*`: 기능별 작업 브랜치
+
+## CI/CD
+
+- PR과 `develop`, `main` 푸시에서는 백엔드 테스트와 프론트엔드 lint/build를 수행한다.
+- `main` 푸시는 GHCR 이미지를 만든 뒤 단일 EC2에 blue/green 방식으로 배포한다.
+- AWS 액세스 키를 저장소나 GitHub Actions에 저장하지 않는다.
+- 배포 구성과 복구 절차는 `docs/deployment.md`를 따른다.
