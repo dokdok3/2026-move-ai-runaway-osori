@@ -112,9 +112,9 @@ export function Badge({ label }: BadgeProps) {
 
 ## 테스트
 
-- **단위 테스트**: Vitest + Testing Library. 파일은 대상 컴포넌트/모듈과 같은 폴더에 `*.test.ts(x)`로 둔다. `pnpm test`로 실행한다.
-- **e2e 테스트**: Playwright, `e2e/*.spec.ts`. `pnpm test:e2e`로 실행한다.
-- 두 테스트 러너의 대상 경로가 겹치지 않게 한다 (`vite.config.ts`의 `test.include`가 `src/**/*.{test,spec}.{ts,tsx}`로 제한되어 있음).
+- 이 프로젝트는 **단위 테스트만** 작성한다: Vitest + Testing Library. 파일은 대상 컴포넌트/모듈과 같은 폴더에 `*.test.ts(x)`로 둔다. `pnpm test`로 실행한다.
+- Playwright e2e 설정(`playwright.config.ts`, `e2e/`, `pnpm test:e2e`)은 초기 스캐폴딩으로 남아있지만 이 프로젝트의 테스트 컨벤션은 아니다 — 새 e2e 테스트를 추가하지 않는다.
+- Vitest의 `test.include`(`vite.config.ts`)는 `src/**/*.{test,spec}.{ts,tsx}`로 제한되어 있어 `e2e/` 아래 Playwright 스펙과 겹치지 않는다.
 
 ## 포맷팅 / 린트
 
