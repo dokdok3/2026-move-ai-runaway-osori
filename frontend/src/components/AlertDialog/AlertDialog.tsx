@@ -9,6 +9,7 @@ export interface AlertDialogProps {
   confirmLabel: string
   onConfirm: () => void
   onCancel?: () => void
+  cancelLabel?: string
   busy?: boolean
 }
 
@@ -73,6 +74,7 @@ export function AlertDialog({
   confirmLabel,
   onConfirm,
   onCancel,
+  cancelLabel = '취소',
   busy = false,
 }: AlertDialogProps) {
   return (
@@ -84,7 +86,7 @@ export function AlertDialog({
         <Actions single={!onCancel}>
           {onCancel && (
             <Button type="button" variant="ghost" onClick={onCancel} disabled={busy}>
-              취소
+              {cancelLabel}
             </Button>
           )}
           <Button type="button" onClick={onConfirm} disabled={busy} autoFocus>
