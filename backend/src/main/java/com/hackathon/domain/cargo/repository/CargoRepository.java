@@ -4,6 +4,8 @@ import com.hackathon.domain.cargo.entity.Cargo;
 import com.hackathon.domain.cargo.entity.CargoStatus;
 import com.hackathon.domain.cargo.entity.CargoType;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,7 +15,7 @@ public interface CargoRepository extends JpaRepository<Cargo, Long> {
 
     List<Cargo> findByStatus(CargoStatus status);
 
-    List<Cargo> findByShipperIdOrderByCreatedAtDesc(Long shipperId);
+    Page<Cargo> findByShipperId(Long shipperId, Pageable pageable);
 
     List<Cargo> findByOriginSidoAndDestSidoAndCargoType(String originSido, String destSido,
                                                          CargoType cargoType);

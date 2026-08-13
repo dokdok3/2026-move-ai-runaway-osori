@@ -14,11 +14,12 @@ import com.hackathon.domain.fare.service.FareQuoteService;
 import com.hackathon.domain.matching.repository.AssignmentRepository;
 import com.hackathon.global.exception.BusinessException;
 import com.hackathon.global.exception.ErrorCode;
+import com.hackathon.global.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -45,10 +46,9 @@ public class CargoService {
     }
 
     @Transactional(readOnly = true)
-    public List<ShipperCargoResponse> findMyCargos(Long shipperId) {
-        return cargoRepository.findByShipperIdOrderByCreatedAtDesc(shipperId).stream()
-                .map(ShipperCargoResponse::from)
-                .toList();
+    public PageResponse<ShipperCargoResponse> findMyCargos(Long shipperId, Pageable pageable) {
+        return PageResponse.from(cargoRepository.findByShipperId(shipperId, pageable)
+                .map(ShipperCargoResponse::from));
     }
 
     @Transactional

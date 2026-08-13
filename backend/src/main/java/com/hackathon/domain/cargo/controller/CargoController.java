@@ -10,12 +10,15 @@ import com.hackathon.domain.cargo.service.CargoParseService;
 import com.hackathon.domain.cargo.service.CargoService;
 import com.hackathon.global.auth.LoginUser;
 import com.hackathon.global.response.ApiResponse;
+import com.hackathon.global.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.Map;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -50,8 +53,11 @@ public class CargoController {
 
     @GetMapping("/me")
     @Operation(summary = "내가 등록한 화물 목록 조회")
-    public ApiResponse<List<ShipperCargoResponse>> getMyCargos(@LoginUser Long shipperId) {
-        return ApiResponse.ok(cargoService.findMyCargos(shipperId));
+    public ApiResponse<PageResponse<ShipperCargoResponse>> getMyCargos(
+            @LoginUser Long shipperId,
+            @PageableDefault(size = 20, sort = {"createdAt", "id"}, direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        return ApiResponse.ok(cargoService.findMyCargos(shipperId, pageable));
     }
 
     @GetMapping("/{cargoId}")

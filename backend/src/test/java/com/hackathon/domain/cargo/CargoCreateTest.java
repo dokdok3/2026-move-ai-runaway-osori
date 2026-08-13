@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -79,11 +80,47 @@ class CargoCreateTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/cargos/me")
                         .header("X-User-Id", "200"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].status").value("REQUESTED"))
-                .andExpect(jsonPath("$.data[0].origin.sido").value("서울특별시"))
-                .andExpect(jsonPath("$.data[0].unloadingAt").value("2026-08-12T18:00:00"));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.content[0].status").value("REQUESTED"))
+                .andExpect(jsonPath("$.data.content[0].origin.sido").value("서울특별시"))
+                .andExpect(jsonPath("$.data.content[0].unloadingAt").value("2026-08-12T18:00:00"))
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.size").value(20))
+                .andExpect(jsonPath("$.data.totalElements").value(1));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("내 화물 목록은 기본 20개씩 페이지네이션한다")
+    void paginatesMyCargosByTwenty() throws Exception {
+        for (int i = 0; i < 21; i++) {
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos")
+                            .header("X-User-Id", "300")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(BODY))
+                    .andExpect(status().isOk());
+        }
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/cargos/me")
+                        .header("X-User-Id", "300"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(20))
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.size").value(20))
+                .andExpect(jsonPath("$.data.totalElements").value(21))
+                .andExpect(jsonPath("$.data.totalPages").value(2))
+                .andExpect(jsonPath("$.data.first").value(true))
+                .andExpect(jsonPath("$.data.last").value(false));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/cargos/me")
+                        .header("X-User-Id", "300")
+                        .param("page", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.page").value(1))
+                .andExpect(jsonPath("$.data.first").value(false))
+                .andExpect(jsonPath("$.data.last").value(true));
     }
 
     @Test
