@@ -10,6 +10,8 @@ import com.hackathon.domain.driver.repository.DriverRoutePreferenceRepository;
 import com.hackathon.domain.fare.dto.FareQuoteResponse;
 import com.hackathon.domain.fare.service.FareQuoteService;
 import com.hackathon.domain.matching.dto.AcceptResponse;
+import com.hackathon.domain.matching.dto.CompletedLoadResponse;
+import com.hackathon.domain.matching.dto.CompleteResponse;
 import com.hackathon.domain.matching.dto.LoadResponse;
 import com.hackathon.domain.matching.entity.Assignment;
 import com.hackathon.domain.matching.repository.AssignmentRepository;
@@ -128,6 +130,62 @@ public class LoadService {
 
         Assignment assignment = assignmentRepository.save(Assignment.of(cargoId, driverId));
         return new AcceptResponse(assignment.getId(), cargoId, CargoStatus.MATCHED.name());
+    }
+
+    @Transactional
+    public CompleteResponse complete(Long driverId, Long cargoId) {
+        driverRepository.findById(driverId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DRIVER_NOT_FOUND));
+        Cargo cargo = cargoRepository.findById(cargoId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CARGO_NOT_FOUND));
+        Assignment assignment = assignmentRepository.findByCargoId(cargoId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CARGO_NOT_ASSIGNED));
+
+        if (!assignment.getDriverId().equals(driverId)) {
+            throw new BusinessException(ErrorCode.CARGO_ASSIGNMENT_ACCESS_DENIED);
+        }
+        if (cargo.getStatus() == CargoStatus.COMPLETED) {
+            throw new BusinessException(ErrorCode.CARGO_ALREADY_COMPLETED);
+        }
+        if (cargo.getStatus() != CargoStatus.MATCHED) {
+            throw new BusinessException(ErrorCode.CARGO_NOT_COMPLETABLE);
+        }
+
+        int updated = cargoRepository.updateStatusIf(cargoId, CargoStatus.MATCHED, CargoStatus.COMPLETED);
+        if (updated == 0) {
+            throw new BusinessException(ErrorCode.CARGO_ALREADY_COMPLETED);
+        }
+
+        assignment.complete();
+        Assignment completedAssignment = assignmentRepository.save(assignment);
+        return new CompleteResponse(
+                completedAssignment.getId(),
+                cargoId,
+                CargoStatus.COMPLETED.name(),
+                completedAssignment.getCompletedAt()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<CompletedLoadResponse> findCompletedLoads(Long driverId) {
+        driverRepository.findById(driverId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DRIVER_NOT_FOUND));
+
+        List<Assignment> assignments = assignmentRepository
+                .findByDriverIdAndCompletedAtIsNotNullOrderByCompletedAtDesc(driverId);
+        Map<Long, Cargo> cargos = cargoRepository.findAllById(
+                        assignments.stream().map(Assignment::getCargoId).toList())
+                .stream()
+                .collect(java.util.stream.Collectors.toMap(Cargo::getId, Function.identity()));
+
+        return assignments.stream()
+                .filter(assignment -> {
+                    Cargo cargo = cargos.get(assignment.getCargoId());
+                    return cargo != null && cargo.getStatus() == CargoStatus.COMPLETED;
+                })
+                .map(assignment -> CompletedLoadResponse.of(
+                        assignment, cargos.get(assignment.getCargoId())))
+                .toList();
     }
 
     /**

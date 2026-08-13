@@ -1,6 +1,8 @@
 package com.hackathon.domain.matching.controller;
 
 import com.hackathon.domain.matching.dto.AcceptResponse;
+import com.hackathon.domain.matching.dto.CompletedLoadResponse;
+import com.hackathon.domain.matching.dto.CompleteResponse;
 import com.hackathon.domain.matching.dto.LoadResponse;
 import com.hackathon.domain.matching.service.LoadService;
 import com.hackathon.global.auth.LoginUser;
@@ -32,10 +34,23 @@ public class LoadController {
         return ApiResponse.ok(loadService.findAvailableLoads(driverId, preferenceText, refresh));
     }
 
+    @GetMapping("/completed")
+    @Operation(summary = "기사가 완료한 화물 목록")
+    public ApiResponse<List<CompletedLoadResponse>> getCompletedLoads(@LoginUser Long driverId) {
+        return ApiResponse.ok(loadService.findCompletedLoads(driverId));
+    }
+
     @PostMapping("/{cargoId}/accept")
     @Operation(summary = "화물 수락")
     public ApiResponse<AcceptResponse> accept(@LoginUser Long driverId,
                                               @PathVariable Long cargoId) {
         return ApiResponse.ok(loadService.accept(driverId, cargoId));
+    }
+
+    @PostMapping("/{cargoId}/complete")
+    @Operation(summary = "수락한 화물 운송 완료")
+    public ApiResponse<CompleteResponse> complete(@LoginUser Long driverId,
+                                                   @PathVariable Long cargoId) {
+        return ApiResponse.ok(loadService.complete(driverId, cargoId));
     }
 }
