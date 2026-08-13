@@ -12,6 +12,74 @@
     }
   ],
   "paths": {
+    "/api/v1/shippers/me": {
+      "get": {
+        "tags": ["Shipper"],
+        "summary": "내 화주 프로필 조회",
+        "operationId": "getMe",
+        "parameters": [
+          {
+            "name": "shipperId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShipperProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Shipper"],
+        "summary": "내 화주 프로필 수정",
+        "operationId": "updateMe",
+        "parameters": [
+          {
+            "name": "shipperId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipperProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShipperProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/drivers/me/route-preferences": {
       "put": {
         "tags": ["Driver"],
@@ -189,6 +257,43 @@
           }
         }
       },
+      "delete": {
+        "tags": ["Cargo"],
+        "summary": "내 화물 삭제 (배차 대기 상태만 가능)",
+        "operationId": "delete",
+        "parameters": [
+          {
+            "name": "cargoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "shipperId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMapStringObject"
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "tags": ["Cargo"],
         "summary": "화물 부분 수정 (보낸 필드만 반영)",
@@ -197,6 +302,15 @@
           {
             "name": "cargoId",
             "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "shipperId",
+            "in": "query",
             "required": true,
             "schema": {
               "type": "integer",
@@ -361,7 +475,7 @@
       "get": {
         "tags": ["Driver"],
         "summary": "내 기사 프로필 조회",
-        "operationId": "getMe",
+        "operationId": "getMe_1",
         "parameters": [
           {
             "name": "driverId",
@@ -380,6 +494,36 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseDriverResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cargos/me": {
+      "get": {
+        "tags": ["Cargo"],
+        "summary": "내가 등록한 화물 목록 조회",
+        "operationId": "getMyCargos",
+        "parameters": [
+          {
+            "name": "shipperId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListShipperCargoResponse"
                 }
               }
             }
@@ -412,6 +556,75 @@
   },
   "components": {
     "schemas": {
+      "ShipperProfileRequest": {
+        "type": "object",
+        "properties": {
+          "companyName": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "contactName": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          },
+          "phoneNumber": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "businessNumber": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 0
+          }
+        },
+        "required": ["companyName", "contactName", "phoneNumber"]
+      },
+      "ApiResponseShipperProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShipperProfileResponse"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ShipperProfileResponse": {
+        "type": "object",
+        "properties": {
+          "shipperId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "contactName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "businessNumber": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
+        }
+      },
       "RegionPoint": {
         "type": "object",
         "properties": {
@@ -550,10 +763,10 @@
         "type": "object",
         "properties": {
           "origin": {
-            "$ref": "#/components/schemas/RegionPoint"
+            "$ref": "#/components/schemas/CargoRegionPoint"
           },
           "destination": {
-            "$ref": "#/components/schemas/RegionPoint"
+            "$ref": "#/components/schemas/CargoRegionPoint"
           },
           "cargoType": {
             "type": "string",
@@ -588,7 +801,29 @@
             "format": "int32"
           }
         },
-        "required": ["cargoType", "desiredFare", "destination", "loadingAt", "origin", "weightTon"]
+        "required": [
+          "cargoType",
+          "desiredFare",
+          "destination",
+          "loadingAt",
+          "origin",
+          "unloadingAt",
+          "weightTon"
+        ]
+      },
+      "CargoRegionPoint": {
+        "type": "object",
+        "properties": {
+          "sido": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sigungu": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["sido", "sigungu"]
       },
       "ApiResponseMapStringObject": {
         "type": "object",
@@ -978,6 +1213,66 @@
           },
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "ApiResponseListShipperCargoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipperCargoResponse"
+            }
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ShipperCargoResponse": {
+        "type": "object",
+        "properties": {
+          "cargoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/RegionPoint"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/RegionPoint"
+          },
+          "cargoType": {
+            "type": "string"
+          },
+          "cargoDescription": {
+            "type": "string"
+          },
+          "weightTon": {
+            "type": "number"
+          },
+          "desiredFare": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "loadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unloadingAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }

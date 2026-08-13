@@ -126,7 +126,7 @@ const Actions = styled.div`
 
 function placeName(sido: string | undefined, sigungu: string | undefined): string {
   if (!sido) return '-'
-  return sigungu ? `${sido} ${sigungu}` : sido
+  return sigungu && sigungu !== '전체' ? `${sido} ${sigungu}` : sido
 }
 
 export function CargoSummaryCard({

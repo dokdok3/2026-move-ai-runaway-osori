@@ -62,4 +62,20 @@ public class Driver extends BaseTimeEntity {
         driver.recentTripSummary = recentTripSummary;
         return driver;
     }
+
+    public void updateProfile(String name, String phoneNumber, String plateNumber,
+                              String vehicleType, BigDecimal capacityTon, String bodyType,
+                              String vehicleCargoTypes, Integer minAcceptFare,
+                              String contactableFrom, String contactableTo) {
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.plateNumber = plateNumber;
+        this.vehicleType = vehicleType;
+        this.capacityTon = capacityTon;
+        this.bodyType = bodyType;
+        this.vehicleCargoTypes = vehicleCargoTypes;
+        this.minAcceptFare = minAcceptFare;
+        this.contactableFrom = contactableFrom;
+        this.contactableTo = contactableTo;
+    }
 }

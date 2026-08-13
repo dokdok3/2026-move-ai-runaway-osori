@@ -26,11 +26,17 @@ public class Assignment {
 
     private LocalDateTime acceptedAt;
 
+    private LocalDateTime completedAt;
+
     public static Assignment of(Long cargoId, Long driverId) {
         Assignment assignment = new Assignment();
         assignment.cargoId = cargoId;
         assignment.driverId = driverId;
         assignment.acceptedAt = LocalDateTime.now();
         return assignment;
+    }
+
+    public void complete() {
+        this.completedAt = LocalDateTime.now();
     }
 }

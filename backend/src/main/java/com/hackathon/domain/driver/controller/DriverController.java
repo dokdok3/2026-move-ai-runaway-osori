@@ -1,5 +1,6 @@
 package com.hackathon.domain.driver.controller;
 
+import com.hackathon.domain.driver.dto.DriverProfileRequest;
 import com.hackathon.domain.driver.dto.DriverResponse;
 import com.hackathon.domain.driver.dto.RoutePreferenceRequest;
 import com.hackathon.domain.driver.service.DriverService;
@@ -27,6 +28,14 @@ public class DriverController {
     @Operation(summary = "내 기사 프로필 조회")
     public ApiResponse<DriverResponse> getMe(@LoginUser Long driverId) {
         return ApiResponse.ok(driverService.findMe(driverId));
+    }
+
+    @PutMapping("/me")
+    @Operation(summary = "내 기사 프로필 수정")
+    public ApiResponse<DriverResponse> updateMe(
+            @LoginUser Long driverId,
+            @Valid @RequestBody DriverProfileRequest request) {
+        return ApiResponse.ok(driverService.updateMe(driverId, request));
     }
 
     @PutMapping("/me/route-preferences")
