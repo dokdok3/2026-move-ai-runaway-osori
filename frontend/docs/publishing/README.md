@@ -18,6 +18,7 @@ React로 구현하기 전에 화면을 정적 HTML로 먼저 확정하는 공간
 | `shipper-detail.html` | 배차 확정 상세 | `ShipperPage/MatchedDriverCard.tsx` |
 | `shipper-completed-detail.html` | 운송 완료 상세 | 미구현 |
 | `driver.html` | 기사 — 활동 지역 설정 + 추천 화물 | `DriverPage/` |
+| `driver-profile.html` | 기사 — 내 정보 수정 | 미구현 |
 | `style.css` | 전 화면 공용 스타일 (단일 파일) | `src/theme/theme.ts` + 각 컴포넌트 Emotion |
 
 화면 이동은 `<a href>`로만 한다. JS 없이 링크만 눌러도 전체 플로우가 돌아가야 한다.
@@ -28,6 +29,10 @@ React로 구현하기 전에 화면을 정적 HTML로 먼저 확정하는 공간
 flowchart TD
   index([index<br/>역할 선택])
   driver[driver<br/>활동 지역 + 추천 화물]
+  profile[driver-profile<br/>내 정보 수정]
+
+  driver -->|헤더 내 정보 · 요약 카드| profile
+  profile -.취소 · 수정하기.-> driver
 
   subgraph 등록
     direction TB
@@ -98,14 +103,41 @@ flowchart TD
 
 ### 기사
 
-`index` → `driver` 한 화면에서 끝난다.
+`index` → `driver`가 기본 화면이고, 내 정보 수정만 `driver-profile`로 빠진다.
 
-1. **활동 지역 설정** — 출발지/도착지를 시·도 + 시·군·구 2단 셀렉트로 고른다.
-2. **추천 화물** — 조건에 맞는 오퍼 카드 목록. 카드 위계는 DESIGN.md §6을 따른다
+1. **내 정보 요약** — hero 바로 아래 `.driver-card.profile-summary.profile-overview`.
+   이름 · 차종+톤수 · 평점 셋만 보여주고, 카드 전체가 `driver-profile`로 가는 링크다.
+   활동 지역 설정 **위**에 두는 이유: 내 차가 뭔지가 아래 추천 결과의 전제라서다.
+2. **활동 지역 설정** — 출발지/도착지를 시·도 + 시·군·구 2단 셀렉트로 고른다.
+3. **추천 화물** — 조건에 맞는 오퍼 카드 목록. 카드 위계는 DESIGN.md §6을 따른다
    (출발지·도착지·가격이 가장 크고, `.offer-card.best`가 3px 테두리로 첫 카드를 강조).
-3. 카드마다 `적정 운임` / `운임 N% 낮음` 배지로 판단 근거를 먼저 주고, 그 다음 `숨기기` · `수락` 두 버튼.
+   - 목록 위 `.offer-filters`(전체 / 수락 / 숨기기) 알약 버튼으로 상태를 거른다. 선택된 것만 `.active`(파란 채움) +
+     `aria-pressed="true"`.
+   - 카드마다 `badge ok 적정 운임` / `badge warn 낮은 운임`으로 판단 근거를 먼저 준다.
+     낮은 운임일 때만 카드 안에 `banner warn`으로 `이 구간의 평균 운임은 N원이에요`를 덧붙인다 — 배지는 결론,
+     배너는 근거다.
+   - 마지막 줄은 항상 `관심 없음` · `수락하기` 두 버튼.
 
-기사 회원가입·프로필 화면은 퍼블리싱에 없다. 목데이터 전제다 (`index.html` 푸터에 명시).
+기사 회원가입 화면은 퍼블리싱에 없다. 목데이터 전제다 (`index.html` 푸터에 명시).
+
+### 기사 — 내 정보 수정
+
+`driver-profile` 진입점은 둘이다. **헤더 우측 `내 정보` 버튼(`.brand-link`)** 과 위의 요약 카드.
+헤더 버튼은 **기사 화면에만** 붙인다 — 화주 쪽 `header.brand`는 그대로 둔다.
+
+`DriverProfileRequest`의 10개 필드를 카드 3장으로 나눴다.
+
+| 카드 | 필드 |
+|---|---|
+| 기본 정보 | 이름 · 연락처 · 차량번호 |
+| 차량 정보 | 차종 · 적재 중량 · 적재함 형태 · 운송 가능 화물(`.check-list`, 최대 5개) |
+| 운행 조건 | 희망 최소 운임(건당) · 연락 가능 시간(시작/종료) |
+
+- 현재 값 요약은 이 화면에 두지 않는다. `driver`의 요약 카드를 눌러 들어오는 흐름이라 바로 위에서 이미 봤다.
+- `운송 가능 화물`은 셀렉트가 아니라 체크박스다(`.check-item`, 52px). 선택하면 파란 테두리+배경으로 바뀐다.
+  모바일 `<select multiple>`은 시니어 대상에서 쓰지 않는다.
+- `취소` · `수정하기`는 `sticky-cta`로 화면 아래 고정. 폼이 길어도 버튼을 찾아 스크롤할 일이 없다.
+- 평점·완료율·운행 지역은 폼에 없다. `DriverProfileRequest`에 없는 읽기 전용 값이고, 활동 지역은 `driver`에서 고른다.
 
 ## 보는 방법
 
