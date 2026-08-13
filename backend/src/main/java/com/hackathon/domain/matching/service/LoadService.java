@@ -18,6 +18,8 @@ import com.hackathon.global.exception.ErrorCode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,13 +39,27 @@ public class LoadService {
     private final AssignmentRepository assignmentRepository;
     private final MatchScoreCalculator scoreCalculator;
     private final FareQuoteService fareQuoteService;
+    private final AiRouteReranker aiRouteReranker;
+    private final PostgisCandidateRepository postgisCandidateRepository;
 
     @Transactional(readOnly = true)
-    public List<LoadResponse> findAvailableLoads(Long driverId) {
+    public List<LoadResponse> findAvailableLoads(Long driverId, String preferenceText) {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DRIVER_NOT_FOUND));
         List<DriverRoutePreference> preferences = preferenceRepository.findByDriverId(driverId);
         LocalDateTime now = LocalDateTime.now();
+
+        List<LoadResponse> postgisLoads = findPostgisLoads(driverId);
+        if (postgisLoads != null) {
+            List<LoadResponse> decorated = postgisLoads.stream()
+                    .map(load -> applyBelowAverageBadge(load, cargoRepository.getReferenceById(load.cargoId())))
+                    .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+            AiRouteReranker.RerankResult result = aiRouteReranker.rerank(preferenceText, decorated);
+            if (!result.applied() && org.springframework.util.StringUtils.hasText(preferenceText)) {
+                return result.loads().stream().map(load -> load.withRankingMode("RULE_FALLBACK")).toList();
+            }
+            return result.loads();
+        }
 
         List<LoadResponse> loads = new ArrayList<>();
         for (Cargo cargo : cargoRepository.findByStatus(CargoStatus.REQUESTED)) {
@@ -55,13 +71,34 @@ public class LoadService {
             loads.add(applyBelowAverageBadge(load, cargo));
         }
 
-        loads.sort(Comparator.comparingInt(LoadResponse::matchScore).reversed());
-
+        loads.sort(Comparator.comparingInt(LoadResponse::matchScore).reversed()
+                .thenComparing(LoadResponse::fare, Comparator.reverseOrder())
+                .thenComparing(LoadResponse::cargoId));
         // BELOW_AVERAGE가 이미 붙어 있으면 그대로 둔다 — 기사에게 불리한 정보를 우선 보여준다.
         if (!loads.isEmpty() && loads.get(0).badge() == null) {
             loads.set(0, loads.get(0).withBadge("BEST_MATCH"));
         }
         return loads;
+    }
+
+    private List<LoadResponse> findPostgisLoads(Long driverId) {
+        try {
+            List<PostgisCandidateRepository.PostgisCandidate> candidates = postgisCandidateRepository.findTop50(driverId);
+            Map<Long, Cargo> cargos = cargoRepository.findAllById(candidates.stream()
+                            .map(PostgisCandidateRepository.PostgisCandidate::cargoId).toList())
+                    .stream().collect(java.util.stream.Collectors.toMap(Cargo::getId, Function.identity()));
+            return candidates.stream().map(candidate -> {
+                Cargo cargo = cargos.get(candidate.cargoId());
+                if (cargo == null) {
+                    throw new IllegalStateException("PostGIS 후보 화물을 찾을 수 없습니다.");
+                }
+                return LoadResponse.of(cargo, (int) Math.round(candidate.baseScore()))
+                        .withPostgisMetrics(candidate.pickupDistanceM(), candidate.destinationGapM(), candidate.baseScore());
+            }).toList();
+        } catch (org.springframework.dao.DataAccessException e) {
+            log.info("PostGIS 후보 검색을 사용할 수 없어 룰 기반 목록으로 폴백합니다.");
+            return null;
+        }
     }
 
     @Transactional

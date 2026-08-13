@@ -66,16 +66,22 @@ public class OpenAiClient {
 
     /** Responses API의 strict JSON Schema 출력으로 생성된 JSON 문자열을 반환한다. */
     public String generateStructured(String instructions, String input, JsonNode schema) {
+        return generateStructured("freight_request", instructions, input, schema);
+    }
+
+    /** Responses API의 strict JSON Schema 출력으로 생성된 JSON 문자열을 반환한다. */
+    public String generateStructured(String schemaName, String instructions, String input, JsonNode schema) {
         if (!StringUtils.hasText(apiKey)) {
             throw new IllegalStateException("OPENAI_API_KEY가 설정되지 않았습니다.");
         }
-        if (!StringUtils.hasText(instructions) || !StringUtils.hasText(input) || schema == null) {
+        if (!StringUtils.hasText(schemaName) || !StringUtils.hasText(instructions)
+                || !StringUtils.hasText(input) || schema == null) {
             throw new IllegalArgumentException("Structured Output 요청 값이 올바르지 않습니다.");
         }
 
         Map<String, Object> format = new LinkedHashMap<>();
         format.put("type", "json_schema");
-        format.put("name", "freight_request");
+        format.put("name", schemaName);
         format.put("strict", true);
         format.put("schema", schema);
 

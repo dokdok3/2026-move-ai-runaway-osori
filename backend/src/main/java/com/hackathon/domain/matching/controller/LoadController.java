@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,8 +26,9 @@ public class LoadController {
 
     @GetMapping
     @Operation(summary = "기사 구간 기준 매칭 점수순 화물 목록")
-    public ApiResponse<List<LoadResponse>> getLoads(@LoginUser Long driverId) {
-        return ApiResponse.ok(loadService.findAvailableLoads(driverId));
+    public ApiResponse<List<LoadResponse>> getLoads(@LoginUser Long driverId,
+                                                     @RequestParam(required = false) String preferenceText) {
+        return ApiResponse.ok(loadService.findAvailableLoads(driverId, preferenceText));
     }
 
     @PostMapping("/{cargoId}/accept")
