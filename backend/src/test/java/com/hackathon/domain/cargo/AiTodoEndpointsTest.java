@@ -3,18 +3,24 @@ package com.hackathon.domain.cargo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.hackathon.domain.region.repository.RegionCoordinateRepository;
+import com.hackathon.domain.region.repository.RegionCoordinateRepository.RegionCoordinate;
 import com.hackathon.global.client.OpenAiClient;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,9 +40,26 @@ class AiTodoEndpointsTest {
     @MockitoBean
     OpenAiClient openAiClient;
 
+    @MockitoBean
+    RegionCoordinateRepository regionCoordinateRepository;
+
     @BeforeEach
-    void resetOpenAiClient() {
-        reset(openAiClient);
+    void resetMocks() {
+        reset(openAiClient, regionCoordinateRepository);
+        when(regionCoordinateRepository.findBySigungu("송파구"))
+                .thenReturn(List.of(new RegionCoordinate("서울특별시", "송파구")));
+        when(regionCoordinateRepository.findBySigungu("강서구")).thenReturn(List.of(
+                new RegionCoordinate("서울특별시", "강서구"),
+                new RegionCoordinate("부산광역시", "강서구")
+        ));
+        when(regionCoordinateRepository.findBySigungu("청주시"))
+                .thenReturn(List.of(new RegionCoordinate("충청북도", "청주시")));
+        when(regionCoordinateRepository.findBySigungu("화순군"))
+                .thenReturn(List.of(new RegionCoordinate("전라남도", "화순군")));
+        when(regionCoordinateRepository.findBySigungu("서구")).thenReturn(List.of(
+                new RegionCoordinate("대전광역시", "서구"),
+                new RegionCoordinate("인천광역시", "서구")
+        ));
     }
 
     @Test
@@ -85,6 +108,9 @@ class AiTodoEndpointsTest {
                 instructionsCaptor.capture(), inputCaptor.capture(), schemaCaptor.capture());
 
         assertThat(instructionsCaptor.getValue())
+                .contains("\"청쥬시\"는 \"청주시\"로 교정")
+                .contains("지역명 오타를 교정한 경우 warnings")
+                .contains("같은 시군구")
                 .contains("명백한 오타와 띄어쓰기만")
                 .contains("상품명·상태·수량 같은 구체 정보를 유지")
                 .contains("\"내동 화물\"은 cargoType=FROZEN, cargoDescription=\"냉동 화물\"")
@@ -95,10 +121,113 @@ class AiTodoEndpointsTest {
                 .contains("GENERAL: 일반 화물")
                 .contains("FROZEN: 냉동 화물")
                 .contains("CONSTRUCTION: 건설 화물")
-                .contains("HAZARDOUS: 위험물");
+                .contains("HAZARDOUS: 위험물")
+                .doesNotContain("region_coordinate", "충청북도: 청주시");
         assertThat(schemaCaptor.getValue().at("/properties/cargoType/enum").toString())
                 .contains("REFRIGERATED", "GENERAL", "FROZEN", "CONSTRUCTION", "HAZARDOUS")
                 .doesNotContain("OTHER");
+    }
+
+    @Test
+    @DisplayName("AI가 추출한 시군구를 DB와 대조해 시도를 보완한다")
+    void enrichesSidoFromRegionCoordinateAfterAiParsing() throws Exception {
+        when(openAiClient.generateStructured(any(), any(), any(JsonNode.class)))
+                .thenReturn("""
+                        {
+                          "origin":{"sido":null,"sigungu":"청주시","detail":null},
+                          "destination":{"sido":"부산광역시","sigungu":"강서구","detail":null},
+                          "cargoType":"GENERAL",
+                          "cargoDescription":"일반 화물",
+                          "weightTon":1,
+                          "offeredFareKrw":300000,
+                          "loadingDate":"2026-08-14",
+                          "loadingTimeText":null,
+                          "unloadingDate":"2026-08-14",
+                          "unloadingTimeText":null,
+                          "missingFields":[],
+                          "confidence":"HIGH",
+                          "warnings":[]
+                        }
+                        """);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos/parse")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "requestText":"내일 청주시에서 부산 강서구로 일반 화물 1톤 30만원",
+                                  "referenceDate":"2026-08-13"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.origin.sido").value("충청북도"))
+                .andExpect(jsonPath("$.data.origin.sigungu").value("청주시"))
+                .andExpect(jsonPath("$.data.missingFields").isEmpty());
+
+        InOrder callOrder = inOrder(openAiClient, regionCoordinateRepository);
+        callOrder.verify(openAiClient).generateStructured(any(), any(), any(JsonNode.class));
+        callOrder.verify(regionCoordinateRepository).findBySigungu("청주시");
+    }
+
+    @Test
+    @DisplayName("AI가 시군구 오타를 정식 지역명으로 교정한 결과를 DB와 대조한다")
+    void validatesAiCorrectedSigunguAgainstRegionCoordinate() throws Exception {
+        when(openAiClient.generateStructured(any(), any(), any(JsonNode.class)))
+                .thenReturn("""
+                        {
+                          "origin":{"sido":"충청북도","sigungu":"청주시","detail":null},
+                          "destination":{"sido":"부산광역시","sigungu":"강서구","detail":null},
+                          "cargoType":"GENERAL",
+                          "cargoDescription":"일반 화물",
+                          "weightTon":1,
+                          "offeredFareKrw":300000,
+                          "loadingDate":"2026-08-14",
+                          "loadingTimeText":null,
+                          "unloadingDate":"2026-08-14",
+                          "unloadingTimeText":null,
+                          "missingFields":[],
+                          "confidence":"HIGH",
+                          "warnings":["'청쥬시'를 '청주시'로 보정했습니다."]
+                        }
+                        """);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos/parse")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"requestText\":\"청쥬시에서 부산 강서구로 화물\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.origin.sido").value("충청북도"))
+                .andExpect(jsonPath("$.data.origin.sigungu").value("청주시"))
+                .andExpect(jsonPath("$.data.warnings[0]").value("'청쥬시'를 '청주시'로 보정했습니다."));
+    }
+
+    @Test
+    @DisplayName("여러 시도에 있는 시군구는 시도가 없으면 추측하지 않는다")
+    void doesNotGuessAmbiguousSigungu() throws Exception {
+        when(openAiClient.generateStructured(any(), any(), any(JsonNode.class)))
+                .thenReturn("""
+                        {
+                          "origin":{"sido":null,"sigungu":"서구","detail":null},
+                          "destination":{"sido":"부산광역시","sigungu":"강서구","detail":null},
+                          "cargoType":"GENERAL",
+                          "cargoDescription":"일반 화물",
+                          "weightTon":1,
+                          "offeredFareKrw":300000,
+                          "loadingDate":"2026-08-14",
+                          "loadingTimeText":null,
+                          "unloadingDate":"2026-08-14",
+                          "unloadingTimeText":null,
+                          "missingFields":[],
+                          "confidence":"LOW",
+                          "warnings":[]
+                        }
+                        """);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/cargos/parse")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"requestText\":\"서구에서 부산 강서구로 화물\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.origin.sido").doesNotExist())
+                .andExpect(jsonPath("$.data.origin.sigungu").value("서구"))
+                .andExpect(jsonPath("$.data.missingFields[0]").value("출발지 시도는 필수입니다."));
     }
 
     @Test
@@ -113,6 +242,8 @@ class AiTodoEndpointsTest {
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("AI 호출에 실패했습니다."));
+
+        verifyNoInteractions(regionCoordinateRepository);
     }
 
     @Test
@@ -148,11 +279,11 @@ class AiTodoEndpointsTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.origin.sido").value("서울특별시"))
+                .andExpect(jsonPath("$.data.destination.sido").value("전라남도"))
                 .andExpect(jsonPath("$.data.destination.sigungu").value("화순군"))
                 .andExpect(jsonPath("$.data.missingFields[0]").value("출발지 시군구는 필수입니다."))
-                .andExpect(jsonPath("$.data.missingFields[1]").value("도착지 시도는 필수입니다."))
-                .andExpect(jsonPath("$.data.missingFields[2]").value("화물 종류는 필수입니다."))
-                .andExpect(jsonPath("$.data.missingFields[3]").value("하차일은 필수입니다."));
+                .andExpect(jsonPath("$.data.missingFields[1]").value("화물 종류는 필수입니다."))
+                .andExpect(jsonPath("$.data.missingFields[2]").value("하차일은 필수입니다."));
     }
 
     @Test

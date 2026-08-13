@@ -21,7 +21,23 @@ public class PostgisCandidateRepository {
                 SELECT c.id, c.desired_fare, c.loading_at,
                        d.min_accept_fare, d.available_from, d.pickup_radius_m, d.destination_radius_m,
                        ST_Distance(d.current_location, c.origin_location) AS pickup_distance_m,
-                       ST_Distance(d.preferred_destination, c.destination_location) AS destination_gap_m
+                       ST_Distance(d.preferred_destination, c.destination_location) AS destination_gap_m,
+                       EXISTS (
+                           SELECT 1
+                           FROM driver_route_preference origin_all
+                           WHERE origin_all.driver_id = d.id
+                             AND origin_all.direction = 'ORIGIN'
+                             AND origin_all.sido = c.origin_sido
+                             AND origin_all.sigungu IS NULL
+                       ) AS origin_whole,
+                       EXISTS (
+                           SELECT 1
+                           FROM driver_route_preference destination_all
+                           WHERE destination_all.driver_id = d.id
+                             AND destination_all.direction = 'DESTINATION'
+                             AND destination_all.sido = c.dest_sido
+                             AND destination_all.sigungu IS NULL
+                       ) AS destination_whole
                 FROM cargo c
                 CROSS JOIN driver_context d
                 WHERE c.status = 'REQUESTED'
@@ -63,8 +79,14 @@ public class PostgisCandidateRepository {
                   )
             ), scored AS (
                 SELECT *,
-                       GREATEST(0.0, 35.0 * (1.0 - pickup_distance_m / pickup_radius_m)) AS pickup_score,
-                       GREATEST(0.0, 25.0 * (1.0 - destination_gap_m / destination_radius_m)) AS destination_score,
+                       CASE
+                           WHEN origin_whole THEN 35.0
+                           ELSE GREATEST(0.0, 35.0 * (1.0 - pickup_distance_m / pickup_radius_m))
+                       END AS pickup_score,
+                       CASE
+                           WHEN destination_whole THEN 25.0
+                           ELSE GREATEST(0.0, 25.0 * (1.0 - destination_gap_m / destination_radius_m))
+                       END AS destination_score,
                        LEAST(20.0, 10.0 + 40.0 * (desired_fare - min_accept_fare)
                            / GREATEST(min_accept_fare, 1)) AS fare_score,
                        10.0 AS cargo_score,

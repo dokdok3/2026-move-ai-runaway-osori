@@ -17,7 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class PostgisCandidateRepositoryTest {
 
     @Test
-    @DisplayName("전체 선택과 특정 구 선택을 방향별로 독립 적용한다")
+    @DisplayName("전체 선택은 방향별 거리 제한을 우회하고 동일한 만점을 부여한다")
     @SuppressWarnings("unchecked")
     void treatsNullSigunguAsWholeSido() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
@@ -33,6 +33,8 @@ class PostgisCandidateRepositoryTest {
                 .contains("OR ST_DWithin(c.origin_location, d.current_location, d.pickup_radius_m)")
                 .contains("destination_all.sigungu IS NULL")
                 .contains("OR ST_DWithin(c.destination_location, d.preferred_destination, d.destination_radius_m)")
+                .contains("WHEN origin_whole THEN 35.0")
+                .contains("WHEN destination_whole THEN 25.0")
                 .contains("ST_Distance(c.origin_location, d.current_location)")
                 .contains("ST_Distance(c.destination_location, d.preferred_destination)")
                 .doesNotContain("origin_pref.sigungu IS NULL OR origin_pref.sigungu = c.origin_sigungu")

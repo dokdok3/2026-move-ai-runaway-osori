@@ -32,9 +32,11 @@ public class CargoParseService {
             2. 날짜는 YYYY-MM-DD 형식이다. "내일", "모레"는 referenceDate와 Asia/Seoul 기준으로 계산한다. 시간 표현은 원문 의미를 잃지 않도록 loadingTimeText/unloadingTimeText에 보존한다. 시간을 임의로 09:00 등으로 만들지 않는다.
             3. 금액은 원화 정수로 변환한다. 예: "50만원"은 500000, "1.2백만"은 1200000이다. 금액이 불명확하면 null이다.
             4. 중량은 톤 단위 숫자로 변환한다. 예: "500kg"은 0.5, "5톤"은 5다. 중량이 불명확하면 null이다.
-            5. 시/도와 시/군/구를 구분할 수 있을 때만 origin/destination에 채운다. 주소를 보완하거나 존재하지 않는 세부 주소를 만들지 않는다.
+            5. origin/destination의 시도와 시군구는 정식 행정구역 전체 명칭으로 추출한다. 지역명의 명백한 오타와 띄어쓰기는 문맥에 근거해 최소한으로 교정한다.
+               예: "청쥬시"는 "청주시"로 교정하고 sido="충청북도", sigungu="청주시"로 반환한다. 지역명 오타를 교정한 경우 warnings에 "'원문'을 '교정문'으로 보정했습니다." 형식으로 기록한다.
+               시군구만 명시됐고 행정구역 관계가 명확하면 시도까지 보완한다. "서구"처럼 여러 시도에 같은 시군구가 있고 문맥으로 특정할 수 없거나 교정 후보가 여러 개면 추측하지 않는다. 존재하지 않는 상세 주소는 만들지 않는다.
             6. cargoType은 입력의 referenceData에 제공된 CargoType enum 중 하나로만 정규화한다. 각 enum의 한글 의미와 대표 표현을 참고하되, 근거가 없으면 null을 넣는다.
-            7. cargoDescription은 상품명·상태·수량 같은 구체 정보를 유지하면서 짧고 자연스러운 한국어로 정리한다. 화물 용어의 명백한 오타와 띄어쓰기만 referenceData와 문맥에 근거해 최소한으로 교정한다. 고유명사와 출발지·도착지 이름은 임의로 교정하지 않는다. 교정 후보가 여러 개면 추측하지 말고 원문을 유지한다.
+            7. cargoDescription은 상품명·상태·수량 같은 구체 정보를 유지하면서 짧고 자연스러운 한국어로 정리한다. 화물 용어의 명백한 오타와 띄어쓰기만 referenceData와 문맥에 근거해 최소한으로 교정한다. 고유명사는 임의로 교정하지 않는다. 단, 출발지·도착지는 5번의 지역명 교정 규칙을 따른다. 교정 후보가 여러 개면 추측하지 말고 원문을 유지한다.
                예: "내동 화물"은 cargoType=FROZEN, cargoDescription="냉동 화물"로 교정한다. "냉짱 식품"은 cargoType=REFRIGERATED, cargoDescription="냉장 식품"으로 교정한다.
                오타를 교정한 경우 warnings에 "'원문'을 '교정문'으로 보정했습니다." 형식으로 기록한다.
             8. 누락 필드는 missingFields에 넣는다. confidence는 원본 정보가 충분하면 HIGH, 일부 핵심 필드가 빠졌거나 모호하면 MEDIUM 또는 LOW로 둔다. warnings에는 날짜·금액·중량 해석의 모호성과 오타 교정 내역만 짧게 적는다.
@@ -79,11 +81,17 @@ public class CargoParseService {
 
     private final OpenAiClient openAiClient;
     private final ObjectMapper objectMapper;
+    private final CargoRegionNormalizer cargoRegionNormalizer;
     private final JsonNode schema;
 
-    public CargoParseService(OpenAiClient openAiClient, ObjectMapper objectMapper) {
+    public CargoParseService(
+            OpenAiClient openAiClient,
+            ObjectMapper objectMapper,
+            CargoRegionNormalizer cargoRegionNormalizer
+    ) {
         this.openAiClient = openAiClient;
         this.objectMapper = objectMapper;
+        this.cargoRegionNormalizer = cargoRegionNormalizer;
         try {
             this.schema = objectMapper.readTree(SCHEMA_JSON_TEMPLATE.formatted(cargoTypeSchemaValues()));
         } catch (JsonProcessingException e) {
@@ -109,7 +117,8 @@ public class CargoParseService {
             throw new BusinessException(ErrorCode.AI_CALL_FAILED);
         }
 
-        return parsed.withMissingFields(findValidationMessages(parsed));
+        ParsedCargoResponse normalized = cargoRegionNormalizer.normalize(parsed);
+        return normalized.withMissingFields(findValidationMessages(normalized));
     }
 
     private static String cargoTypeSchemaValues() {

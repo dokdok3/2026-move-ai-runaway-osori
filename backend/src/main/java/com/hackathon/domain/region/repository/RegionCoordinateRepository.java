@@ -15,6 +15,13 @@ public class RegionCoordinateRepository {
             ORDER BY sido, sigungu
             """;
 
+    private static final String FIND_BY_SIGUNGU_SQL = """
+            SELECT sido, sigungu
+            FROM region_coordinate
+            WHERE sigungu = ?
+            ORDER BY sido
+            """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public List<RegionCoordinate> findAll() {
@@ -22,6 +29,13 @@ public class RegionCoordinateRepository {
                 resultSet.getString("sido"),
                 resultSet.getString("sigungu")
         ));
+    }
+
+    public List<RegionCoordinate> findBySigungu(String sigungu) {
+        return jdbcTemplate.query(FIND_BY_SIGUNGU_SQL, (resultSet, rowNum) -> new RegionCoordinate(
+                resultSet.getString("sido"),
+                resultSet.getString("sigungu")
+        ), sigungu);
     }
 
     public record RegionCoordinate(String sido, String sigungu) {
