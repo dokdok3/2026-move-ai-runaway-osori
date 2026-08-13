@@ -31,7 +31,9 @@ public class CargoService {
 
     @Transactional
     public Long create(Long shipperId, CargoCreateRequest request) {
-        return cargoRepository.save(request.toEntity(shipperId)).getId();
+        Cargo cargo = request.toEntity(shipperId);
+        Cargo saved = cargoRepository.save(cargo);
+        return saved.getId();
     }
 
     @Transactional(readOnly = true)
