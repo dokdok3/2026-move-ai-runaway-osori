@@ -208,14 +208,11 @@ export function LoadOfferCard({
       )}
 
       <Actions>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={onHide}
-          disabled={accepting || completing || filter === 'ACCEPTED'}
-        >
-          숨기기
-        </Button>
+        {filter === 'ALL' && (
+          <Button type="button" variant="ghost" onClick={onHide} disabled={accepting}>
+            숨기기
+          </Button>
+        )}
         {filter === 'ACCEPTED' ? (
           <Button
             type="button"

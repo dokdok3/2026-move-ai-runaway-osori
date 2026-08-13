@@ -68,7 +68,7 @@ describe('DriverPage', () => {
     expect(firstAcceptButton).not.toBeDisabled()
   })
 
-  it('수락한 화물은 숨길 수 없고 하차 완료 처리할 수 있다', async () => {
+  it('수락한 화물은 하차 완료 처리할 수 있다', async () => {
     const user = userEvent.setup()
     renderWithProviders(<DriverPage />)
 
@@ -79,9 +79,8 @@ describe('DriverPage', () => {
     await user.click(screen.getByRole('button', { name: '확인' }))
     await user.click(screen.getByRole('button', { name: '수락', pressed: false }))
     const [completeButton] = await screen.findAllByRole('button', { name: '하차 완료' })
-    const disabledHideButtons = actionButtons('숨기기')
 
-    disabledHideButtons.forEach((button) => expect(button).toBeDisabled())
+    expect(actionButtons('숨기기')).toHaveLength(0)
     await user.click(completeButton)
     await user.click(screen.getByRole('button', { name: '하차 완료하기' }))
     await waitFor(() => expect(completeButton).not.toBeInTheDocument())
@@ -97,6 +96,7 @@ describe('DriverPage', () => {
     await user.click(screen.getByRole('button', { name: '숨기기', pressed: false }))
 
     expect(screen.getByRole('button', { name: '숨기기', pressed: true })).toBeInTheDocument()
-    expect(actionButtons('숨기기').length).toBeGreaterThan(0)
+    expect(actionButtons('숨기기')).toHaveLength(0)
+    expect(actionButtons('수락').length).toBeGreaterThan(0)
   })
 })
