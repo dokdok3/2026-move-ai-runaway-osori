@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Hero } from '@/components/Hero'
-import { HeaderBackLink } from '@/components/AppHeader'
 import { PageLayout } from '@/components/PageLayout'
 import { FareWarningBanner } from '@/components/FareWarningBanner'
 import {
@@ -104,7 +103,7 @@ export function ShipperPage() {
   const cargo = cargoDetailQuery.data
 
   return (
-    <PageLayout headerRight={<HeaderBackLink />}>
+    <PageLayout>
       {!showCreate && !cargo ? (
         <MyCargoList
           cargos={myCargosQuery.data ?? []}

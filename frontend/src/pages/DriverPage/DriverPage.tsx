@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Hero } from '@/components/Hero'
-import { HeaderBackLink } from '@/components/AppHeader'
 import { PageLayout } from '@/components/PageLayout'
 import { useDriverProfileQuery, useUpdateRoutePreferencesMutation } from '@/api/driver/service'
 import { useRegionListQuery } from '@/api/region/service'
@@ -135,7 +134,7 @@ export function DriverPage() {
   }
 
   return (
-    <PageLayout headerRight={<HeaderBackLink />}>
+    <PageLayout>
       <Hero
         eyebrow="✦ 내 지역 화물만 골라보기"
         title={
