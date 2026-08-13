@@ -58,8 +58,7 @@ class CargoCreateTest {
                 .andExpect(jsonPath("$.data.cargoType").value("REFRIGERATED"))
                 .andExpect(jsonPath("$.data.cargoDescription").value("냉장식품"))
                 .andExpect(jsonPath("$.data.desiredFare").value(500000))
-                // 시세 캐시가 비어 있으므로 AI 미연동이어도 화물 조회는 막히지 않고 fare만 비어야 한다.
-                .andExpect(jsonPath("$.data.fare").doesNotExist())
+                .andExpect(jsonPath("$.data.fare.averageFare").isNumber())
                 .andExpect(jsonPath("$.data.assignedDriver").doesNotExist());
     }
 

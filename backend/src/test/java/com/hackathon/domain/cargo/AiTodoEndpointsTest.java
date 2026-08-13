@@ -1,6 +1,5 @@
 package com.hackathon.domain.cargo;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.reset;
@@ -87,14 +86,14 @@ class AiTodoEndpointsTest {
     }
 
     @Test
-    @DisplayName("시세 조회는 캐시 미스면 AI 미연동 501을 반환한다")
-    void quoteIsTodoOnCacheMiss() throws Exception {
+    @DisplayName("시세 조회는 캐시 미스여도 기본 시세를 생성해 반환한다")
+    void quoteReturnsFallbackOnCacheMiss() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/fares/quote")
                         .param("originSido", "강원특별자치도")
                         .param("destSido", "강원특별자치도")
-                        .param("cargoType", "GENERAL")
-                        .param("weightTon", "1.0"))
-                .andExpect(status().isNotImplemented())
-                .andExpect(jsonPath("$.message").value(containsString("TODO(AI)")));
+                        .param("cargoType", "GENERAL"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.averageFare").isNumber())
+                .andExpect(jsonPath("$.data.sameDayThreshold").isNumber());
     }
 }

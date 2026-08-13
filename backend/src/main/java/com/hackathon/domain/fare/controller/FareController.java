@@ -26,7 +26,7 @@ public class FareController {
     public ApiResponse<FareQuoteResponse> quote(@RequestParam String originSido,
                                                 @RequestParam String destSido,
                                                 @RequestParam CargoType cargoType,
-                                                @RequestParam BigDecimal weightTon,
+                                                @RequestParam(required = false) BigDecimal weightTon,
                                                 @RequestParam(required = false) Integer desiredFare) {
         return ApiResponse.ok(fareQuoteService.quote(originSido, destSido, cargoType, weightTon, desiredFare));
     }

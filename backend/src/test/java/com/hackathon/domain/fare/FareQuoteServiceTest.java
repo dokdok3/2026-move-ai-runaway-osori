@@ -1,7 +1,6 @@
 package com.hackathon.domain.fare;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.hackathon.domain.cargo.entity.CargoType;
 import com.hackathon.domain.fare.dto.FareQuoteResponse;
@@ -27,7 +26,7 @@ class FareQuoteServiceTest {
     @DisplayName("캐시된 시세가 있으면 AI 호출 없이 verdict를 계산해 돌려준다")
     void returnsCachedQuoteWithVerdict() {
         fareQuoteRepository.save(FareQuote.create(
-                "서울특별시|부산광역시|REFRIGERATED|5.0", 720_000, 620_000, 325));
+                "서울특별시|부산광역시|REFRIGERATED", 720_000, 620_000, 325));
 
         FareQuoteResponse slow = fareQuoteService.quote(
                 "서울특별시", "부산광역시", CargoType.REFRIGERATED, new BigDecimal("5.0"), 500_000);
@@ -42,11 +41,13 @@ class FareQuoteServiceTest {
     }
 
     @Test
-    @DisplayName("캐시가 없으면 AI 미연동 TODO 예외를 던진다")
-    void throwsUnimplementedWhenCacheMiss() {
-        assertThatThrownBy(() -> fareQuoteService.quote(
-                        "제주특별자치도", "제주특별자치도", CargoType.GENERAL, new BigDecimal("1.0"), 100_000))
-                .isInstanceOf(UnsupportedOperationException.class)
-                .hasMessageContaining("TODO(AI)");
+    @DisplayName("캐시가 없어도 등록 화물 또는 기본값으로 시세를 저장해 반환한다")
+    void cachesFallbackQuoteWhenCacheMiss() {
+        FareQuoteResponse response = fareQuoteService.quote(
+                "제주특별자치도", "제주특별자치도", CargoType.GENERAL, null, 100_000);
+
+        assertThat(response.averageFare()).isPositive();
+        assertThat(response.sameDayThreshold()).isLessThanOrEqualTo(response.averageFare());
+        assertThat(fareQuoteRepository.findByQuoteKey("제주특별자치도|제주특별자치도|GENERAL")).isPresent();
     }
 }

@@ -19,7 +19,7 @@ public class FareQuote extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** originSido|destSido|cargoType|weightTon 조합. 같은 조건이면 항상 같은 캐시 값을 돌려주기 위한 키. */
+    /** originSido|destSido|cargoType 조합. 같은 조건이면 항상 같은 캐시 값을 돌려주기 위한 키. */
     @Column(unique = true, length = 150)
     private String quoteKey;
 

@@ -1,10 +1,14 @@
 package com.hackathon.domain.fare.service;
 
 import com.hackathon.domain.cargo.entity.CargoType;
+import com.hackathon.domain.cargo.entity.Cargo;
+import com.hackathon.domain.cargo.repository.CargoRepository;
 import com.hackathon.domain.fare.dto.FareQuoteResponse;
 import com.hackathon.domain.fare.entity.FareQuote;
 import com.hackathon.domain.fare.repository.FareQuoteRepository;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -15,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FareQuoteService {
 
     private final FareQuoteRepository fareQuoteRepository;
+    private final CargoRepository cargoRepository;
 
     /**
      * REQUIRES_NEW로 독립 트랜잭션을 연다 — CargoService.findDetail처럼 이미 트랜잭션이 열려있는
@@ -24,27 +29,43 @@ public class FareQuoteService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public FareQuoteResponse quote(String originSido, String destSido, CargoType cargoType,
                                    BigDecimal weightTon, Integer desiredFare) {
-        String key = quoteKey(originSido, destSido, cargoType, weightTon);
+        String key = quoteKey(originSido, destSido, cargoType);
         FareQuote quote = fareQuoteRepository.findByQuoteKey(key)
-                .orElseGet(() -> estimateAndCache(key));
+                .orElseGet(() -> estimateAndCache(key, originSido, destSido, cargoType));
         return FareQuoteResponse.of(quote, desiredFare);
     }
 
     /**
-     * TODO(AI): Claude API(structured outputs)로 구간 평균 운임(averageFare)·당일 매칭 임계 운임
-     * (sameDayThreshold)·거리(distanceKm)를 추정해 FareQuote로 저장한다.
-     * - 임계는 평균의 80~90% 수준으로 프롬프트에 명시하되, 모델이 규칙을 어길 경우를 대비해
-     *   코드에서도 Math.min(threshold, average)로 방어한다.
-     * - 같은 quoteKey면 항상 같은 값을 돌려줘야 데모 재현성이 보장되므로, 이 메서드가
-     *   캐시를 채우는 유일한 지점이어야 한다 (요청마다 새로 추정하지 않는다).
-     * - global/ai/ClaudeClient(아직 없음)를 통해 호출할 것.
+     * 같은 권역·화물유형의 등록 화물을 우선 활용해 시세 캐시를 채운다.
+     * 외부 AI 호출이 없으므로 캐시 miss가 API 장애나 토큰 비용으로 이어지지 않는다.
      */
-    private FareQuote estimateAndCache(String key) {
-        throw new UnsupportedOperationException(
-                "TODO(AI): 구간 시세 추정이 아직 연동되지 않았습니다 (quoteKey=" + key + ")");
+    private FareQuote estimateAndCache(String key, String originSido, String destSido, CargoType cargoType) {
+        List<Cargo> cargos = cargoRepository.findByOriginSidoAndDestSidoAndCargoType(
+                originSido, destSido, cargoType);
+        int averageFare = cargos.isEmpty()
+                ? fallbackFare(originSido, destSido, cargoType)
+                : cargos.stream().map(Cargo::getDesiredFare).filter(java.util.Objects::nonNull)
+                        .mapToInt(Integer::intValue).average().stream()
+                        .mapToInt(value -> (int) Math.round(value)).findFirst()
+                        .orElseGet(() -> fallbackFare(originSido, destSido, cargoType));
+        Integer distanceKm = cargos.stream().map(Cargo::getDistanceKm).filter(java.util.Objects::nonNull)
+                .mapToInt(Integer::intValue).average().stream()
+                .mapToInt(value -> (int) Math.round(value)).boxed().findFirst().orElse(null);
+        int sameDayThreshold = BigDecimal.valueOf(averageFare).multiply(new BigDecimal("0.85"))
+                .setScale(0, RoundingMode.HALF_UP).intValue();
+        return fareQuoteRepository.save(FareQuote.create(key, averageFare, sameDayThreshold, distanceKm));
     }
 
-    private String quoteKey(String originSido, String destSido, CargoType cargoType, BigDecimal weightTon) {
-        return originSido + "|" + destSido + "|" + cargoType + "|" + weightTon;
+    private int fallbackFare(String originSido, String destSido, CargoType cargoType) {
+        int baseFare = originSido.equals(destSido) ? 180_000 : 600_000;
+        return switch (cargoType) {
+            case REFRIGERATED, FROZEN -> (int) Math.round(baseFare * 1.15);
+            case HAZARDOUS -> (int) Math.round(baseFare * 1.2);
+            default -> baseFare;
+        };
+    }
+
+    private String quoteKey(String originSido, String destSido, CargoType cargoType) {
+        return originSido + "|" + destSido + "|" + cargoType;
     }
 }
