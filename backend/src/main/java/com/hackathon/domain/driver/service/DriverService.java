@@ -1,6 +1,7 @@
 package com.hackathon.domain.driver.service;
 
 import com.hackathon.domain.driver.dto.DriverResponse;
+import com.hackathon.domain.driver.dto.RegionPoint;
 import com.hackathon.domain.driver.dto.RoutePreferenceRequest;
 import com.hackathon.domain.driver.entity.Direction;
 import com.hackathon.domain.driver.entity.Driver;
@@ -21,6 +22,7 @@ public class DriverService {
 
     private final DriverRepository driverRepository;
     private final DriverRoutePreferenceRepository preferenceRepository;
+    private final DriverRouteLocationSynchronizer routeLocationSynchronizer;
 
     @Transactional(readOnly = true)
     public DriverResponse findMe(Long driverId) {
@@ -41,7 +43,16 @@ public class DriverService {
         request.destinations().forEach(p ->
                 saved.add(DriverRoutePreference.of(driverId, Direction.DESTINATION, p.sido(), p.sigungu())));
 
-        return DriverResponse.from(driver, preferenceRepository.saveAll(saved));
+        List<DriverRoutePreference> persisted = preferenceRepository.saveAll(saved);
+        preferenceRepository.flush();
+
+        // PostGIS는 기사당 대표 출발/도착 좌표 한 쌍을 사용한다. API 목록의 첫 구간을 대표값으로 삼는다.
+        RegionPoint origin = request.origins().getFirst();
+        RegionPoint destination = request.destinations().getFirst();
+        routeLocationSynchronizer.synchronize(driverId, origin.sido(), origin.sigungu(),
+                destination.sido(), destination.sigungu());
+
+        return DriverResponse.from(driver, persisted);
     }
 
     private Driver getDriver(Long driverId) {
