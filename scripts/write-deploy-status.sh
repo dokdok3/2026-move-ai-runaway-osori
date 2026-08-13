@@ -7,6 +7,13 @@ IMAGE_TAG="${3:-unknown}"
 ACTIVE_COLOR="${4:-none}"
 TARGET_COLOR="${5:-none}"
 STARTED_AT_EPOCH="${6:-$(date +%s)}"
+DEPLOY_ACTOR="${DEPLOY_ACTOR:-unknown}"
+DEPLOY_CHANGES="${DEPLOY_CHANGES:-}"
+if [[ -n "${DEPLOY_CHANGES_B64:-}" ]]; then
+  if ! DEPLOY_CHANGES="$(printf '%s' "$DEPLOY_CHANGES_B64" | base64 --decode 2>/dev/null)"; then
+    DEPLOY_CHANGES="$(printf '%s' "$DEPLOY_CHANGES_B64" | base64 -D)"
+  fi
+fi
 STATUS_DIR="${DEPLOY_STATUS_DIR:-/var/www/hackathon-deploy}"
 STATUS_FILE="$STATUS_DIR/deploy-status.json"
 
@@ -52,11 +59,28 @@ if [[ "$STATUS" == "success" || "$STATUS" == "failed" ]]; then
   completed_at="\"$updated_at\""
 fi
 
+json_escape() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  value="${value//$'\r'/\\r}"
+  value="${value//$'\n'/\\n}"
+  value="${value//$'\t'/\\t}"
+  value="${value//$'\b'/\\b}"
+  value="${value//$'\f'/\\f}"
+  printf '%s' "$value"
+}
+
+deploy_actor="$(json_escape "$DEPLOY_ACTOR")"
+deploy_changes="$(json_escape "$DEPLOY_CHANGES")"
+
 cat > "$temporary_file" <<EOF
 {
   "status": "$STATUS",
   "stage": "$STAGE",
   "imageTag": "$IMAGE_TAG",
+  "deployedBy": "$deploy_actor",
+  "changes": "$deploy_changes",
   "activeColor": "$ACTIVE_COLOR",
   "targetColor": "$TARGET_COLOR",
   "startedAt": "$started_at",

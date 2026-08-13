@@ -67,6 +67,7 @@ GitHub secrets에 저장하지 않는다. AWS 액세스 키도 필요 없다. 22
 
 호스트 Nginx가 `/deploy-status`를 직접 제공한다. 페이지는 2초마다 상태 JSON을 갱신하며 테스트,
 이미지 빌드, 신규 색상 기동, health check, Nginx 전환, 완료 또는 실패 상태와 경과 시간을 표시한다.
+GitHub Actions 실행자와 직전 성공 배포 이후 포함된 커밋 목록도 함께 표시한다.
 애플리케이션 컨테이너와 분리되어 있어 Blue/Green 전환 중에도 확인할 수 있다.
 
 ```text

@@ -25,17 +25,57 @@ jobs:
     outputs:
       image-tag: ${{ steps.image.outputs.tag }}
       started-at: ${{ steps.deployment.outputs.started-at }}
+      changes-b64: ${{ steps.deployment.outputs.changes-b64 }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - id: deployment
         name: Start deployment status
+        env:
+          DEPLOY_ACTOR: ${{ github.actor }}
         run: |
           started_at="$(date +%s)"
+          previous_image_file="$HOME/hackathon-deploy/.active-image-tag"
+          previous_image=""
+          if [[ -f "$previous_image_file" ]]; then
+            previous_image="$(<"$previous_image_file")"
+          elif [[ -f /var/www/hackathon-deploy/deploy-status.json ]] \
+            && grep -q '"status": "success"' /var/www/hackathon-deploy/deploy-status.json; then
+            previous_image="$(sed -n 's/.*"imageTag": "\([0-9a-f]\{40\}\)".*/\1/p' /var/www/hackathon-deploy/deploy-status.json | head -n 1)"
+          fi
+          if [[ "$previous_image" =~ ^[0-9a-f]{40}$ ]] && git cat-file -e "$previous_image^{commit}" 2>/dev/null; then
+            printf '%s\n' "$previous_image" > "$previous_image_file"
+            changes="$(git log --reverse --format='%h %s' "$previous_image..$GITHUB_SHA")"
+          else
+            changes="$(git log -1 --format='%h %s' "$GITHUB_SHA")"
+          fi
+          if [[ -z "$changes" ]]; then
+            changes="$(git log -1 --format='%h %s' "$GITHUB_SHA")"
+          fi
+          active_color="none"
+          active_color_file="$HOME/hackathon-deploy/.active-color"
+          if [[ -f "$active_color_file" ]]; then
+            active_color="$(<"$active_color_file")"
+          fi
+          case "$active_color" in
+            blue) target_color="green" ;;
+            green) target_color="blue" ;;
+            none) target_color="blue" ;;
+            *)
+              echo "Invalid active color: $active_color" >&2
+              exit 1
+              ;;
+          esac
           echo "started-at=$started_at" >> "$GITHUB_OUTPUT"
+          echo "active-color=$active_color" >> "$GITHUB_OUTPUT"
+          echo "target-color=$target_color" >> "$GITHUB_OUTPUT"
+          changes_b64="$(printf '%s' "$changes" | base64 | tr -d '\n')"
+          echo "changes-b64=$changes_b64" >> "$GITHUB_OUTPUT"
           sudo install -d -o "$USER" -g "$USER" -m 755 /var/www/hackathon-deploy
           install -m 644 deploy/status/index.html /var/www/hackathon-deploy/index.html
-          DEPLOY_STATUS_DIR=/var/www/hackathon-deploy \
-            scripts/write-deploy-status.sh building test unknown none none "$started_at"
+          DEPLOY_STATUS_DIR=/var/www/hackathon-deploy DEPLOY_CHANGES="$changes" \
+            scripts/write-deploy-status.sh building test unknown "$active_color" "$target_color" "$started_at"
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -53,9 +93,14 @@ jobs:
         working-directory: frontend
         run: pnpm install --frozen-lockfile --prefer-offline && pnpm lint && pnpm build
       - name: Mark image build status
+        env:
+          DEPLOY_ACTOR: ${{ github.actor }}
+          DEPLOY_CHANGES_B64: ${{ steps.deployment.outputs.changes-b64 }}
         run: |
           DEPLOY_STATUS_DIR=/var/www/hackathon-deploy \
-            scripts/write-deploy-status.sh building image-build "${GITHUB_SHA}" none none '${{ steps.deployment.outputs.started-at }}'
+            scripts/write-deploy-status.sh building image-build "${GITHUB_SHA}" \
+              '${{ steps.deployment.outputs.active-color }}' '${{ steps.deployment.outputs.target-color }}' \
+              '${{ steps.deployment.outputs.started-at }}'
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -87,14 +132,26 @@ jobs:
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
       - name: Mark images ready
+        env:
+          DEPLOY_ACTOR: ${{ github.actor }}
+          DEPLOY_CHANGES_B64: ${{ steps.deployment.outputs.changes-b64 }}
         run: |
           DEPLOY_STATUS_DIR=/var/www/hackathon-deploy \
-            scripts/write-deploy-status.sh deploying image-ready "${GITHUB_SHA}" none none '${{ steps.deployment.outputs.started-at }}'
+            scripts/write-deploy-status.sh deploying image-ready "${GITHUB_SHA}" \
+              '${{ steps.deployment.outputs.active-color }}' '${{ steps.deployment.outputs.target-color }}' \
+              '${{ steps.deployment.outputs.started-at }}'
       - name: Mark build failure
         if: failure()
+        env:
+          DEPLOY_ACTOR: ${{ github.actor }}
+          DEPLOY_CHANGES_B64: ${{ steps.deployment.outputs.changes-b64 }}
         run: |
+          active_color='${{ steps.deployment.outputs.active-color }}'
+          target_color='${{ steps.deployment.outputs.target-color }}'
+          started_at='${{ steps.deployment.outputs.started-at }}'
           DEPLOY_STATUS_DIR=/var/www/hackathon-deploy \
-            scripts/write-deploy-status.sh failed failed "${GITHUB_SHA}" none none '${{ steps.deployment.outputs.started-at }}'
+            scripts/write-deploy-status.sh failed failed "${GITHUB_SHA}" \
+              "${active_color:-none}" "${target_color:-none}" "${started_at:-$(date +%s)}"
 
   deploy:
     name: Blue-green deploy
@@ -116,11 +173,15 @@ jobs:
       - name: Authenticate to GHCR
         run: printf '%s' '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io --username '${{ github.actor }}' --password-stdin
       - name: Switch blue-green deployment
+        env:
+          DEPLOY_ACTOR: ${{ github.actor }}
+          DEPLOY_CHANGES_B64: ${{ needs.build-and-push.outputs.changes-b64 }}
+          DEPLOY_IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
+          DEPLOY_STARTED_AT: ${{ needs.build-and-push.outputs.started-at }}
         run: |
           cd "$HOME/hackathon-deploy"
           BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" \
-            DEPLOY_STARTED_AT='${{ needs.build-and-push.outputs.started-at }}' \
-            scripts/deploy-blue-green.sh '${{ needs.build-and-push.outputs.image-tag }}'
+            scripts/deploy-blue-green.sh "$DEPLOY_IMAGE_TAG"
       - name: Logout from GHCR
         if: always()
         run: docker logout ghcr.io || true

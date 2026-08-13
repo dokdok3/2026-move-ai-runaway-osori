@@ -7,13 +7,14 @@ FRONTEND_IMAGE="${FRONTEND_IMAGE:?FRONTEND_IMAGE is required}"
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="$DEPLOY_DIR/compose.prod.yaml"
 ACTIVE_COLOR_FILE="$DEPLOY_DIR/.active-color"
+ACTIVE_IMAGE_FILE="$DEPLOY_DIR/.active-image-tag"
 NGINX_TEMPLATE="$DEPLOY_DIR/deploy/nginx/hackathon.conf.template"
 DEPLOY_STARTED_AT="${DEPLOY_STARTED_AT:-$(date +%s)}"
 DEPLOY_STATUS_DIR="${DEPLOY_STATUS_DIR:-/var/www/hackathon-deploy}"
 STATUS_WRITER="$DEPLOY_DIR/scripts/write-deploy-status.sh"
 
 write_status() {
-  DEPLOY_STATUS_DIR="$DEPLOY_STATUS_DIR" \
+  DEPLOY_STATUS_DIR="$DEPLOY_STATUS_DIR" DEPLOY_ACTOR="${DEPLOY_ACTOR:-unknown}" DEPLOY_CHANGES="${DEPLOY_CHANGES:-}" \
     "$STATUS_WRITER" "$1" "$2" "$IMAGE_TAG" "${active_color:-none}" "${target_color:-none}" "$DEPLOY_STARTED_AT"
 }
 
@@ -33,7 +34,7 @@ if [[ ! -f "$DEPLOY_DIR/.env" ]]; then
   exit 1
 fi
 
-active_color="green"
+active_color="none"
 if [[ -f "$ACTIVE_COLOR_FILE" ]]; then
   active_color="$(<"$ACTIVE_COLOR_FILE")"
 fi
@@ -46,6 +47,11 @@ case "$active_color" in
     frontend_port="3002"
     ;;
   green)
+    target_color="blue"
+    backend_port="8081"
+    frontend_port="3001"
+    ;;
+  none)
     target_color="blue"
     backend_port="8081"
     frontend_port="3001"
@@ -114,8 +120,9 @@ fi
 write_status deploying switch-traffic
 sudo systemctl reload nginx
 printf '%s\n' "$target_color" > "$ACTIVE_COLOR_FILE"
+printf '%s\n' "$IMAGE_TAG" > "$ACTIVE_IMAGE_FILE"
 
-if [[ -f "$ACTIVE_COLOR_FILE" && "$active_color" != "$target_color" ]]; then
+if [[ "$active_color" != "none" && "$active_color" != "$target_color" ]]; then
   "${compose[@]}" stop "backend-$active_color" "frontend-$active_color" || true
 fi
 
