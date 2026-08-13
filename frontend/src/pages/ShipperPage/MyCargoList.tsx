@@ -19,6 +19,8 @@ export interface MyCargoListProps {
 
 type CargoFilter = 'ALL' | 'ACTIVE' | 'DONE'
 const PAGE_SIZE = 10
+/** 이전/다음 사이에 놓이는 칸 수. 숫자든 생략 기호든 항상 이만큼이라 폭이 고정된다. */
+const PAGE_SLOTS = 7
 
 const Tabs = styled.nav`
   display: flex;
@@ -192,6 +194,45 @@ const PageButton = styled.button<{ active?: boolean }>`
   }
 `
 
+const Ellipsis = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+  color: ${(props) => props.theme.color.muted};
+  font-size: 16px;
+  font-weight: 750;
+`
+
+/** 페이지 번호 자리. 'gap'은 생략 기호가 차지하는 한 칸이다. */
+type PageSlot = number | 'gap'
+
+/**
+ * 이전/다음 사이를 항상 PAGE_SLOTS칸으로 채운다. 칸 수가 고정이라 페이지네이션 폭이 변하지 않는다.
+ * 첫 페이지와 마지막 페이지는 항상 남기고, 잘리는 쪽만 'gap'이 한 칸을 먹는다.
+ */
+function pageSlots(page: number, totalPages: number): PageSlot[] {
+  if (totalPages <= PAGE_SLOTS) {
+    return Array.from({ length: totalPages }, (_, index) => index)
+  }
+
+  const last = totalPages - 1
+  const edge = PAGE_SLOTS - 4 // 앞뒤 끝에 붙었을 때 연속으로 보여줄 개수
+
+  if (page <= edge) {
+    return [...Array.from({ length: PAGE_SLOTS - 2 }, (_, index) => index), 'gap', last]
+  }
+  if (page >= last - edge) {
+    return [
+      0,
+      'gap',
+      ...Array.from({ length: PAGE_SLOTS - 2 }, (_, index) => last - (PAGE_SLOTS - 3) + index),
+    ]
+  }
+  return [0, 'gap', page - 1, page, page + 1, 'gap', last]
+}
+
 function placeName(point: ShipperCargoResponse['origin']): string {
   if (!point?.sido) return '-'
   return point.sigungu && point.sigungu !== '전체' ? `${point.sido} ${point.sigungu}` : point.sido
@@ -232,11 +273,25 @@ export function MyCargoList({
   })
   const totalPages = Math.ceil(filteredCargos.length / PAGE_SIZE)
   const visibleCargos = filteredCargos.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  const slots = pageSlots(page, totalPages)
 
   const changeFilter = (nextFilter: CargoFilter) => {
     setFilter(nextFilter)
     onPageChange(0)
   }
+
+  const renderPageButton = (index: number) => (
+    <PageButton
+      key={index}
+      type="button"
+      active={page === index}
+      aria-current={page === index ? 'page' : undefined}
+      aria-label={`${index + 1}페이지`}
+      onClick={() => onPageChange(index)}
+    >
+      {index + 1}
+    </PageButton>
+  )
 
   return (
     <>
@@ -305,18 +360,15 @@ export function MyCargoList({
               >
                 이전
               </PageButton>
-              {Array.from({ length: totalPages }, (_, index) => (
-                <PageButton
-                  key={index}
-                  type="button"
-                  active={page === index}
-                  aria-current={page === index ? 'page' : undefined}
-                  aria-label={`${index + 1}페이지`}
-                  onClick={() => onPageChange(index)}
-                >
-                  {index + 1}
-                </PageButton>
-              ))}
+              {slots.map((slot, slotIndex) =>
+                slot === 'gap' ? (
+                  <Ellipsis key={`gap-${slotIndex}`} aria-hidden="true">
+                    …
+                  </Ellipsis>
+                ) : (
+                  renderPageButton(slot)
+                ),
+              )}
               <PageButton
                 type="button"
                 disabled={page >= totalPages - 1}
